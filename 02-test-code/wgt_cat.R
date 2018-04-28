@@ -21,6 +21,7 @@ wgt_cat <- function(name, value, targ.prop) {
                        targ.prop = targ.prop))
     
     names(out) <- name
+    class(out) <- c(class(out), "wgt_cat")
     return(out)
     
 }
