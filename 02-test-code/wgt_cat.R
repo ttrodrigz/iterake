@@ -1,0 +1,27 @@
+wgt_cat <- function(name, value, targ.prop) {
+    
+    if (!is.character(name) || length(name) != 1) {
+        stop("name must be a character vector with one element.")
+    }
+    
+    if (length(value) != length(targ.prop)) {
+        stop("Must provide equal number of values and target proportions.")
+    }
+    
+    if (name == "") {
+        stop("name must be an non-empty character string.")
+    }
+    
+    if (sum(targ.prop) != 1) {
+        stop("Target proportions must sum to 1.")
+    }
+    
+    out <- list(tibble(wgt_cat = name,
+                       value = value,
+                       targ.prop = targ.prop))
+    
+    names(out) <- name
+    return(out)
+    
+}
+
