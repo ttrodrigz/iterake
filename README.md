@@ -1,14 +1,14 @@
 # iterake
 
 ## Overview
-iterake performs a procedure known as iterative raking to generate row/respondent level weights. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in your sample from a known population for a given set of variables.
+iterake performs an algorithm called iterative raking to generate row/respondent level weights for a sample of data. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in your sample from a known population for a given set of variables.
 
 Three workhorse functions are inluded to help at every stage of the data weighting process:
 * `pre_weight()` compares the unweighted data to the population model.
 * `iterake()` performs the iterative raking.
 * `post_weight()` evaluates the effects of the weighting model.
 
-This package was built to play nicely with the [tidyverse](https://www.tidyverse.org/), so the API should feel somewhat familiar to the user of tidy tools.
+This package was built to play nicely with the [tidyverse](https://www.tidyverse.org/), so the API should feel somewhat familiar to users of tidy tools.
 
 ## Installation
 ```
