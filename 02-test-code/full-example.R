@@ -4,6 +4,7 @@ library(crayon)
 source("./02-test-code/pop_model.r")
 source("./02-test-code/wgt_cat.r")
 source("./02-test-code/iterake.r")
+source("./01-idea-code/post_rake.r")
 
 fake <- read_rds("./data/test_data.rds")
 mod <- pop_model(
