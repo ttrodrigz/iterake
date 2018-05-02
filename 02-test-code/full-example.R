@@ -1,8 +1,10 @@
+library(magrittr)
 library(tidyverse)
 library(crayon)
 
 source("./02-test-code/pop_model.r")
 source("./02-test-code/wgt_cat.r")
+source("./01-idea-code/pre_rake.r")
 source("./02-test-code/iterake.r")
 source("./01-idea-code/post_rake.r")
 
@@ -12,19 +14,28 @@ mod <- pop_model(
     # age category
     wgt_cat(name = "age",
             value = c("18-34", "35-54", "55+"),
-            targ.prop = c(0.320, 0.350, 0.330)),
+            targ.prop = c(0.300, 0.360, 0.340)),
     
     # gender category
     wgt_cat(name = "gender",
             value = c("Female", "Male"),
-            targ.prop = c(0.54, 0.46)),
+            targ.prop = c(0.500, 0.500)),
     
     # vehicle category
     wgt_cat(name = "vehicle",
             value = c("Car", "SUV", "Truck"),
-            targ.prop = c(0.380, 0.470, 0.150))
+            targ.prop = c(0.400, 0.450, 0.150))
     
 )
+
+pre_rake(data = fake, pop.model = mod, deviance = 0.02)
+iterake(fake, id, mod, wgt.lim = 4)
+
+fake %T>%
+    pre_rake(mod) %>%
+    iterake(id, mod) %>%
+    right_join(fake) %>%
+    post_rake(weight, mod)
 
 # checking iterake
 

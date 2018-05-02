@@ -25,11 +25,10 @@ pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05) {
         by = c("wgt_cat", "value")) %>%
         
         mutate(dev = targ.prop - uwgt.prop,
-               dev.flag = ifelse(dev < deviance, 1, 0),
+               dev.flag = ifelse(abs(dev) < deviance, 1, 0),
                size.flag = ifelse(targ.prop < min.size, 1, 0))
     
     # some ratio of bins vs sample size?
     
 }
 
-pre_rake(fake, mod)
