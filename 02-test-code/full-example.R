@@ -29,12 +29,12 @@ mod <- pop_model(
 )
 
 pre_rake(data = fake, pop.model = mod, deviance = 0.02)
-iterake(fake, id, mod, wgt.lim = 4)
+raked <- iterake(fake, id, mod, wgt.lim = 4)
+no_console <- post_rake(raked, weight, mod, print = FALSE)
 
 fake %T>%
     pre_rake(mod) %>%
-    iterake(id, mod) %>%
-    right_join(fake) %>%
+    iterake(id, mod) %T>%
     post_rake(weight, mod)
 
 # checking iterake
@@ -80,6 +80,8 @@ iterake(data = fake, pop.model = mod, id = id,
 
 # will succeed
 wgts <- iterake(fake, id, mod, wgt.lim = 3)
+
+wgts_only <- iterake(fake, id, mod, wgt.lim = 3, join.weights = FALSE)
 
 comb <- fake %>% left_join(wgts, by = "id")
 

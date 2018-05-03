@@ -1,4 +1,4 @@
-post_rake <- function(data, weight, pop.model) {
+post_rake <- function(data, weight, pop.model, print.console = TRUE) {
     
     # setting up data
     weight <- enquo(weight)
@@ -84,8 +84,15 @@ post_rake <- function(data, weight, pop.model) {
     
     print(wgt_dist)
     print(wgt_uwgt_chart)
+
+    output <- list(pre.post = wgt_table,
+                   diagnostics = check_table)
     
-    list(pre.post = wgt_table,
-         diagnostics = check_table)
+    if (print.console) {
+        print(wgt_table)
+        print(check_table)
+    } else {
+        output
+    }
     
 }

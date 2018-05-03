@@ -1,4 +1,4 @@
-iterake <- function(data, id, pop.model, wgt.name = "weight",
+iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRUE,
                     wgt.lim = 3, threshold = 1e-10, max.iter = 50) {
     
     # step 1) setup + error checking ----
@@ -208,10 +208,17 @@ iterake <- function(data, id, pop.model, wgt.name = "weight",
     } else {
         
         # clean df to output
-        out <- to_weight %>%
-            select(!! id, wgt) %>%
-            arrange(!! id) %>%
-            as_tibble()
+        if (join.weights) {
+            out <- to_weight %>%
+                select(!! id, wgt, everything()) %>%
+                arrange(!! id) %>%
+                as_tibble()
+        } else {
+            out <- to_weight %>%
+                select(!! id, wgt) %>%
+                arrange(!! id) %>%
+                as_tibble()
+        }
         
         # calculate stats
         wgt <- out$wgt

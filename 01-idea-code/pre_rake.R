@@ -1,4 +1,4 @@
-pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05) {
+pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05, print.console = TRUE) {
     
     # this function should...
     
@@ -8,7 +8,7 @@ pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05) {
         ## % of sample in each group
         ## deviation from pop and uwgt
     
-    left_join(
+    output <- left_join(
         data %>%
             select(one_of(pop.model$wgt_cat)) %>%
             gather(wgt_cat, value) %>%
@@ -28,7 +28,12 @@ pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05) {
                dev.flag = ifelse(abs(dev) < deviance, 1, 0),
                size.flag = ifelse(targ.prop < min.size, 1, 0))
     
-    # some ratio of bins vs sample size?
+    if (print.console) {
+        print(output)
+    } else {
+        output    
+    }
     
+    # some ratio of bins vs sample size?
 }
 
