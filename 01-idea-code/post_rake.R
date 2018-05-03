@@ -1,4 +1,4 @@
-post_rake <- function(data, weight, pop.model, print.console = TRUE) {
+post_rake <- function(data, weight, pop.model, store = FALSE) {
     
     # setting up data
     weight <- enquo(weight)
@@ -88,11 +88,13 @@ post_rake <- function(data, weight, pop.model, print.console = TRUE) {
     output <- list(pre.post = wgt_table,
                    diagnostics = check_table)
     
-    if (print.console) {
+    if (store) {
+        output
+    } else {
+        cat('-- ' %+% bold('post-rake diagnostics') %+% ' ---------------\n')
         print(wgt_table)
         print(check_table)
-    } else {
-        output
+        data
     }
     
 }

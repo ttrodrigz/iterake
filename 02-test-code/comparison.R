@@ -61,7 +61,31 @@ max(abs(diff))
 min(abs(diff))
 
 # some piping tests
-test <- fake %T>%
+test <- fake %>%
     pre_rake(mod) %>%
-    iterake(id, mod) %T>%
+    iterake(id, mod) %>%
     post_rake(weight, mod)
+
+# testing w/ numeric data
+mod2 <- pop_model(
+    
+    # age category
+    wgt_cat(name = "age",
+            value = c(1, 2, 3),
+            targ.prop = c(0.300, 0.360, 0.340)),
+    
+    # gender category
+    wgt_cat(name = "gender",
+            value = c(1, 2),
+            targ.prop = c(0.500, 0.500)),
+    
+    # vehicle category
+    wgt_cat(name = "vehicle",
+            value = c(1, 2, 3),
+            targ.prop = c(0.400, 0.450, 0.150))
+    
+)
+
+pre_rake(data = fakempace, pop.model = mod2, deviance = 0.02)
+weights2 <- iterake(fakempace, id, mod2, threshold = 1e-15)
+

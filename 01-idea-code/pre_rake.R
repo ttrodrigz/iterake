@@ -1,4 +1,4 @@
-pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05, print.console = TRUE) {
+pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05, store = FALSE) {
     
     # this function should...
     
@@ -28,10 +28,12 @@ pre_rake <- function(data, pop.model, deviance = .02, min.size = 0.05, print.con
                dev.flag = ifelse(abs(dev) < deviance, 1, 0),
                size.flag = ifelse(targ.prop < min.size, 1, 0))
     
-    if (print.console) {
-        print(output)
+    if (store) {
+        output
     } else {
-        output    
+        cat('-- ' %+% bold('pre-rake diagnostics') %+% ' ----------------\n')
+        print(output)
+        invisible(data)
     }
     
     # some ratio of bins vs sample size?
