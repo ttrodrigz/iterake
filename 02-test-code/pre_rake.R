@@ -1,4 +1,4 @@
-pre_rake <- function(data, pop.model, store = FALSE) {
+pre_rake <- function(data, pop.model) {
     
     # this function should...
     
@@ -15,7 +15,7 @@ pre_rake <- function(data, pop.model, store = FALSE) {
             group_by(wgt_cat, value) %>%
             summarise(n = n()) %>%
             group_by(wgt_cat) %>%
-            mutate(uwgt.prop = n / sum(n)) %>%
+            mutate(uwgt_prop = n / sum(n)) %>%
             ungroup(),
         
         pop.model %>%
@@ -24,20 +24,20 @@ pre_rake <- function(data, pop.model, store = FALSE) {
         
         by = c("wgt_cat", "value")) %>%
         
-        mutate(diff = targ.prop - uwgt.prop)
+        mutate(diff = targ_prop - uwgt_prop)
     print(
         output %>%
             ggplot(aes(x = value)) +
-            geom_errorbar(aes(ymin = targ.prop,
-                              ymax = targ.prop),
+            geom_errorbar(aes(ymin = targ_prop,
+                              ymax = targ_prop),
                           lty = "longdash",
                           color = "#4b4b4b") +
-            geom_point(aes(y = uwgt.prop),
+            geom_point(aes(y = uwgt_prop),
                        size = 3,
                        color = "#d10000") +
             scale_y_continuous(breaks = pretty,
-                               limits = c(0, max(output$uwgt.prop, 
-                                                 output$targ.prop))) +
+                               limits = c(0, max(output$uwgt_prop, 
+                                                 output$targ_prop))) +
             facet_wrap(~wgt_cat, scales = "free_y") +
             labs(x = NULL, y = "Proportion",
                  color = NULL) +
@@ -49,20 +49,17 @@ pre_rake <- function(data, pop.model, store = FALSE) {
                   legend.position = "bottom")
     )
     
-    if (store) {
-        output
-    } else {
-        title1 <- 'pre-rake deviation'
-        num.dashes <- nchar(title1) + 4
-        rem.dashes <- 80 - num.dashes
-        cat('\n-- ' %+% 
-                bold(title1) %+% 
-                ' ' %+%
-                paste(rep('-', times = rem.dashes), collapse = "") %+%
-                '\n')
-        print.data.frame(output, row.names = FALSE)
-        invisible(data)
-    }
+    # print to screen - invisible output object
+    title1 <- 'pre-rake deviation'
+    num_dashes <- nchar(title1) + 4
+    rem_dashes <- 80 - num_dashes
+    cat('\n-- ' %+% 
+            bold(title1) %+% 
+            ' ' %+%
+            paste(rep('-', times = rem_dashes), collapse = "") %+%
+            '\n')
+    print.data.frame(output, row.names = FALSE)
+    invisible(output)
     
     # some ratio of bins vs sample size?
 }

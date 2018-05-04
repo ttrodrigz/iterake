@@ -29,31 +29,7 @@ mod <- pop_model(
 )
 
 raked <- iterake(fake, id, mod, wgt.lim = 4)
-no_console <- post_rake(raked, weight, mod, store = TRUE)
-
-# store pre_rake results
-test <- fake %>%
-    pre_rake(mod, store = TRUE)
-
-# show pre_rake results
-test <- fake %>%
-    pre_rake(mod)
-
-# show pre_rake and keep data + iterake weights
-test <- fake %>%
-    pre_rake(mod) %>%
-    iterake(id, mod)
-
-# show pre_rake and keep only id and weights
-test <- fake %>%
-    pre_rake(mod) %>%
-    iterake(id, mod, join.weights = FALSE)
-
-# show pre and post rake, keep all data
-test <- fake %>%
-    pre_rake(mod) %>%
-    iterake(id, mod, max.iter = 100) %>%
-    post_rake(weight, mod, store = TRUE)
+post_rake_details <- post_rake(raked, weight, mod)
 
 # checking iterake
 

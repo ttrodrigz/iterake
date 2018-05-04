@@ -22,7 +22,7 @@ wgt_cat <- function(name, value, targ.prop, sum.1 = FALSE) {
     
     out <- list(tibble(wgt_cat = name,
                        value = value,
-                       targ.prop = targ.prop))
+                       targ_prop = targ.prop))
     
     names(out) <- name
     class(out) <- c(class(out), "wgt_cat")

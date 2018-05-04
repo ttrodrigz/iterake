@@ -62,10 +62,10 @@ max(abs(diff))
 min(abs(diff))
 
 # some piping tests
-test <- fake %>%
-    pre_rake(mod) %>%
-    iterake(id, mod) %>%
-    post_rake(weight, mod)
+# test <- fake %>%
+#     pre_rake(mod) %>%
+#     iterake(id, mod) %>%
+#     post_rake(weight, mod)
 
 # testing w/ numeric data
 mod2 <- pop_model(

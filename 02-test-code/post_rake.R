@@ -1,4 +1,4 @@
-post_rake <- function(data, weight, pop.model, store = FALSE) {
+post_rake <- function(data, weight, pop.model) {
     
     # setting up data
     weight <- enquo(weight)
@@ -11,16 +11,16 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
     # unweighted
     uwgt <- use_data %>%
         group_by(wgt_cat, value) %>%
-        summarise(uwgt.n = n()) %>%
+        summarise(uwgt_n = n()) %>%
         group_by(wgt_cat) %>%
-        mutate(uwgt.prop = uwgt.n / sum(uwgt.n)) %>%
+        mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
         ungroup()
     
     # weighted
     wgt <- use_data %>%
         group_by(wgt_cat, value) %>%
-        summarise(wgt.n = sum(!! weight),
-                  wgt.prop = sum(!! weight) / (nrow(.) / num_cats)) %>%
+        summarise(wgt_n = sum(!! weight),
+                  wgt_prop = sum(!! weight) / (nrow(.) / num_cats)) %>%
         ungroup()
     
     # join final output
@@ -29,8 +29,8 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
         left_join(pop.model %>%
                       unnest(data),
                   by = c("wgt_cat", "value")) %>%
-        select(wgt_cat, value, uwgt.n, wgt.n, uwgt.prop, wgt.prop, targ.prop) %>%
-        mutate(wgt.diff = targ.prop - wgt.prop)
+        select(wgt_cat, value, uwgt_n, wgt_n, uwgt_prop, wgt_prop, targ_prop) %>%
+        mutate(wgt_diff = targ_prop - wgt_prop)
     
     wgt <- data %>% pull(!! weight)
     n <- nrow(data)
@@ -50,14 +50,14 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
     # weighted vs unweighted chart
     wgt_uwgt_chart_data <- wgt_table %>%
         group_by(wgt_cat) %>%
-        gather(wgt_type, wgt_val, -c(wgt_cat:wgt.n, targ.prop, wgt.diff)) %>%
-        mutate(wgt_type = gsub("uwgt.prop", "Unweighted", wgt_type),
-               wgt_type = gsub("wgt.prop", "Weighted", wgt_type))
+        gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, wgt_diff)) %>%
+        mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
+               wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
     
     wgt_uwgt_chart <- wgt_uwgt_chart_data %>%
         ggplot(aes(x = value)) +
-        geom_errorbar(aes(ymin = targ.prop,
-                          ymax = targ.prop),
+        geom_errorbar(aes(ymin = targ_prop,
+                          ymax = targ_prop),
                       lty = "longdash",
                       color = "#4b4b4b") +
         geom_point(aes(y = wgt_val,
@@ -95,25 +95,24 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
     print(wgt_dist)
     print(wgt_uwgt_chart)
 
-    output <- list(pre.post = wgt_table,
-                   diagnostics = check_table)
+    output <- list(deviance = wgt_table,
+                   effects = check_table)
+
+    # print summary to screen - invisible output object
+    title1 <- 'iterake summary'
+    num_dashes <- nchar(title1) + 4
+    rem_dashes <- 80 - num_dashes
     
-    if (store) {
-        output
-    } else {
-        title1 <- 'iterake summary'
-        num.dashes <- nchar(title1) + 4
-        rem.dashes <- 80 - num.dashes
-        
-        cat('\n-- ' %+% 
-                bold(title1) %+% 
-                ' ' %+%
-                paste(rep('-', times = rem.dashes), collapse = "") %+%
-                '\n')
-        print.data.frame(wgt_table, row.names = FALSE)
-        cat("---------------------------------------------\n")
-        print.data.frame(check_table, row.names = FALSE)
-        invisible(data)
-    }
-    
+    cat('\n-- ' %+% 
+            bold(title1) %+% 
+            ' ' %+%
+            paste(rep('-', times = rem_dashes), collapse = "") %+%
+            '\n')
+    cat('deviance\n')
+    print.data.frame(wgt_table, row.names = FALSE)
+    cat('\n\n')
+    cat('effects\n')
+    print.data.frame(check_table, row.names = FALSE)
+    invisible(output)
+
 }

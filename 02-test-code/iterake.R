@@ -125,13 +125,13 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
                       to_weight %>% 
                           mutate(count = sum(!is.na(get(pop.model$wgt_cat[[i]])))) %>%
                           group_by(get(pop.model$wgt_cat[[i]])) %>%
-                          summarise(act.prop = sum(wgt * !is.na(get(pop.model$wgt_cat[[i]]))) / mean(count)) %>%
-                          set_names("value", "act.prop"),
+                          summarise(act_prop = sum(wgt * !is.na(get(pop.model$wgt_cat[[i]]))) / mean(count)) %>%
+                          set_names("value", "act_prop"),
                       
                       by = "value") %>%
                     
                     # calculate weight needed based on targ and actual proportions
-                    mutate(wgt_temp = ifelse(act.prop == 0, 0, targ.prop / act.prop)) %>%
+                    mutate(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)) %>%
                     
                     # only keep variable value and weight
                     select(value, wgt_temp),
@@ -175,13 +175,13 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
                           to_weight %>% 
                               mutate(count = sum(!is.na(get(pop.model$wgt_cat[[i]])))) %>%
                               group_by(get(pop.model$wgt_cat[[i]])) %>%
-                              summarise(act.prop = sum(wgt * !is.na(get(pop.model$wgt_cat[[i]]))) / mean(count)) %>%
-                              set_names("value", "act.prop"),
+                              summarise(act_prop = sum(wgt * !is.na(get(pop.model$wgt_cat[[i]]))) / mean(count)) %>%
+                              set_names("value", "act_prop"),
                           
                           by = "value") %>%
                         
                         # calculate diff between targ and actual
-                        mutate(prop_diff = abs(targ.prop - act.prop)) %>%
+                        mutate(prop_diff = abs(targ_prop - act_prop)) %>%
                         
                         # pull for sum
                         pull(prop_diff))
@@ -197,13 +197,13 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         out <- NULL
         
         title1 <- 'iterake summary'
-        num.dashes <- nchar(title1) + 4
-        rem.dashes <- 80 - num.dashes
+        num_dashes <- nchar(title1) + 4
+        rem_dashes <- 80 - num_dashes
         
         cat('\n-- ' %+% 
                 bold(title1) %+% 
                 ' ' %+%
-                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                paste(rep('-', times = rem_dashes), collapse = "") %+%
                 '\n')
         cat(' Convergence: ' %+% red('Failed '%+% '\U2718') %+% '\n')
         cat('  Iterations: ' %+% red(max.iter) %+% '\n\n')
@@ -242,13 +242,13 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         # output message
         out_good <- green $ bold
         title1 <- 'iterake summary'
-        num.dashes <- nchar(title1) + 4
-        rem.dashes <- 80 - num.dashes
+        num_dashes <- nchar(title1) + 4
+        rem_dashes <- 80 - num_dashes
         
         cat('\n-- ' %+% 
                 bold(title1) %+% 
                 ' ' %+%
-                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                paste(rep('-', times = rem_dashes), collapse = "") %+%
                 '\n')
         cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')
         cat('  Iterations: ' %+% green(count) %+% '\n\n')
