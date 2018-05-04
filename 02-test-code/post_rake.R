@@ -101,7 +101,15 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
     if (store) {
         output
     } else {
-        cat('\n-- ' %+% bold('post-rake deviation') %+% ' ----------------------\n')
+        title1 <- 'iterake summary'
+        num.dashes <- nchar(title1) + 4
+        rem.dashes <- 80 - num.dashes
+        
+        cat('\n-- ' %+% 
+                bold(title1) %+% 
+                ' ' %+%
+                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                '\n')
         print.data.frame(wgt_table, row.names = FALSE)
         cat("---------------------------------------------\n")
         print.data.frame(check_table, row.names = FALSE)

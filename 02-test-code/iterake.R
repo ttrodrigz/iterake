@@ -196,7 +196,15 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         out_bad <- red $ bold
         out <- NULL
         
-        cat('\n-- ' %+% bold('iterake diagnostics') %+% ' -----------------\n')
+        title1 <- 'iterake summary'
+        num.dashes <- nchar(title1) + 4
+        rem.dashes <- 80 - num.dashes
+        
+        cat('\n-- ' %+% 
+                bold(title1) %+% 
+                ' ' %+%
+                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                '\n')
         cat(' Convergence: ' %+% red('Failed '%+% '\U2718') %+% '\n')
         cat('  Iterations: ' %+% red(max.iter) %+% '\n\n')
         cat('Unweighted N: ' %+% red(n) %+% '\n')
@@ -233,7 +241,15 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         
         # output message
         out_good <- green $ bold
-        cat('\n-- ' %+% bold('iterake summary') %+% ' --------------------------\n')
+        title1 <- 'iterake summary'
+        num.dashes <- nchar(title1) + 4
+        rem.dashes <- 80 - num.dashes
+        
+        cat('\n-- ' %+% 
+                bold(title1) %+% 
+                ' ' %+%
+                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                '\n')
         cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')
         cat('  Iterations: ' %+% green(count) %+% '\n\n')
         cat('Unweighted N: ' %+% green(n) %+% '\n')

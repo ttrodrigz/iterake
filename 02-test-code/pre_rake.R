@@ -52,7 +52,14 @@ pre_rake <- function(data, pop.model, store = FALSE) {
     if (store) {
         output
     } else {
-        cat('\n-- ' %+% bold('pre-rake deviation') %+% ' -----------------------\n')
+        title1 <- 'pre-rake deviation'
+        num.dashes <- nchar(title1) + 4
+        rem.dashes <- 80 - num.dashes
+        cat('\n-- ' %+% 
+                bold(title1) %+% 
+                ' ' %+%
+                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                '\n')
         print.data.frame(output, row.names = FALSE)
         invisible(data)
     }

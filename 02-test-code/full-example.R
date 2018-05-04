@@ -52,8 +52,8 @@ test <- fake %>%
 # show pre and post rake, keep all data
 test <- fake %>%
     pre_rake(mod) %>%
-    iterake(id, mod) %>%
-    post_rake(weight, mod)
+    iterake(id, mod, max.iter = 100) %>%
+    post_rake(weight, mod, store = TRUE)
 
 # checking iterake
 
