@@ -29,7 +29,8 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
         left_join(pop.model %>%
                       unnest(data),
                   by = c("wgt_cat", "value")) %>%
-        select(wgt_cat, value, uwgt.n, wgt.n, uwgt.prop, wgt.prop, targ.prop)
+        select(wgt_cat, value, uwgt.n, wgt.n, uwgt.prop, wgt.prop, targ.prop) %>%
+        mutate(wgt.diff = targ.prop - wgt.prop)
     
     wgt <- data %>% pull(!! weight)
     n <- nrow(data)
@@ -47,39 +48,47 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
     )
     
     # weighted vs unweighted chart
-    wgt_uwgt_chart <- wgt_table %>%
+    wgt_uwgt_chart_data <- wgt_table %>%
         group_by(wgt_cat) %>%
-        gather(wgt_type, wgt_val, -c(wgt_cat:wgt.n, targ.prop)) %>%
+        gather(wgt_type, wgt_val, -c(wgt_cat:wgt.n, targ.prop, wgt.diff)) %>%
         mutate(wgt_type = gsub("uwgt.prop", "Unweighted", wgt_type),
-               wgt_type = gsub("wgt.prop", "Weighted", wgt_type)) %>%
+               wgt_type = gsub("wgt.prop", "Weighted", wgt_type))
+    
+    wgt_uwgt_chart <- wgt_uwgt_chart_data %>%
         ggplot(aes(x = value)) +
         geom_errorbar(aes(ymin = targ.prop,
                           ymax = targ.prop),
-                      lty = "longdash") +
+                      lty = "longdash",
+                      color = "#4b4b4b") +
         geom_point(aes(y = wgt_val,
                        color = wgt_type),
                    size = 3) +
-        scale_color_manual(values = c("Unweighted" = "#4b4b4b", 
-                                      "Weighted" = "#63A5DA")) +
-        scale_y_continuous(breaks = pretty) +
-        facet_wrap(~wgt_cat, scales = "free_x") +
+        scale_color_manual(values = c("Unweighted" = "#d10000", 
+                                      "Weighted" = "#006fd1")) +
+        scale_y_continuous(breaks = pretty,
+                           limits = c(0, max(wgt_uwgt_chart_data$wgt_val))) +
+        facet_wrap(~wgt_cat, scales = "free_y") +
         labs(x = NULL, y = "Proportion",
              color = NULL) +
-        ggtitle("Sample proportions vs. population (pre/post weighting)") +
-        theme_bw()
+        ggtitle("Sample's deviation from population model (unweighted/weighted)",
+                "Dashed line = target proportion in population model") +
+        theme_bw() +
+        theme(strip.background = element_rect(fill = "#fff6b5")) +
+        coord_flip()
+    
     
     # weight distribution
     wgt_dist <- data %>%
         ggplot(aes_string(x = quo_name(weight))) +
-        geom_density(color = NA,
-                     fill = "#63A5DA",
-                     alpha = 0.5) +
+        geom_histogram(color = NA,
+                     fill = "#006fd1",
+                     alpha = 0.2) +
         scale_y_continuous(expand = c(0, 0),
                            breaks = pretty) +
         scale_x_continuous(breaks = pretty) +
         ggtitle("Distribution of weight factors") +
         labs(x = "Weight factor",
-             y = "Density") +
+             y = "Count") +
         theme_bw()
     
     print(wgt_dist)
@@ -91,7 +100,7 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
     if (store) {
         output
     } else {
-        cat('-- ' %+% bold('post-rake diagnostics') %+% ' ---------------\n')
+        cat('\n-- ' %+% bold('post-rake deviation') %+% ' ----------------------\n')
         print(wgt_table)
         print(check_table)
         data

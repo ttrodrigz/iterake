@@ -1,5 +1,5 @@
 iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRUE,
-                    wgt.lim = 3, threshold = 1e-10, max.iter = 50) {
+                    wgt.lim = 3, threshold = 1e-20, max.iter = 50) {
     
     # step 1) setup + error checking ----
     
@@ -196,7 +196,7 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         out_bad <- red $ bold
         out <- NULL
         
-        cat('-- ' %+% bold('iterake diagnostics') %+% ' -----------------\n')
+        cat('\n-- ' %+% bold('iterake diagnostics') %+% ' -----------------\n')
         cat(' Convergence: ' %+% red('Failed '%+% '\U2718') %+% '\n')
         cat('  Iterations: ' %+% red(max.iter) %+% '\n\n')
         cat('Unweighted N: ' %+% red(n) %+% '\n')
@@ -233,14 +233,14 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         
         # output message
         out_good <- green $ bold
-        cat('-- ' %+% bold('iterake diagnostics') %+% ' -----------------\n')
+        cat('\n-- ' %+% bold('iterake summary') %+% ' --------------------------\n')
         cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')
         cat('  Iterations: ' %+% green(count) %+% '\n\n')
         cat('Unweighted N: ' %+% green(n) %+% '\n')
         cat(' Effective N: ' %+% green(round(neff, 2)) %+% '\n')
         cat('  Weighted N: ' %+% green(wgt_n) %+% '\n')
         cat('  Efficiency: ' %+% green(scales::percent(round(efficiency, 4))) %+% '\n')
-        cat('        Loss: ' %+% green(loss) %+% '\n')
+        cat('        Loss: ' %+% green(loss) %+% '\n\n')
         
         return(out)
         
