@@ -196,7 +196,7 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         out_bad <- red $ bold
         out <- NULL
         
-        title1 <- 'iterake summary'
+        title1 <- 'iterake summary & effects'
         num_dashes <- nchar(title1) + 4
         rem_dashes <- 80 - num_dashes
         
@@ -241,7 +241,7 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
         
         # output message
         out_good <- green $ bold
-        title1 <- 'iterake summary'
+        title1 <- 'iterake summary & effects'
         num_dashes <- nchar(title1) + 4
         rem_dashes <- 80 - num_dashes
         

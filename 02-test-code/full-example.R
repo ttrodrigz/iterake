@@ -28,6 +28,10 @@ mod <- pop_model(
     
 )
 
+pre_rake(fake, mod)
+wgt <- iterake(fake, id, mod)
+post_rake(wgt, weight, mod)
+
 raked <- iterake(fake, id, mod, wgt.lim = 4)
 post_rake_details <- post_rake(raked, weight, mod)
 

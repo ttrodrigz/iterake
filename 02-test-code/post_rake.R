@@ -99,20 +99,30 @@ post_rake <- function(data, weight, pop.model) {
                    effects = check_table)
 
     # print summary to screen - invisible output object
-    title1 <- 'iterake summary'
-    num_dashes <- nchar(title1) + 4
-    rem_dashes <- 80 - num_dashes
+    title1 <- 'post-rake deviance'
+    num_dashes1 <- nchar(title1) + 4
+    rem_dashes1 <- 80 - num_dashes1
+    
+    title2 <- 'post-rake effects'
+    num_dashes2 <- nchar(title2) + 4
+    rem_dashes2 <- 80 - num_dashes2
     
     cat('\n-- ' %+% 
             bold(title1) %+% 
             ' ' %+%
-            paste(rep('-', times = rem_dashes), collapse = "") %+%
+            paste(rep('-', times = rem_dashes1), collapse = "") %+%
             '\n')
-    cat('deviance\n')
     print.data.frame(wgt_table, row.names = FALSE)
-    cat('\n\n')
-    cat('effects\n')
-    print.data.frame(check_table, row.names = FALSE)
+    cat('\n-- ' %+% 
+            bold(title2) %+% 
+            ' ' %+%
+            paste(rep('-', times = rem_dashes2), collapse = "") %+%
+            '\n')
+    cat('Unweighted N: ' %+% paste0(n, '\n'))
+    cat(' Effective N: ' %+% paste0(round(neff, 2), '\n'))
+    cat('  Weighted N: ' %+% paste0(wgt_n, '\n'))
+    cat('  Efficiency: ' %+% paste0(scales::percent(round(efficiency, 4)), '\n'))
+    cat('        Loss: ' %+% paste0(round(loss, 3), '\n\n') )
     invisible(output)
 
 }
