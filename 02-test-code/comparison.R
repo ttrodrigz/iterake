@@ -3,11 +3,11 @@ library(tidyverse)
 library(crayon)
 library(mpace)
 
-source("./02-test-code/pop_model.r")
-source("./02-test-code/wgt_cat.r")
-source("./01-idea-code/pre_rake.r")
+source("./03-approved-code/pop_model.r")
+source("./03-approved-code/wgt_cat.r")
+source("./02-test-code/pre_rake.r")
 source("./02-test-code/iterake.r")
-source("./01-idea-code/post_rake.r")
+source("./02-test-code/post_rake.r")
 
 # Testing iterake vs. mpace/anesrake
 
@@ -34,8 +34,9 @@ mod <- pop_model(
     
 )
 
-pre_rake(data = fake, pop.model = mod, deviance = 0.02)
+pre_rake(data = fake, pop.model = mod)
 weights <- iterake(fake, id, mod, threshold = 1e-15)
+post_rake(weights, weight, mod)
 
 # set up things using mpace/anesrake
 # recode to be all numeric
@@ -86,6 +87,6 @@ mod2 <- pop_model(
     
 )
 
-pre_rake(data = fakempace, pop.model = mod2, deviance = 0.02)
+pre_rake(data = fakempace, pop.model = mod2)
 weights2 <- iterake(fakempace, id, mod2, threshold = 1e-15)
 

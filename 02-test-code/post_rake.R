@@ -82,7 +82,8 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
         ggplot(aes_string(x = quo_name(weight))) +
         geom_histogram(color = NA,
                      fill = "#006fd1",
-                     alpha = 0.2) +
+                     alpha = 0.2,
+                     bins = prod(count(wgt_table, wgt_cat)$n)) +
         scale_y_continuous(expand = c(0, 0),
                            breaks = pretty) +
         scale_x_continuous(breaks = pretty) +
@@ -101,9 +102,10 @@ post_rake <- function(data, weight, pop.model, store = FALSE) {
         output
     } else {
         cat('\n-- ' %+% bold('post-rake deviation') %+% ' ----------------------\n')
-        print(wgt_table)
-        print(check_table)
-        data
+        print.data.frame(wgt_table, row.names = FALSE)
+        cat("---------------------------------------------\n")
+        print.data.frame(check_table, row.names = FALSE)
+        invisible(data)
     }
     
 }

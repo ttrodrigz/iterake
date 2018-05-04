@@ -53,8 +53,7 @@ pre_rake <- function(data, pop.model, store = FALSE) {
         output
     } else {
         cat('\n-- ' %+% bold('pre-rake deviation') %+% ' -----------------------\n')
-        
-        print(output)
+        print.data.frame(output, row.names = FALSE)
         invisible(data)
     }
     
