@@ -93,6 +93,9 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
             select(!! id, one_of(wgt_cats), wgt)
         
     }
+
+    # do some NA checks and adjust targets as needed
+    pop.model <- missing_data_adjustment(to_weight, pop.model)
     
     # data is now ready for weighting !!
     
@@ -123,9 +126,8 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
                 # with a merge of target proportion data
                 merge(pop.model$data[[i]], 
                       to_weight %>% 
-                          mutate(count = sum(!is.na(get(pop.model$wgt_cat[[i]])))) %>%
                           group_by(get(pop.model$wgt_cat[[i]])) %>%
-                          summarise(act_prop = sum(wgt * !is.na(get(pop.model$wgt_cat[[i]]))) / mean(count)) %>%
+                          summarise(act_prop = sum(wgt) / nrow(.)) %>%
                           set_names("value", "act_prop"),
                       
                       by = "value") %>%
@@ -140,11 +142,8 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
                 by.y = "value",
                 all = TRUE) %>%
                 
-                # and then recode any NA wgt_temps as 1s - only done with NA data
-                mutate(wgt_temp = ifelse(is.na(wgt_temp), 1, wgt_temp),
-                       
-                       # and then multiply the merged wgt_temp by orig weight
-                       wgt = wgt * wgt_temp,
+                # and then multiply the merged wgt_temp by orig weight
+                mutate(wgt = wgt * wgt_temp,
                        
                        # and force them to be no larger than wgt.lim, no smaller than 1/wgt.lim
                        wgt = ifelse(wgt >= wgt.lim, wgt.lim, wgt)) %>%
@@ -173,9 +172,8 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
                           
                           # and current weighted proportions data
                           to_weight %>% 
-                              mutate(count = sum(!is.na(get(pop.model$wgt_cat[[i]])))) %>%
                               group_by(get(pop.model$wgt_cat[[i]])) %>%
-                              summarise(act_prop = sum(wgt * !is.na(get(pop.model$wgt_cat[[i]]))) / mean(count)) %>%
+                              summarise(act_prop = sum(wgt) / nrow(.)) %>%
                               set_names("value", "act_prop"),
                           
                           by = "value") %>%

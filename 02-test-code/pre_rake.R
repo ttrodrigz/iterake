@@ -8,6 +8,9 @@ pre_rake <- function(data, pop.model) {
         ## % of sample in each group
         ## deviation from pop and uwgt
     
+    # do some NA checks and adjust targets as needed
+    pop.model <- missing_data_adjustment(data, pop.model)
+    
     output <- left_join(
         data %>%
             select(one_of(pop.model$wgt_cat)) %>%
@@ -27,7 +30,7 @@ pre_rake <- function(data, pop.model) {
         mutate(diff = targ_prop - uwgt_prop)
     print(
         output %>%
-            ggplot(aes(x = value)) +
+            ggplot(aes(x = as.character(value))) +
             geom_errorbar(aes(ymin = targ_prop,
                               ymax = targ_prop),
                           lty = "longdash",

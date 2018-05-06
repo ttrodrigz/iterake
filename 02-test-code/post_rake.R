@@ -1,5 +1,8 @@
 post_rake <- function(data, weight, pop.model) {
     
+    # do some NA checks and adjust targets as needed
+    pop.model <- missing_data_adjustment(data, pop.model)
+    
     # setting up data
     weight <- enquo(weight)
     num_cats <- length(pop.model$wgt_cat)
@@ -55,7 +58,7 @@ post_rake <- function(data, weight, pop.model) {
                wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
     
     wgt_uwgt_chart <- wgt_uwgt_chart_data %>%
-        ggplot(aes(x = value)) +
+        ggplot(aes(x = as.character(value))) +
         geom_errorbar(aes(ymin = targ_prop,
                           ymax = targ_prop),
                       lty = "longdash",
