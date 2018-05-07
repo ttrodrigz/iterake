@@ -104,10 +104,11 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
     # initialize things
     check <- 1
     count <- 0
+    stuck_count <- 0
     
     # do the loops until the threshold is reached
     while (check > threshold) {
-        
+
         # iteration limit check
         if (count >= max.iter) {
             n <- nrow(to_weight)
@@ -158,6 +159,8 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
                 select(-wgt_temp)
         }
         
+        # store previous summed difference between targets and actuals
+        prev_check <- check
         # reset/initialize check value
         check <- 0
         
@@ -185,6 +188,18 @@ iterake <- function(data, id, pop.model, wgt.name = "weight", join.weights = TRU
                         pull(prop_diff))
         }
         
+        # check to see if summed difference increased from last iteration
+        if (prev_check < check) {
+            # if so, increment stuck counter
+            stuck_count <- stuck_count + 1
+            
+            # ...and if stuck counter hits a threshold, force check to equal threshold to stop while loop
+            if (stuck_count > 5) {
+                check <- threshold
+            }
+        }
+        
+        # increment loop count
         count <- count + 1
     }
     
