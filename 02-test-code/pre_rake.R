@@ -11,23 +11,24 @@ pre_rake <- function(df, pop.model) {
     # do some NA checks and adjust targets as needed
     pop.model <- missing_data_adjustment(df, pop.model)
 
-    output <- left_join(
+    output <- dplyr::left_join(
         df %>%
-            select(one_of(pop.model$wgt_cat)) %>%
-            gather(wgt_cat, value) %>%
-            group_by(wgt_cat, value) %>%
-            summarise(n = n()) %>%
-            group_by(wgt_cat) %>%
-            mutate(uwgt_prop = n / sum(n)) %>%
-            ungroup(),
+            dplyr::select(one_of(pop.model$wgt_cat)) %>%
+            tidyr::gather(wgt_cat, value) %>%
+            dplyr::group_by(wgt_cat, value) %>%
+            dplyr::summarise(n = n()) %>%
+            dplyr::group_by(wgt_cat) %>%
+            dplyr::mutate(uwgt_prop = n / sum(n)) %>%
+            dplyr::ungroup(),
         
         pop.model %>%
-            unnest(data) %>%
-            ungroup(),
+            tidyr::unnest(data) %>%
+            dplyr::ungroup(),
         
         by = c("wgt_cat", "value")) %>%
         
-        mutate(diff = targ_prop - uwgt_prop)
+        dplyr::mutate(uwgt_diff = targ_prop - uwgt_prop)
+    
     print(
         output %>%
             ggplot(aes(x = as.character(value))) +
@@ -53,7 +54,7 @@ pre_rake <- function(df, pop.model) {
     )
     
     # print to screen - invisible output object
-    title1 <- 'pre-rake deviation'
+    title1 <- 'pre-rake deviance'
     num_dashes <- nchar(title1) + 4
     rem_dashes <- 80 - num_dashes
     cat('\n-- ' %+% 

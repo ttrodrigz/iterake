@@ -74,11 +74,11 @@ iterake(df = df_2,
 
 wgt_check(wgt_rake(df_2, design))
 
-
+system.time(
 iterake(df = df_3, 
         id = id,
         pop.model = mod, 
         wgt.lim = 3, 
-        max.iter = 2000)
+        max.iter = 2000))
 
 wgt_check(wgt_rake(df_3, design))

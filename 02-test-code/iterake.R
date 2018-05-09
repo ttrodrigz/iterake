@@ -86,11 +86,11 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
             stop(paste0("id variable '", deparse(substitute(id)), "' not found in data"))
         }
         
-        id <- enquo(id)
+        id <- dplyr::enquo(id)
         
         to_weight <- to_weight %>%
-            mutate(wgt = 1) %>%
-            select(!! id, one_of(wgt_cats), wgt)
+            dplyr::mutate(wgt = 1) %>%
+            dplyr::select(!! id, one_of(wgt_cats), wgt)
         
     }
 
@@ -118,28 +118,28 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
         }
         
         # loop through each variable in pop.model$wgt_cat to generate weight
-        for (i in 1:length(pop.model$wgt_cat)) {
+        for (i in seq_along(pop.model$wgt_cat)) {
 
             # create data.table version of data with target var as key
-            table_data <- data.table(to_weight, key = pop.model$wgt_cat[[i]])
+            table_data <- data.table::data.table(to_weight, key = pop.model$wgt_cat[[i]])
             
             # create data.table version of weights by value with target var as key
             table_wgt <- table_data %>%
-                group_by_(pop.model$wgt_cat[[i]]) %>%
-                summarise(act_prop = sum(wgt) / nrow(.)) %>%
-                mutate(wgt_temp = ifelse(act_prop == 0, 0, pop.model$data[[i]]$targ_prop / act_prop)) %>%
-                select(pop.model$wgt_cat[[i]], "wgt_temp") %>%
-                data.table(., key = pop.model$wgt_cat[[i]])
+                dplyr::group_by_(pop.model$wgt_cat[[i]]) %>%
+                dplyr::summarise(act_prop = sum(wgt) / nrow(.)) %>%
+                dplyr::mutate(wgt_temp = ifelse(act_prop == 0, 0, pop.model$data[[i]]$targ_prop / act_prop)) %>%
+                dplyr::select(pop.model$wgt_cat[[i]], "wgt_temp") %>%
+                data.table::data.table(., key = pop.model$wgt_cat[[i]])
 
             # merge the data.table way - works as both have same key
             table_merge <- table_data[table_wgt]
             
             # combine weights, cap as needed, and remove wgt_tmp
             to_weight <- table_merge %>%
-                mutate(wgt = wgt * wgt_temp,
-
-                       # and force them to be no larger than wgt.lim, no smaller than 1/wgt.lim
-                       wgt = ifelse(wgt >= wgt.lim, wgt.lim, wgt)) %>%
+                dplyr::mutate(wgt = wgt * wgt_temp,
+                              
+                              # and force them to be no larger than wgt.lim, no smaller than 1/wgt.lim
+                              wgt = ifelse(wgt >= wgt.lim, wgt.lim, wgt)) %>%
 
                 ## THIS CAPS AT LOWER BOUND, REMOVING FOR NOW ****
                 # # and force them to be no larger than wgt.lim, no smaller than 1/wgt.lim
@@ -148,7 +148,7 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
                 #                     1/wgt.lim, wgt))) %>%
 
                 # and remove wgt_temp
-                select(-wgt_temp)
+                dplyr::select(-wgt_temp)
                 
         }
 
@@ -158,15 +158,15 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
         check <- 0
         
         # loop through each to calculate discrepencies
-        for (i in 1:length(pop.model$wgt_cat)) {
+        for (i in seq_along(pop.model$wgt_cat)) {
             
             # compare new actuals to targets, sum abs(differences)
             sum_diffs <- to_weight %>%
-                group_by_(pop.model$wgt_cat[[i]]) %>%
-                summarise(act_prop = sum(wgt) / nrow(.)) %>%
-                mutate(prop_diff = abs(pop.model$data[[i]]$targ_prop - act_prop)) %>%
-                summarise(out = sum(prop_diff)) %>%
-                pull(out)
+                dplyr::group_by_(pop.model$wgt_cat[[i]]) %>%
+                dplyr::summarise(act_prop = sum(wgt) / nrow(.)) %>%
+                dplyr::mutate(prop_diff = abs(pop.model$data[[i]]$targ_prop - act_prop)) %>%
+                dplyr::summarise(out = sum(prop_diff)) %>%
+                dplyr::pull(out)
             
             # check is the sum of whatever check already is + sum_diffs
             check <- check + sum_diffs
@@ -216,14 +216,14 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
         # clean df to output
         if (join.weights) {
             out <- to_weight %>%
-                select(!! id, wgt, everything()) %>%
-                arrange(!! id) %>%
-                as_tibble()
+                dplyr::select(!! id, wgt, everything()) %>%
+                dplyr::arrange(!! id) %>%
+                tibble::as_tibble()
         } else {
             out <- to_weight %>%
-                select(!! id, wgt) %>%
-                arrange(!! id) %>%
-                as_tibble()
+                dplyr::select(!! id, wgt) %>%
+                dplyr::arrange(!! id) %>%
+                tibble::as_tibble()
         }
         
         # calculate stats
@@ -261,10 +261,15 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
         cat('        Loss: ' %+% paste0(loss) %+% '\n\n')
         
         if (stuck_check > 0) {
-            cat(' NOTE: ' %+% yellow('Iterations stopped at a difference of ' %+% paste0(stuck_check, 5)) %+% '\n\n')
+            cat(' NOTE: ' %+% 
+                    yellow('Iterations stopped at a difference of ' %+% 
+                               paste0(
+                                   formatC(stuck_check, 
+                                           format = "e", 
+                                           digits = 3))) %+% 
+                    '\n\n')
         }
         
-
         return(out)
     }
     

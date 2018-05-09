@@ -4,45 +4,48 @@ post_rake <- function(df, weight, pop.model) {
     pop.model <- missing_data_adjustment(df, pop.model)
     
     # setting up data
-    weight <- enquo(weight)
+    weight <- dplyr::enquo(weight)
     num_cats <- length(pop.model$wgt_cat)
     
     use_data <- df %>%
-        select(!! weight, one_of(pop.model$wgt_cat)) %>%
-        gather(wgt_cat, value, -1) 
+        dplyr::select(!! weight, one_of(pop.model$wgt_cat)) %>%
+        tidyr::gather(wgt_cat, value, -1) 
     
     # unweighted
     uwgt <- use_data %>%
-        group_by(wgt_cat, value) %>%
-        summarise(uwgt_n = n()) %>%
-        group_by(wgt_cat) %>%
-        mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
-        ungroup()
+        dplyr::group_by(wgt_cat, value) %>%
+        dplyr::summarise(uwgt_n = n()) %>%
+        dplyr::group_by(wgt_cat) %>%
+        dplyr::mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
+        dplyr::ungroup()
     
     # weighted
     wgt <- use_data %>%
-        group_by(wgt_cat, value) %>%
-        summarise(wgt_n = sum(!! weight),
-                  wgt_prop = sum(!! weight) / (nrow(.) / num_cats)) %>%
-        ungroup()
+        dplyr::group_by(wgt_cat, value) %>%
+        dplyr::summarise(wgt_n = sum(!! weight),
+                         wgt_prop = sum(!! weight) / (nrow(.) / num_cats)) %>%
+        dplyr::ungroup()
     
     # join final output
-    wgt_table <- left_join(uwgt, wgt,
-                           by = c("wgt_cat", "value")) %>%
-        left_join(pop.model %>%
-                      unnest(data),
-                  by = c("wgt_cat", "value")) %>%
-        select(wgt_cat, value, uwgt_n, wgt_n, uwgt_prop, wgt_prop, targ_prop) %>%
-        mutate(wgt_diff = targ_prop - wgt_prop)
+    wgt_table <- dplyr::left_join(uwgt, wgt,
+                                  by = c("wgt_cat", "value")) %>%
+        dplyr::left_join(pop.model %>%
+                             unnest(data),
+                         by = c("wgt_cat", "value")) %>%
+        dplyr::select(wgt_cat, value, uwgt_n, wgt_n, uwgt_prop, wgt_prop, targ_prop) %>%
+        dplyr::mutate(uwgt_diff = uwgt_prop - targ_prop,
+                      wgt_diff = formatC(targ_prop - wgt_prop, 
+                                         format = "e", 
+                                         digits = 3))
     
-    wgt <- df %>% pull(!! weight)
+    wgt <- df %>% dplyr::pull(!! weight)
     n <- nrow(df)
     wgt_n <- sum(wgt)
     neff <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
     loss <- (n / neff) - 1
     efficiency <- (neff / n)
-
-    check_table <- tibble(
+    
+    check_table <- tibble::tibble(
         uwgt_n = n,
         neff = neff,
         wgt_n = wgt_n,
@@ -52,10 +55,10 @@ post_rake <- function(df, weight, pop.model) {
     
     # weighted vs unweighted chart
     wgt_uwgt_chart_data <- wgt_table %>%
-        group_by(wgt_cat) %>%
-        gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, wgt_diff)) %>%
-        mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
-               wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
+        dplyr::group_by(wgt_cat) %>%
+        tidyr::gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
+        dplyr::mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
+                      wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
     
     wgt_uwgt_chart <- wgt_uwgt_chart_data %>%
         ggplot(aes(x = as.character(value))) +
@@ -84,9 +87,9 @@ post_rake <- function(df, weight, pop.model) {
     wgt_dist <- df %>%
         ggplot(aes_string(x = quo_name(weight))) +
         geom_histogram(color = NA,
-                     fill = "#006fd1",
-                     alpha = 0.2,
-                     bins = prod(count(wgt_table, wgt_cat)$n)) +
+                       fill = "#006fd1",
+                       alpha = 0.2,
+                       bins = prod(count(wgt_table, wgt_cat)$n)) +
         scale_y_continuous(expand = c(0, 0),
                            breaks = pretty) +
         scale_x_continuous(breaks = pretty) +
@@ -97,10 +100,10 @@ post_rake <- function(df, weight, pop.model) {
     
     print(wgt_dist)
     print(wgt_uwgt_chart)
-
+    
     output <- list(deviance = wgt_table,
                    effects = check_table)
-
+    
     # print summary to screen - invisible output object
     title1 <- 'post-rake deviance'
     num_dashes1 <- nchar(title1) + 4
@@ -127,5 +130,5 @@ post_rake <- function(df, weight, pop.model) {
     cat('  Efficiency: ' %+% paste0(scales::percent(round(efficiency, 4)), '\n'))
     cat('        Loss: ' %+% paste0(round(loss, 3), '\n\n') )
     invisible(output)
-
+    
 }
