@@ -1,4 +1,4 @@
-missing_data_adjustment <- function(data, pop.model) {
+missing_data_adjustment <- function(df, pop.model) {
     
     # assign this here for workin
     model <- pop.model
@@ -6,39 +6,33 @@ missing_data_adjustment <- function(data, pop.model) {
     # adjust each weighting variable as necessary for missing data
     for (i in 1:length(model$wgt_cat)) {
 
-        # get target proportions from pop.model and evaluate data for NAs
-        target_merge <- merge(model$data[[i]], 
-                              data %>% 
-                                  group_by(get(model$wgt_cat[[i]])) %>%
-                                  summarise(n = n()) %>%
-                                  mutate(act_prop = n / sum(n)) %>%
-                                  select(-n) %>%
-                                  set_names("value", "act_prop"),
-                              
-                              by = "value", all = TRUE) %>% as.tibble()
+        # get actual proportions to determine existance of NA
+        act_props <- df %>% 
+            group_by_(model$wgt_cat[[i]]) %>%
+            summarise(n = n()) %>%
+            mutate(act_prop = n / sum(n)) %>%
+            select(-n)
         
-        # get row of NA value if present, check if targ_prop is also NA
-        na_val <- which(is.na(target_merge$value))
-        na_targ <- ifelse(length(na_val) == 0, FALSE, is.na(target_merge[na_val, ]$targ_prop))
+        # figure out what row of above has NA if any
+        na_val_a <- which(is.na(act_props[1]))
+        # determine if targets already have NA bin
+        na_val_t <- which(is.na(model$data[[i]][1]))
         
-        # adjust and replace targets if NA is present in both value and targ_prop
-        if (length(na_val) == 1 & na_targ) {
+        # if NA exists in actuals but not in targets - do stuff
+        if (length(na_val_a) == 1 & length(na_val_t) == 0) {
             
-            # get act_prop of NA
-            na_prop <- target_merge[na_val, ]$act_prop
+            # determine proportion of NAs
+            na_prop <- test[na_val_a, ]$act_prop
             
-            # mutate non-NA targ_props by factor of 1 - na_prop; assign na_prop to NA targ_prop
-            target_merge <- target_merge %>%
-                mutate(targ_prop = targ_prop * (1 - na_prop),
-                       targ_prop = ifelse(is.na(targ_prop), na_prop, targ_prop)) %>%
-                
-                # just keep value and targ_prop for replacing
-                select(value, targ_prop)
-            
-            # assign new targ_prop data to pop.model
-            model$data[[i]] <- target_merge
+            # adjust current targets by a factor of 1 - na_prop
+            new_targets <- model$data[[i]] %>%
+                mutate(targ_prop = targ_prop * (1 - na_prop))
+            # insert a new row with the NA info
+            new_targets[na_val_a, ] <- c(NA, na_prop)
+            # replace existing target model
+            model$data[[i]] <- new_targets
         }
-        
+
     }
     
     return(model)

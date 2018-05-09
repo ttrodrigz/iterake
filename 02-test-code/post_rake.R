@@ -1,13 +1,13 @@
-post_rake <- function(data, weight, pop.model) {
+post_rake <- function(df, weight, pop.model) {
     
     # do some NA checks and adjust targets as needed
-    pop.model <- missing_data_adjustment(data, pop.model)
+    pop.model <- missing_data_adjustment(df, pop.model)
     
     # setting up data
     weight <- enquo(weight)
     num_cats <- length(pop.model$wgt_cat)
     
-    use_data <- data %>%
+    use_data <- df %>%
         select(!! weight, one_of(pop.model$wgt_cat)) %>%
         gather(wgt_cat, value, -1) 
     
@@ -35,8 +35,8 @@ post_rake <- function(data, weight, pop.model) {
         select(wgt_cat, value, uwgt_n, wgt_n, uwgt_prop, wgt_prop, targ_prop) %>%
         mutate(wgt_diff = targ_prop - wgt_prop)
     
-    wgt <- data %>% pull(!! weight)
-    n <- nrow(data)
+    wgt <- df %>% pull(!! weight)
+    n <- nrow(df)
     wgt_n <- sum(wgt)
     neff <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
     loss <- (n / neff) - 1
@@ -81,7 +81,7 @@ post_rake <- function(data, weight, pop.model) {
     
     
     # weight distribution
-    wgt_dist <- data %>%
+    wgt_dist <- df %>%
         ggplot(aes_string(x = quo_name(weight))) +
         geom_histogram(color = NA,
                      fill = "#006fd1",

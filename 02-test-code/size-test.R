@@ -1,4 +1,5 @@
 # setup ----
+library(data.table)
 library(magrittr)
 library(tidyverse)
 library(crayon)
@@ -52,7 +53,11 @@ design <- wgt_design(
 # run iterake on three datasets ----
 
 ### DEVON!! LOOK HERE!!
-iterake(data = df_1, 
+pre_rake(df_1, mod)
+wgt <- iterake(df_1, id, mod)
+post_rake(wgt, weight, mod)
+
+iterake(df = df_1, 
         id = id,
         pop.model = mod, 
         wgt.lim = 3, 
@@ -61,7 +66,7 @@ iterake(data = df_1,
 wgt_check(wgt_rake(df_1, design))
 
 
-iterake(data = df_2, 
+iterake(df = df_2, 
         id = id,
         pop.model = mod, 
         wgt.lim = 3, 
@@ -70,7 +75,7 @@ iterake(data = df_2,
 wgt_check(wgt_rake(df_2, design))
 
 
-iterake(data = df_3, 
+iterake(df = df_3, 
         id = id,
         pop.model = mod, 
         wgt.lim = 3, 

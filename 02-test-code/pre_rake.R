@@ -1,4 +1,4 @@
-pre_rake <- function(data, pop.model) {
+pre_rake <- function(df, pop.model) {
     
     # this function should...
     
@@ -9,10 +9,10 @@ pre_rake <- function(data, pop.model) {
         ## deviation from pop and uwgt
     
     # do some NA checks and adjust targets as needed
-    pop.model <- missing_data_adjustment(data, pop.model)
-    
+    pop.model <- missing_data_adjustment(df, pop.model)
+
     output <- left_join(
-        data %>%
+        df %>%
             select(one_of(pop.model$wgt_cat)) %>%
             gather(wgt_cat, value) %>%
             group_by(wgt_cat, value) %>%

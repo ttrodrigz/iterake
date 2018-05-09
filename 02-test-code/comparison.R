@@ -1,3 +1,4 @@
+library(data.table)
 library(magrittr)
 library(tidyverse)
 library(crayon)
@@ -35,7 +36,7 @@ mod <- pop_model(
     
 )
 
-pre_rake(data = fake, pop.model = mod)
+pre_rake(df = fake, pop.model = mod)
 weights <- iterake(fake, id, mod, threshold = 1e-15)
 post_rake(weights, weight, mod)
 
@@ -81,7 +82,7 @@ mod2 <- pop_model(
     
 )
 
-pre_rake(data = fakempace, pop.model = mod2)
+pre_rake(df = fakempace, pop.model = mod2)
 weights2 <- iterake(fakempace, id, mod2, threshold = 1e-15)
 post_rake(weights2, weight, mod2)
 
@@ -120,7 +121,7 @@ wgt_check(weightsmpace_missing2)
 
 
 # tidywgt/iterake
-pre_rake(data = testpace, pop.model = mod2)
+pre_rake(df = testpace, pop.model = mod2)
 weights_missing <- iterake(testpace, id, mod2, threshold = 1e-15)
 post_rake(weights_missing, weight, mod2)
 
