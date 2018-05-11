@@ -16,13 +16,20 @@ pre_rake <- function(df, pop.model) {
     }
     
     # do a tally of NA's and tell 'em what's going to happen
-    df %>%
+    n <- nrow(df)
+    
+    pct.missing <- df %>%
         select(one_of(pop.model$wgt_cat)) %>%
-        map_int(sum(is.na(.)))
+        map_dbl(~ sum(is.na(.)) / n)
+    
+    list(pct.missing = pct.missing)
+    
+    
     
 
     # do some NA checks and adjust targets as needed
-    # pop.model <- missing_data_adjustment(df, pop.model)
+    pop.model <- missing_data_adjustment(df, pop.model)
+    pop.model
     
     # ----
     # output <- dplyr::left_join(
@@ -82,9 +89,53 @@ pre_rake <- function(df, pop.model) {
     # some ratio of bins vs sample size?
 }
 
-pre_rake(df_1, mod)
+pre_rake(df_miss, mod)$data[[2]]
 
 
-df_1 %>%
-    select(one_of(mod$wgt_cat)) %>%
-    map_int(~ sum(is.na(.)))
+df_miss <- df_1
+df_miss[1:19, 3] <- NA
+
+base <-
+    tibble(
+        value = c("male", "female"),
+        targ = c(0.5, 0.5)
+    )
+
+fct <-
+    base %>%
+    mutate(value = as_factor(value))
+
+left_join(fct, base, by = "value")
+
+class(base$value) <- class(fct$value)
+
+magclass::copy.attributes(from = fct$value, to = base$value)
+
+
+class(base$value) <- NULL
+class(base$value) <- "factor"
+
+copy.att <- function(from, to) {
+    a <- attributes(from)
+    a['class'] <- NULL
+    attributes(to) <- c(attributes(to), a)
+    to
+}
+
+a <- factor(x = c("male", "female"))
+b <- c("male", "female")
+
+copy.att(from = a, to = b)
+
+
+fct <- tibble(v = factor(c("male", "female")),
+              y = c(1, 1))
+
+fct.ord <- fct %>%
+    mutate(v = factor(v, ordered = TRUE),
+           yy = c(0, 1))
+
+fct %>%
+    mutate(v = factor(v, levels = fct.ord$v))
+
+
