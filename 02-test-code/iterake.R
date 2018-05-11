@@ -1,5 +1,6 @@
-iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
-                    wgt.lim = 3, threshold = 1e-20, max.iter = 50, stuck.limit = 5) {
+iterake <- function(df, id, pop.model, wgt.name = "weight", 
+                    join.weights = TRUE, wgt.lim = 3, threshold = 1e-20, 
+                    max.iter = 50, stuck.limit = 5, N) {
     
     # step 1) setup + error checking ----
 
@@ -74,6 +75,13 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
         
         stop("wgt.name must be a character string of length 1")
         
+    }
+    
+    # N for expansion factor
+    if (!missing(N)) {
+        if (!is.numeric(N) || length(N) != 1) {
+            stop("N must be a numeric value of length 1 corresponding to size of population")
+        }
     }
 
     # deal with id's, initialize wgt = 1
@@ -214,14 +222,24 @@ iterake <- function(df, id, pop.model, wgt.name = "weight", join.weights = TRUE,
     } else {
 
         # clean df to output
+        
+        # expansion factor calc
+        if (!missing(N)) {
+            x.factor <- N / nrow(df)
+        } else {
+            x.factor <- 1
+        }
+        
         if (join.weights) {
             out <- to_weight %>%
                 dplyr::select(!! id, wgt, everything()) %>%
+                dplyr::mutate(wgt = wgt * x.factor) %>%
                 dplyr::arrange(!! id) %>%
                 tibble::as_tibble()
         } else {
             out <- to_weight %>%
                 dplyr::select(!! id, wgt) %>%
+                dplyr::mutate(wgt = wgt * x.factor) %>%
                 dplyr::arrange(!! id) %>%
                 tibble::as_tibble()
         }
