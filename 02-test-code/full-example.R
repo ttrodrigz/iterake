@@ -5,6 +5,7 @@ library(crayon)
 
 source("./03-approved-code/pop_model.r")
 source("./03-approved-code/wgt_cat.r")
+source("./02-test-code/missing_data_adjustment.r")
 source("./02-test-code/pre_rake.r")
 source("./02-test-code/iterake.r")
 source("./02-test-code/post_rake.r")
