@@ -6,7 +6,6 @@ library(mpace)
 
 source("./03-approved-code/pop_model.r")
 source("./03-approved-code/wgt_cat.r")
-source("./02-test-code/missing_data_adjustment.r")
 source("./02-test-code/pre_rake.r")
 source("./02-test-code/iterake.r")
 source("./02-test-code/post_rake.r")
@@ -17,7 +16,7 @@ source("./02-test-code/post_rake.r")
 fake <- read_rds("./data/test_data.rds")
 
 # set up things using tidywgt/iterake
-mod <- pop_model(
+mod <- pop_model(df = fake,
     
     # age category
     wgt_cat(name = "age",
@@ -63,7 +62,7 @@ summary(diff)
 sum(abs(diff))
 
 # test iterake w/ numeric data from mpace test
-mod2 <- pop_model(df = testpace,
+mod2 <- pop_model(df = fakempace,
     
     # age category
     wgt_cat(name = "age",
@@ -97,6 +96,25 @@ sum(abs(diff2))
 testpace <- fakempace
 testpace[1:5, 2] <- NA
 
+mod3 <- pop_model(df = testpace,
+                  
+                  # age category
+                  wgt_cat(name = "age",
+                          value = c(1, 2, 3),
+                          targ.prop = c(0.300, 0.360, 0.340)),
+                  
+                  # gender category
+                  wgt_cat(name = "gender",
+                          value = c(1, 2),
+                          targ.prop = c(0.500, 0.500)),
+                  
+                  # vehicle category
+                  wgt_cat(name = "vehicle",
+                          value = c(1, 2, 3),
+                          targ.prop = c(0.400, 0.450, 0.150))
+                  
+)
+
 # mpace/anesrake
 wgt_tab(testpace, design) # error stemming from NAs
 weightsmpace_missing <- wgt_rake(testpace, design) # but oddly enough this works...
@@ -121,9 +139,9 @@ wgt_check(weightsmpace_missing2)
 
 
 # tidywgt/iterake
-pre_rake(df = testpace, pop.model = mod2)
-weights_missing <- iterake(testpace, id, mod2, threshold = 1e-15)
-post_rake(weights_missing, weight, mod2)
+pre_rake(df = testpace, pop.model = mod3)
+weights_missing <- iterake(testpace, id, mod3, threshold = 1e-15)
+post_rake(weights_missing, weight, mod3)
 
 # vector of differences
 diff_missing <- weights_missing$weight - weightsmpace_missing$weight

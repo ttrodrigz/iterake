@@ -4,7 +4,6 @@
 library(tidyverse)
 library(crayon)
 
-source("./01-idea-code/inherit-chr-fct.r")
 source("./03-approved-code/pop_model.r")
 source("./03-approved-code/wgt_cat.r")
 source("./02-test-code/missing_data_adjustment.r")

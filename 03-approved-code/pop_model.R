@@ -30,7 +30,33 @@ pop_model <- function(df, ...) {
         )
     }
     
-    # adjust targets for any NA in wgt_cats
+    # create function for matching wgt_cat attributes to data source
+    inherit_chr_fct <- function(to, from) {
+        
+        # to = character, from = factor
+        if ((is.character(to) | is.factor(to)) & is.factor(from)) {
+            
+            to <- factor(x = to, 
+                         levels = levels(from))
+            
+            if (is.ordered(from)) {
+                
+                to <- factor(to, ordered = TRUE)
+                
+            }
+        }
+        
+        # to = factor, from = character
+        if (is.factor(to) & is.character(from)) {
+            
+            to <- as.character(to)
+        }
+        
+        to
+        
+    }
+    
+    # adjust targets for any NA in wgt_cats and adjust attributes as needed
     adjusted_model <- pmap(out, function(..., main_data = df) {
         
         ## create list object out of all unspecified arguments passed from pmap
@@ -52,8 +78,8 @@ pop_model <- function(df, ...) {
         # if NA exists in actuals but not in targets - do stuff
         if (length(na_val_a) == 1 & length(na_val_t) == 0) {
             
-            # an attempt at notifying when a change happens...
-            cat('NAs found in ' %+% paste0(inputList$wgt_cat) %+% '; adjusting targets...')
+            # an attempt at notifying when a change happens due to NAs...
+            cat('NAs found in ' %+% paste0(inputList$wgt_cat) %+% '; adjusting targets...\n')
             
             # determine proportion of NAs
             na_prop <- act_props[na_val_a, ]$act_prop
@@ -82,19 +108,6 @@ pop_model <- function(df, ...) {
         
         # bind it all together
         bind_rows()
-    
-    # this should be made more specific - i.e. by wgt_cat...
-    # THIS DOESN'T WORK - when wgt_cats are mixed types
-    # if (nrow(unnest(adjusted_model)) != nrow(unnest(out))) {
-    #     warning("Stuff changed cuz of NAs")
-    # }
-    
-    # this gets the number of rows - can flag overall diffs when comparing...
-    # sum(unlist(pmap(out, function(...) {
-    #     inputList <- list(...)
-    #     
-    #     nrow(inputList$data)
-    # })))
     
     # assign class
     class(adjusted_model) <- c(class(adjusted_model), "pop_model")
