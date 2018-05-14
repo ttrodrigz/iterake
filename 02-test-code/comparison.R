@@ -63,7 +63,7 @@ summary(diff)
 sum(abs(diff))
 
 # test iterake w/ numeric data from mpace test
-mod2 <- pop_model(
+mod2 <- pop_model(df = testpace,
     
     # age category
     wgt_cat(name = "age",

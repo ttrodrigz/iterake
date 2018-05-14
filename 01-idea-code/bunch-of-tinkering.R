@@ -4,6 +4,7 @@
 library(tidyverse)
 library(crayon)
 
+source("./01-idea-code/inherit-chr-fct.r")
 source("./03-approved-code/pop_model.r")
 source("./03-approved-code/wgt_cat.r")
 source("./02-test-code/missing_data_adjustment.r")
@@ -24,7 +25,7 @@ df_1 <-
             ordered = TRUE)
     )
 
-mod <- pop_model(
+mod <- pop_model(df = df_1,
     wgt_cat(name = "v1", 
             value = c(1, 2, 3), 
             targ.prop = c(0.6, 0.25, 0.15)),
@@ -76,3 +77,19 @@ uwgt_props <- df_1 %>%
 # THIS IS ALSO GOOD!
 (left_join(uwgt_props, mod, by = "wgt_cat") %>%
         mutate(full = map2(uwgt, data, left_join, by = "value")))$full[[2]]
+
+
+# THIS SEEMS TO WORK!
+test <- pmap(left_join(mod, uwgt_props, by = "wgt_cat"), function(...) {
+    inputList <- list(...)
+    
+    inputList$data$value <- inherit_chr_fct(inputList$data$value, inputList$uwgt$value)
+    
+    # recreate tibble similar to how it's put together in wgt_Cat
+    tibble(
+        wgt_cat = inputList$wgt_cat,
+        data = list(
+            tibble(
+                value = inputList$data$value,
+                targ_prop = inputList$data$targ_prop)))
+}) %>% bind_rows()
