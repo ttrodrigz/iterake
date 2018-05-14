@@ -139,3 +139,43 @@ fct %>%
     mutate(v = factor(v, levels = fct.ord$v))
 
 
+# USE THIS TO MAP OVER LIST OF DF'S
+calcs <- function(x) {
+    
+    calc <- x %>%
+        group_by(value) %>%
+        summarise(n = n()) %>%
+        ungroup() %>%
+        mutate(uwgt_prop = n / sum(n)) %>%
+        ungroup()
+    
+}
+
+# USE THIS TO MAKE LIST NAME INTO WGT_CAT VARIABLE
+add_wgt_cat <- function(df_list) {
+    
+    for (i in seq_along(df_list)) {
+        
+        df_list[[i]]$wgt_cat <- names(df_list[i])
+        
+    }
+    
+    df_list
+}
+
+# THIS IS GOOD RIGHT HERE
+a <- df_1 %>%
+    select(one_of(mod$wgt_cat)) %>%
+    map(as_tibble) %>%
+    map(calcs) %>%
+    add_wgt_cat() %>%
+    map(group_by, wgt_cat) %>%
+    map(nest) %>%
+    bind_rows()
+
+# THIS IS ALSO GOOD!
+(left_join(a, mod, by = "wgt_cat") %>%
+    mutate(full = map2(data.x, data.y, left_join, by = "value")))$full[[1]]
+
+# NEED TO APPLY CLASS/LEVELS OF DATA INTO MOD THEN DO STEP ABOVE AND WILL
+# ALL JOIN CORRECTLY! HUZZAH!!
