@@ -102,9 +102,6 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
         
     }
 
-    # do some NA checks and adjust targets as needed
-    pop.model <- missing_data_adjustment(to_weight, pop.model)
-
     # data is now ready for weighting !!
     
     # step 2) do the raking ----

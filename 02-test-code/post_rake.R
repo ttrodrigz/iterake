@@ -1,8 +1,5 @@
 post_rake <- function(df, weight, pop.model) {
     
-    # do some NA checks and adjust targets as needed
-    pop.model <- missing_data_adjustment(df, pop.model)
-    
     # setting up data
     weight <- dplyr::enquo(weight)
     num_cats <- length(pop.model$wgt_cat)

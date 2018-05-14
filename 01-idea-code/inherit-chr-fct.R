@@ -1,4 +1,4 @@
-good <- factor(x = c("one", "two", "three"), 
+want <- factor(x = c("one", "two", "three"), 
                levels = c("one", "two", "three"),
                ordered = TRUE)
 
@@ -11,16 +11,16 @@ df <- tibble(
                ordered = TRUE)
 )
 
-copy_chr_fct <- function(to, from) {
+inherit_chr_fct <- function(to, from) {
     
     # to = character, from = factor
-    if (is.character(to) & is.factor(from)) {
+    if ((is.character(to) | is.factor(to)) & is.factor(from)) {
         
-        to <- as.factor(to)
+        to <- factor(x = to, 
+                     levels = levels(from))
         
         if (is.ordered(from)) {
             
-            levels(to) <- levels(from)
             to <- factor(to, ordered = TRUE)
             
         }
@@ -36,5 +36,4 @@ copy_chr_fct <- function(to, from) {
 
 }
 
-copy_chr_fct(df$x, good)
-l
+inherit_chr_fct(df$x, want)

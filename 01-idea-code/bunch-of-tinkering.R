@@ -7,9 +7,9 @@ library(crayon)
 source("./03-approved-code/pop_model.r")
 source("./03-approved-code/wgt_cat.r")
 source("./02-test-code/missing_data_adjustment.r")
-source("./02-test-code/pre_rake.r")
 source("./02-test-code/iterake.r")
-source("./02-test-code/post_rake.r")
+
+# this will coerce char to fact (visa versa) ----
 
 # data/pop.model prep ----
 df_1 <- 
@@ -22,10 +22,9 @@ df_1 <-
             x = v2, 
             levels = c("female", "male"), 
             ordered = TRUE)
-        )
+    )
 
 mod <- pop_model(
-    df = data,
     wgt_cat(name = "v1", 
             value = c(1, 2, 3), 
             targ.prop = c(0.6, 0.25, 0.15)),
@@ -40,7 +39,40 @@ mod <- pop_model(
             targ.prop = c(0.2, 0.5, 0.15, 0.15))
 )
 
-# above is good, now pre_rake is breaking for same bind_rows() issues ----
-pre_rake(df_1, mod)
+# USE THIS TO MAP OVER LIST OF DF'S
+calcs <- function(x) {
+    
+    calc <- x %>%
+        group_by(value) %>%
+        summarise(n = n()) %>%
+        ungroup() %>%
+        mutate(uwgt_prop = n / sum(n)) %>%
+        ungroup()
+    
+}
 
-iterake(df_1, id, mod)
+# USE THIS TO MAKE LIST NAME INTO WGT_CAT VARIABLE
+add_wgt_cat <- function(df_list) {
+    
+    for (i in seq_along(df_list)) {
+        
+        df_list[[i]]$wgt_cat <- names(df_list[i])
+        
+    }
+    
+    df_list
+}
+
+# THIS IS GOOD RIGHT HERE
+uwgt_props <- df_1 %>%
+    select(one_of(mod$wgt_cat)) %>%
+    map(as_tibble) %>%
+    map(calcs) %>%
+    add_wgt_cat() %>%
+    map(group_by, wgt_cat) %>%
+    map(nest, .key = "uwgt") %>%
+    bind_rows()
+
+# THIS IS ALSO GOOD!
+(left_join(uwgt_props, mod, by = "wgt_cat") %>%
+        mutate(full = map2(uwgt, data, left_join, by = "value")))$full[[2]]

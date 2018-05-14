@@ -24,13 +24,6 @@ pre_rake <- function(df, pop.model) {
     
     list(pct.missing = pct.missing)
     
-    
-    
-
-    # do some NA checks and adjust targets as needed
-    pop.model <- missing_data_adjustment(df, pop.model)
-    pop.model
-    
     # ----
     # output <- dplyr::left_join(
     #     df %>%
