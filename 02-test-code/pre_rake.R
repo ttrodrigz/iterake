@@ -33,7 +33,7 @@ pre_rake <- function(df, pop.model) {
         df %>%
         
         # need only wgt_cat vars
-        select(one_of(mod$wgt_cat)) %>%
+        select(one_of(pop.model$wgt_cat)) %>%
         
         # to maintain metadata
         map(as_tibble) %>%
@@ -67,10 +67,10 @@ pre_rake <- function(df, pop.model) {
     #             
     #         }
     #     )
-    
+
     comb.data <-
         left_join(x = uwgt,
-                  y = mod,
+                  y = pop.model,
                   by = "wgt_cat") %>%
         mutate(comb = map2(uwgt, data, left_join, by = "value")) %>%
         select(wgt_cat, comb)
@@ -125,4 +125,4 @@ pre_rake <- function(df, pop.model) {
     # some ratio of bins vs sample size?
 }
 
-pre_rake(df_1, mod)
+#pre_rake(df_1, mod)

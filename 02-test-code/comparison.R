@@ -6,6 +6,7 @@ library(mpace)
 
 source("./03-approved-code/pop_model.r")
 source("./03-approved-code/wgt_cat.r")
+source("./02-test-code/wgt_cat_inherit.r")
 source("./02-test-code/pre_rake.r")
 source("./02-test-code/iterake.r")
 source("./02-test-code/post_rake.r")
@@ -154,3 +155,47 @@ summary(diff_missing2)
 sum(abs(diff_missing2)) # this looks more like it
 
 # some oddities on how anesrake handles missing data... but pretty close all in all
+## Here is a test for filling targets from data
+
+# load data ----
+data("weight_me")
+
+# do it the mpace way
+# build weight design ----
+designMpace <- wgt_design(id = "id",
+                          wgt_name = "weight",
+                          data = weight_me %>% filter(group == 2),
+                          prev_wgt = "origWeight",
+                          targets = list(gender = c(),
+                                         vehicle = c()))
+
+
+# check target/actual props ----
+wgt_tab(weight_me %>% filter(group == 1), designMpace)
+
+# weight the data ----
+weightsMpace <- wgt_rake(weight_me %>% filter(group == 1), designMpace)
+
+# check target/actual/weighted props ----
+wgt_tab(weight_me %>% filter(group == 1), designMpace, weightsMpace)
+
+# how'd it do? ----
+wgt_check(weightsMpace)
+
+# do it the iterake way
+designIterake <- pop_model(df = weight_me %>% filter(group == 1),
+                           
+                           # gender category
+                           wgt_cat_inherit(name = "gender",
+                                           df = weight_me %>% filter(group == 2),
+                                           prev.wgt = origWeight),
+                           
+                           # vehicle category
+                           wgt_cat_inherit(name = "vehicle",
+                                           df = weight_me %>% filter(group == 2),
+                                           prev.wgt = origWeight)
+)
+
+pre_rake(df = weight_me %>% filter(group == 1), pop.model = designIterake)
+weightsIterake <- iterake(weight_me %>% filter(group == 1), id, designIterake, threshold = 1e-15)
+post_rake(weightsIterake, weight, designIterake)
