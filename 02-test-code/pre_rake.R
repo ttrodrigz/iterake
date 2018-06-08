@@ -2,7 +2,7 @@ pre_rake <- function(df, pop.model) {
     
     # step 0: error checking tbd ----
     
-
+    
     # step 1: calculated unweighted proportions in df ----
     
     # USE THIS TO CALCULATE N'S UWGT PROPS OVER EACH WGT CAT IN DF
@@ -67,23 +67,34 @@ pre_rake <- function(df, pop.model) {
     #             
     #         }
     #     )
-
+    
     comb.data <-
         left_join(x = uwgt,
                   y = pop.model,
                   by = "wgt_cat") %>%
         mutate(comb = map2(uwgt, data, left_join, by = "value")) %>%
-        select(wgt_cat, comb)
+        select(wgt_cat, comb) %>%
+        mutate(
+            comb = map(comb, function(x) 
+                x %>% 
+                    mutate(uwgt_diff = uwgt_prop - targ_prop)
+            )
+        )
     
-    pmap(comb.data,
-         function(...) {
-             
-             use.list <- list(...)
-             
-             use.list$comb %>%
-                 mutate(value = as.character(value),
-                        uwgt_diff = uwgt_prop - targ_prop)
-         })
+    print.data <- 
+        comb.data %>%
+        mutate(comb = map(comb, function(x) 
+            x %>% mutate(value = as.character(value)))) %>%
+        unnest(comb)
+    
+    cat("Header of sorts ----\n")
+    invisible(
+        map(print.data %>%
+                split(.$wgt_cat), function(x) {
+                    print.data.frame(x, row.names = FALSE) 
+                    cat("\n")
+                })
+    )
     
     # later ----
     # print(

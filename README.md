@@ -1,4 +1,6 @@
 # iterake
+**NOTE** This package is under active development and is not yet ready to be used.  
+
 
 ## Overview
 iterake performs an algorithm called iterative raking to generate row/respondent level weights for a sample of data. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in your sample from a known population for a given set of variables. It is often useful to weight your data in order to make it as representative of the population as possible.
@@ -14,11 +16,6 @@ Prior to weighting, two helper functions are used to construct the population mo
 
 This package was built to play nicely with the [tidyverse](https://www.tidyverse.org/), so the API should feel somewhat familiar to users of tidy tools.
 
-## Installation
-```
-# install.packages("devtools")
-devtools::install_github("ttrodrigz/iterake")
-```
 
 ## Motivating Example
 Suppose you've sampled 200 individuals from your home town to perform a study on used car buyers. In our omniscience, we know characteristics about age, gender, and the vehicle type owned in the population from which we are sampling.
