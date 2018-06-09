@@ -1,14 +1,20 @@
 ---
-title: "iterake"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
 ```
 
-## Overview
-iterake performs an algorithm called iterative raking to generate row/respondent level weights for a sample of data. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in your sample from a known population for a given set of variables. It is often useful to weight your data in order to make it as representative of the population as possible.
+# iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" \>
+**NOTE**: This package is under active development and is not yet ready to be used.
+  
+## Overview 
+
+iterake performs an algorithm known as iterative raking to generate row/respondent level weights for a sample of data. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in your sample from a known population for a given set of variables.
 
 Three workhorse functions are inluded to help at every stage of the data weighting process:
 
@@ -23,6 +29,7 @@ Prior to weighting, two helper functions are used to construct the population mo
 
 This package was built to play nicely with the [tidyverse](https://www.tidyverse.org/), so the API should feel somewhat familiar to users of tidy tools.
 
+<!--
 ## Installation
 ```
 # install.packages("devtools")
@@ -60,3 +67,5 @@ Note: we do not care about the joint probabilites of our weighting categories (i
 
 ## Usage
 This is where I realize we should be using RMarkdown/knitr so we can include code + output. Oops.
+-->
+
