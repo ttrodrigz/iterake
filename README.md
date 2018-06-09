@@ -1,5 +1,5 @@
 
-iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" \>
+iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" />
 ===============================================================================
 
 **NOTE**: This package is under active development and is not yet ready to be used.
