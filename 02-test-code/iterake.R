@@ -16,7 +16,7 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
     
     # make sure dataframe is supplied
     if (!is.data.frame(df)) {
-        stop("data must be an object of class 'data.frame'")
+        stop("data must be an object of class 'data.frame'.")
     }
     
     # make sure all wgt_cats are found in data
@@ -33,65 +33,65 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
     ## wgt.lim
     if (length(wgt.lim) > 1) {
         
-        stop("wgt.lim must be a numeric value of length 1")
+        stop("wgt.lim must be a numeric value of length 1.")
         
     } else if (!is.numeric(wgt.lim)) {
         
-        stop("wgt.lim must be numeric")
+        stop("wgt.lim must be numeric.")
         
     } else if (wgt.lim <= 1) {
         
-        stop("wgt.lim must be greater than 1")
+        stop("wgt.lim must be a value greater than 1.")
     
     ## threshold        
     } else if (length(threshold) > 1) {
         
-        stop("threshold must be a numeric value of length 1") 
+        stop("threshold must be a numeric value of length 1.") 
             
     } else if (!is.numeric(threshold)) {
         
-        stop("threshold must be numeric")
+        stop("threshold must be numeric.")
     
     ## max.iter
     } else if (length(max.iter) > 1) {
         
-        stop("max.iter must be a numeric value of length 1") 
+        stop("max.iter must be a numeric value of length 1.") 
         
     } else if (!is.numeric(max.iter)) {
         
-        stop("max.iter must be numeric")
+        stop("max.iter must be numeric.")
         
     } else if (max.iter <= 0) {
         
-        stop("max.iter must be a numeric value greater than 0")
+        stop("max.iter must be a numeric value greater than 0.")
     
     ## wgt.name    
     } else if (!is.character(wgt.name)) {
         
-        warning(paste0("coercing wgt.name '", wgt.name, "' to character"))
+        warning(paste0("coercing wgt.name '", wgt.name, "' to character."))
         wgt.name <- as.character(wgt.name)
         
     } else if (length(wgt.name) > 1) {
         
-        stop("wgt.name must be a character string of length 1")
+        stop("wgt.name must be a character string of length 1.")
         
     }
     
     # N for expansion factor
     if (!missing(N)) {
         if (!is.numeric(N) || length(N) != 1) {
-            stop("N must be a numeric value of length 1 corresponding to size of population")
+            stop("N must be a numeric value of length 1 corresponding to size of population.")
         }
     }
 
     # deal with id's, initialize wgt = 1
     if (missing(id)) {
-        stop("id is missing, must supply a unique identifier")
+        stop("id is missing, must supply a unique identifier.")
         
     } else {
         
         if (!deparse(substitute(id)) %in% names(df)) {
-            stop(paste0("id variable '", deparse(substitute(id)), "' not found in data"))
+            stop(paste0("id variable '", deparse(substitute(id)), "' not found in data."))
         }
         
         id <- dplyr::enquo(id)
