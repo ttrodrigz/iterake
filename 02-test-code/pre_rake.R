@@ -74,7 +74,7 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
 
         # join data from population model to unweighted props
         # calculate difference from unweighted to target
-        dplyr::mutate(comb = map2(uwgt, data, left_join, by = "buckets")) %>%
+        dplyr::mutate(comb = map2(uwgt, data, dplyr::left_join, by = "buckets")) %>%
         dplyr::select(wgt_cat, comb) %>%
         dplyr::mutate(comb = map(comb, function(x)
             x %>%
