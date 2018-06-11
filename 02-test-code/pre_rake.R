@@ -135,11 +135,7 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
                 # final theming
                 ggplot2::coord_flip() +
                 ggplot2::theme_bw() +
-                ggplot2::theme(
-                    strip.background = element_rect(fill = "#fff6b5"),
-                    strip.text = element_text(face = "bold"),
-                    legend.position = "bottom"
-                )
+                ggplot2::theme(strip.background = element_rect(fill = "#fff6b5"))
         )
     }
     

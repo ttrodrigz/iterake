@@ -129,9 +129,7 @@ post_rake <- function(df, weight, pop.model, plot = FALSE) {
         dplyr::mutate(comb = map(comb, function(x)
             x %>%
                 dplyr::mutate(uwgt_diff = uwgt_prop - targ_prop,
-                              wgt_diff = formatC(targ_prop - wgt_prop, 
-                                                 format = "e", 
-                                                 digits = 3)))
+                              wgt_diff = targ_prop - wgt_prop))
         ) %>%
         
         # unnest results
@@ -190,35 +188,6 @@ post_rake <- function(df, weight, pop.model, plot = FALSE) {
                 ggplot2::theme_bw() +
                 ggplot2::theme(strip.background = element_rect(fill = "#fff6b5")) +
                 ggplot2::coord_flip()
-        )
-        
-        # weight distribution
-        print(
-            df %>%
-                
-                # begin plot
-                ggplot2::ggplot(aes_string(x = quo_name(weight))) +
-                
-                # plot stuff
-                ggplot2::geom_histogram(color = NA,
-                                        fill = "#006fd1",
-                                        alpha = 0.2,
-                                        bins = prod(count(out, wgt_cat)$n)) +
-                
-                # adjust scales
-                ggplot2::scale_y_continuous(expand = c(0, 0),
-                                            breaks = pretty) +
-                ggplot2::scale_x_continuous(breaks = pretty) +
-                
-                # add title
-                ggplot2::ggtitle("Distribution of weight factors") +
-                
-                # tweak labels
-                ggplot2::labs(x = "Weight factor",
-                              y = "Count") +
-                
-                # final theming
-                ggplot2::theme_bw()
         )
         
     }
