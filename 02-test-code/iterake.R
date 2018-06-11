@@ -225,15 +225,17 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
         } else {
             x.factor <- 1
         }
-        
+
         if (join.weights) {
-            out <- to_weight %>%
-                dplyr::select(!! id, wgt, everything()) %>%
+            out <- 
+                df %>%
+                left_join(., to_weight %>% select(!! id, wgt), by = deparse(substitute(id))) %>%
                 dplyr::mutate(wgt = wgt * x.factor) %>%
                 dplyr::arrange(!! id) %>%
                 tibble::as_tibble()
         } else {
-            out <- to_weight %>%
+            out <- 
+                to_weight %>%
                 dplyr::select(!! id, wgt) %>%
                 dplyr::mutate(wgt = wgt * x.factor) %>%
                 dplyr::arrange(!! id) %>%
