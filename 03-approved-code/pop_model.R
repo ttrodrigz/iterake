@@ -2,7 +2,7 @@ pop_model <- function(df, ...) {
     
     # make sure dataframe is supplied
     if (!is.data.frame(df)) {
-        stop("data must be an object of class 'data.frame'")
+        stop("Input to `df` must be a data frame.")
     }
     
     wgt_cats <- list(...)
@@ -94,14 +94,14 @@ pop_model <- function(df, ...) {
         }
         
         # reassign attribute types to match supplied data
-        inputList$data$value <- inherit_chr_fct(inputList$data$value, act_props[[inputList$wgt_cat]])
+        inputList$data$buckets <- inherit_chr_fct(inputList$data$buckets, act_props[[inputList$wgt_cat]])
         
         # recreate tibble similar to how it's put together in wgt_Cat
         tibble(
             wgt_cat = inputList$wgt_cat,
             data = list(
                 tibble(
-                    value = inputList$data$value,
+                    buckets = inputList$data$buckets,
                     targ_prop = inputList$data$targ_prop)))
         
     }) %>%

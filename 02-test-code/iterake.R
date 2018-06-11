@@ -1,22 +1,21 @@
 iterake <- function(df, id, pop.model, wgt.name = "weight", 
                     join.weights = TRUE, wgt.lim = 3, threshold = 1e-20, 
-                    max.iter = 50, stuck.limit = 5, N) {
+                    max.iter = 50, stuck.limit = 5, N, summary = TRUE) {
     
     # step 1) setup + error checking ----
-
     if (!("pop_model" %in% class(pop.model))) {
-        stop("pop.model must be of the proper class. Use pop_model function.")
+        stop("Input to `pop.model` must be output created by `pop_model()`.")
     }
     
     # do stuff to to_weight
     to_weight <- df
     
     # wgt_cats to get used later
-    wgt_cats <- pop.model %>% pull(wgt_cat)
+    wgt_cats <- dplyr::pull(pop.model, wgt_cat)
     
     # make sure dataframe is supplied
     if (!is.data.frame(df)) {
-        stop("data must be an object of class 'data.frame'.")
+        stop("Input to `df` must be a data frame.")
     }
     
     # make sure all wgt_cats are found in data
@@ -41,7 +40,7 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
         
     } else if (wgt.lim <= 1) {
         
-        stop("wgt.lim must be a value greater than 1.")
+        stop("wgt.lim must be a numeric value greater than 1.")
     
     ## threshold        
     } else if (length(threshold) > 1) {
@@ -80,13 +79,13 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
     # N for expansion factor
     if (!missing(N)) {
         if (!is.numeric(N) || length(N) != 1) {
-            stop("N must be a numeric value of length 1 corresponding to size of population.")
+            stop("`N` must be a numeric value of length 1 corresponding to size of population.")
         }
     }
 
     # deal with id's, initialize wgt = 1
     if (missing(id)) {
-        stop("id is missing, must supply a unique identifier.")
+        stop("`id` is missing, must supply a unique identifier.")
         
     } else {
         
@@ -258,34 +257,39 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
         num_dashes <- nchar(title1) + 4
         rem_dashes <- 80 - num_dashes
         
-        cat('\n-- ' %+% 
-                bold(title1) %+% 
-                ' ' %+%
-                paste(rep('-', times = rem_dashes), collapse = "") %+%
-                '\n')
-        if (stuck_check > 0) {
-            cat(' Convergence: ' %+% yellow('Success '%+% '\U2714') %+% '\n')
-        } else {
-            cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')    
-        }
-        cat('  Iterations: ' %+% paste0(count) %+% '\n\n')
-        cat('Unweighted N: ' %+% paste0(n) %+% '\n')
-        cat(' Effective N: ' %+% paste0(round(neff, 2)) %+% '\n')
-        cat('  Weighted N: ' %+% paste0(wgt_n) %+% '\n')
-        cat('  Efficiency: ' %+% paste0(scales::percent(round(efficiency, 4))) %+% '\n')
-        cat('        Loss: ' %+% paste0(loss) %+% '\n\n')
-        
-        if (stuck_check > 0) {
-            cat(' NOTE: ' %+% 
-                    yellow('Iterations stopped at a difference of ' %+% 
-                               paste0(
-                                   formatC(stuck_check, 
-                                           format = "e", 
-                                           digits = 3))) %+% 
-                    '\n\n')
+        # return output message?
+        if (isTRUE(summary)) {
+            
+            cat('\n-- ' %+% 
+                    bold(title1) %+% 
+                    ' ' %+%
+                    paste(rep('-', times = rem_dashes), collapse = "") %+%
+                    '\n')
+            if (stuck_check > 0) {
+                cat(' Convergence: ' %+% yellow('Success '%+% '\U2714') %+% '\n')
+            } else {
+                cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')    
+            }
+            cat('  Iterations: ' %+% paste0(count) %+% '\n\n')
+            cat('Unweighted N: ' %+% paste0(sprintf("%.2f", n)) %+% '\n')
+            cat(' Effective N: ' %+% paste0(round(neff,  2)) %+% '\n')
+            cat('  Weighted N: ' %+% paste0(sprintf("%.2f", wgt_n)) %+% '\n')
+            cat('  Efficiency: ' %+% paste0(scales::percent(round(efficiency, 4))) %+% '\n')
+            cat('        Loss: ' %+% paste0(loss) %+% '\n\n')
+            
+            if (stuck_check > 0) {
+                cat(' NOTE: ' %+% 
+                        yellow('Iterations stopped at a difference of ' %+% 
+                                   paste0(
+                                       formatC(stuck_check, 
+                                               format = "e", 
+                                               digits = 3))) %+% 
+                        '\n\n')
+            }
         }
         
         return(out)
+        
     }
     
 }

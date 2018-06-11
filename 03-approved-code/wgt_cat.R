@@ -1,11 +1,11 @@
-wgt_cat <- function(name, value, targ.prop, sum.1 = FALSE) {
+wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
     
     if (!is.character(name) || length(name) != 1) {
         stop("`name` must be a character vector of length one.")
     }
     
-    if (length(value) != length(targ.prop)) {
-        stop("Length of `value` must match `targ.prop`.")
+    if (length(buckets) != length(targets)) {
+        stop("Length of `buckets` must match `targets`.")
     }
     
     if (str_length(name) == 0) {
@@ -13,19 +13,19 @@ wgt_cat <- function(name, value, targ.prop, sum.1 = FALSE) {
     }
     
     if (isTRUE(sum.1)) {
-        targ.prop <- targ.prop / sum(targ.prop)
+        targets <- targets / sum(targets)
     }
     
-    if (sum(targ.prop) != 1) {
-        stop("`targ.prop` must sum to 1. Review target proportions or force them to sum to 1 by setting `sum.1` = TRUE.")
+    if (sum(targets) != 1) {
+        stop("`targets` must sum to 1. Review target proportions or force them to sum to 1 by setting `sum.1` = TRUE.")
     }
     
     out <- 
         tibble(
             wgt_cat = name,
             data = list(
-                tibble(value = value,
-                       targ_prop = targ.prop)
+                tibble(buckets = buckets,
+                       targ_prop = targets)
             )
         )
     

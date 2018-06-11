@@ -25,7 +25,7 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
     calcs <- function(x) {
         
         calc <- x %>%
-            dplyr::group_by(value) %>%
+            dplyr::group_by(buckets) %>%
             dplyr::summarise(uwgt_n = n()) %>%
             dplyr::ungroup() %>%
             dplyr::mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
@@ -54,6 +54,7 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
         
         # to maintain metadata
         purrr::map(as_tibble) %>%
+        purrr::map(set_names, "buckets") %>%
         
         # do the calcs
         purrr::map(calcs) %>%
@@ -66,32 +67,34 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
     
     # step 3: create final output ----
     out <-
-        
+
         # join population model
         uwgt %>%
-        left_join(pop.model, by = "wgt_cat") %>%
-        
+        dplyr::left_join(pop.model, by = "wgt_cat") %>%
+
         # join data from population model to unweighted props
         # calculate difference from unweighted to target
-        dplyr::mutate(comb = map2(uwgt, data, left_join, by = "value")) %>%
+        dplyr::mutate(comb = map2(uwgt, data, left_join, by = "buckets")) %>%
         dplyr::select(wgt_cat, comb) %>%
         dplyr::mutate(comb = map(comb, function(x)
             x %>%
                 dplyr::mutate(uwgt_diff = uwgt_prop - targ_prop))
         ) %>%
-        
+
         # unnest results
         tidyr::unnest(comb) %>%
-        dplyr::rename(bucket = value)
+        dplyr::rename(bucket = buckets)
+
+    out
     
     # step 4: plot ----
     if (isTRUE(plot)) {
         print(
             out %>%
-                
+
                 # begin plot
                 ggplot2::ggplot(aes(x = as.character(bucket))) +
-                
+
                 # errorbars
                 ggplot2::geom_errorbar(
                     aes(ymin = targ_prop,
@@ -99,36 +102,36 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
                     lty = "longdash",
                     color = "#4b4b4b"
                 ) +
-                
+
                 # points
                 ggplot2::geom_point(
                     aes(y = uwgt_prop),
                     size = 3,
                     color = "#d10000"
                 ) +
-                
+
                 # adjust scales, use 0 to max of uwgt/targ props
                 ggplot2::scale_y_continuous(
                     breaks = pretty,
                     limits = c(0, max(out$uwgt_prop, out$targ_prop))
                 ) +
-                
+
                 # facet plots, independent y (eventually x) axes
                 ggplot2::facet_wrap(~wgt_cat, scales = "free_y") +
-                
+
                 # tweak labels
                 ggplot2::labs(
-                    x = NULL, 
+                    x = NULL,
                     y = "Proportion",
                     color = NULL
                 ) +
-                
+
                 # add title
                 ggplot2::ggtitle(
                     "Unweighted vs. Target Proportions",
                     "Dashed line = target"
                 ) +
-                
+
                 # final theming
                 ggplot2::coord_flip() +
                 ggplot2::theme_bw() +
@@ -143,5 +146,3 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
     return(out)
     
 }
-
-pre_rake(fake, mod)
