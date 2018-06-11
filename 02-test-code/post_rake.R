@@ -1,131 +1,228 @@
-post_rake <- function(df, weight, pop.model) {
+post_rake <- function(df, weight, pop.model, plot = FALSE) {
     
-    # setting up data
-    weight <- dplyr::enquo(weight)
+    # step 1: error checking tbd ----
+    if (!is.data.frame(df)) {
+        stop("`df` must be a dataframe.")
+    }
+    
+    if (missing(weight)) {
+        stop("'weight' is missing, must supply weight variable.")
+        
+    } else {
+        
+        if (!deparse(substitute(weight)) %in% names(df)) {
+            stop(paste0("weight variable '", deparse(substitute(weight)), "' not found in data."))
+        }
+        
+        weight <- dplyr::enquo(weight)
+    }
+    
+    df.names <- names(df)
+    mod.names <- pop.model$wgt_cat
+    bad.names <- mod.names[!mod.names %in% df.names]
+    
+    if (length(bad.names) > 0) {
+        stop(
+            paste(
+                "Each weighting category in `pop.model` must have a matching column name in `df`. The following weighting cagegories have no match:",
+                paste(bad.names, collapse = ", "),
+                sep = "\n"
+            )
+        )
+    }
+    
+    # used for wgt prop calculations    
     num_cats <- length(pop.model$wgt_cat)
     
-    use_data <- df %>%
-        dplyr::select(!! weight, one_of(pop.model$wgt_cat)) %>%
-        tidyr::gather(wgt_cat, value, -1) 
+    # step 2: calculated unweighted proportions in df ----
     
-    # unweighted
-    uwgt <- use_data %>%
-        dplyr::group_by(wgt_cat, value) %>%
-        dplyr::summarise(uwgt_n = n()) %>%
-        dplyr::group_by(wgt_cat) %>%
-        dplyr::mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
-        dplyr::ungroup()
+    # calculates unweighted props over each weight category
+    calcs_uwgt <- function(x) {
+        
+        calc <- x %>%
+            dplyr::group_by(buckets) %>%
+            dplyr::summarise(uwgt_n = n()) %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
+            dplyr::ungroup()
+        
+    }
     
-    # weighted
-    wgt <- use_data %>%
-        dplyr::group_by(wgt_cat, value) %>%
-        dplyr::summarise(wgt_n = sum(!! weight),
-                         wgt_prop = sum(!! weight) / (nrow(.) / num_cats)) %>%
-        dplyr::ungroup()
+    # calculates unweighted props over each weight category
+    calcs_wgt <- function(x, weight) {
+        
+        calc <- x %>%
+            dplyr::mutate(wgt = weight) %>%
+            dplyr::group_by(buckets) %>%
+            dplyr::summarise(wgt_n = sum(wgt)) %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(wgt_prop = wgt_n / sum(wgt_n)) %>%
+            dplyr::ungroup()
+        
+    }
     
-    # join final output
-    wgt_table <- dplyr::left_join(uwgt, wgt,
-                                  by = c("wgt_cat", "value")) %>%
-        dplyr::left_join(pop.model %>%
-                             unnest(data),
-                         by = c("wgt_cat", "value")) %>%
-        dplyr::select(wgt_cat, value, uwgt_n, wgt_n, uwgt_prop, wgt_prop, targ_prop) %>%
-        dplyr::mutate(uwgt_diff = uwgt_prop - targ_prop,
-                      wgt_diff = formatC(targ_prop - wgt_prop, 
-                                         format = "e", 
-                                         digits = 3))
+    # turns list name into wgt_cat variable
+    add_wgt_cat <- function(df_list) {
+        
+        for (i in seq_along(df_list)) {
+            
+            df_list[[i]]$wgt_cat <- names(df_list[i])
+            
+        }
+        
+        df_list
+    }
     
-    wgt <- df %>% dplyr::pull(!! weight)
-    n <- nrow(df)
-    wgt_n <- sum(wgt)
-    neff <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
-    loss <- (n / neff) - 1
-    efficiency <- (neff / n)
+    uwgt <- 
+        
+        df %>%
+        
+        # need only wgt_cat vars
+        dplyr::select(one_of(pop.model$wgt_cat)) %>%
+        
+        # to maintain metadata
+        purrr::map(as_tibble) %>%
+        purrr::map(set_names, "buckets") %>%
+        
+        # do the calcs
+        purrr::map(calcs_uwgt) %>%
+        
+        # to bind all together
+        add_wgt_cat() %>%
+        purrr::map(group_by, wgt_cat) %>%
+        purrr::map(nest, .key = "uwgt") %>%
+        dplyr::bind_rows()
     
-    check_table <- tibble::tibble(
-        uwgt_n = n,
-        neff = neff,
-        wgt_n = wgt_n,
-        efficiency = efficiency,
-        loss = loss
-    )
+    wgt <- 
+        
+        df %>%
+        
+        # need only wgt_cat vars
+        dplyr::select(one_of(pop.model$wgt_cat)) %>%
+        
+        # to maintain metadata
+        purrr::map(as_tibble) %>%
+        purrr::map(set_names, "buckets") %>%
+        
+        # do the calcs
+        purrr::map(calcs_wgt, df %>% pull(!! weight)) %>%
+        
+        # to bind all together
+        add_wgt_cat() %>%
+        purrr::map(group_by, wgt_cat) %>%
+        purrr::map(nest, .key = "wgt") %>%
+        dplyr::bind_rows()
     
-    # weighted vs unweighted chart
-    wgt_uwgt_chart_data <- wgt_table %>%
-        dplyr::group_by(wgt_cat) %>%
-        tidyr::gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
-        dplyr::mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
-                      wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
+    # step 3: create final output ----
+    out <-
+        
+        # join population model
+        uwgt %>%
+        dplyr::left_join(pop.model, by = "wgt_cat") %>%
+        dplyr::left_join(wgt, by = "wgt_cat") %>%
+        
+        # join data from population model to unweighted props
+        # calculate difference from unweighted to target
+        dplyr::mutate(comb = map2(uwgt, data, dplyr::left_join, by = "buckets")) %>%
+        dplyr::mutate(comb = map2(comb, wgt, dplyr::left_join, by = "buckets")) %>%
+        dplyr::select(wgt_cat, comb) %>%
+        dplyr::mutate(comb = map(comb, function(x)
+            x %>%
+                dplyr::mutate(uwgt_diff = uwgt_prop - targ_prop,
+                              wgt_diff = formatC(targ_prop - wgt_prop, 
+                                                 format = "e", 
+                                                 digits = 3)))
+        ) %>%
+        
+        # unnest results
+        tidyr::unnest(comb) %>%
+        dplyr::rename(bucket = buckets) %>%
+        dplyr::select(wgt_cat, bucket, uwgt_n, wgt_n, uwgt_prop, wgt_prop, targ_prop, uwgt_diff, wgt_diff)
     
-    wgt_uwgt_chart <- wgt_uwgt_chart_data %>%
-        ggplot(aes(x = as.character(value))) +
-        geom_errorbar(aes(ymin = targ_prop,
-                          ymax = targ_prop),
-                      lty = "longdash",
-                      color = "#4b4b4b") +
-        geom_point(aes(y = wgt_val,
-                       color = wgt_type),
-                   size = 3) +
-        scale_color_manual(values = c("Unweighted" = "#d10000", 
-                                      "Weighted" = "#006fd1")) +
-        scale_y_continuous(breaks = pretty,
-                           limits = c(0, max(wgt_uwgt_chart_data$wgt_val))) +
-        facet_wrap(~wgt_cat, scales = "free_y") +
-        labs(x = NULL, y = "Proportion",
-             color = NULL) +
-        ggtitle("Sample's deviation from population model (unweighted/weighted)",
-                "Dashed line = target proportion in population model") +
-        theme_bw() +
-        theme(strip.background = element_rect(fill = "#fff6b5")) +
-        coord_flip()
+    out
     
+    # step 4: plot ----
+    if (isTRUE(plot)) {
+        chart_data <-
+            out %>%
+            dplyr::group_by(wgt_cat) %>%
+            tidyr::gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
+            dplyr::mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
+                          wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
+        print(
+            chart_data %>%
+                
+                # begin plot
+                ggplot2::ggplot(aes(x = as.character(bucket))) +
+                
+                # errorbars
+                ggplot2::geom_errorbar(aes(ymin = targ_prop,
+                                           ymax = targ_prop),
+                                       lty = "longdash",
+                                       color = "#4b4b4b") +
+                
+                # points
+                ggplot2::geom_point(aes(y = wgt_val,
+                                        color = wgt_type),
+                                    size = 3) +
+                
+                # set point colors
+                ggplot2::scale_color_manual(values = c("Unweighted" = "#d10000", 
+                                                       "Weighted" = "#006fd1")) +
+                
+                # adjust scales, use 0 to max of uwgt/targ props
+                ggplot2::scale_y_continuous(breaks = pretty,
+                                            limits = c(0, max(chart_data$wgt_val))) +
+                
+                # facet plots, independent y (eventually x) axes
+                ggplot2::facet_wrap(~wgt_cat, scales = "free_y") +
+                
+                # tweak labels
+                ggplot2::labs(x = NULL, 
+                              y = "Proportion",
+                              color = NULL) +
+                
+                # add title
+                ggplot2::ggtitle("Unweighted and Weighted vs. Target Proportions",
+                                 "Dashed line = target") +
+                
+                # final theming
+                ggplot2::theme_bw() +
+                ggplot2::theme(strip.background = element_rect(fill = "#fff6b5")) +
+                ggplot2::coord_flip()
+        )
+        
+        # weight distribution
+        print(
+            df %>%
+                
+                # begin plot
+                ggplot2::ggplot(aes_string(x = quo_name(weight))) +
+                
+                # plot stuff
+                ggplot2::geom_histogram(color = NA,
+                                        fill = "#006fd1",
+                                        alpha = 0.2,
+                                        bins = prod(count(out, wgt_cat)$n)) +
+                
+                # adjust scales
+                ggplot2::scale_y_continuous(expand = c(0, 0),
+                                            breaks = pretty) +
+                ggplot2::scale_x_continuous(breaks = pretty) +
+                
+                # add title
+                ggplot2::ggtitle("Distribution of weight factors") +
+                
+                # tweak labels
+                ggplot2::labs(x = "Weight factor",
+                              y = "Count") +
+                
+                # final theming
+                ggplot2::theme_bw()
+        )
+        
+    }
     
-    # weight distribution
-    wgt_dist <- df %>%
-        ggplot(aes_string(x = quo_name(weight))) +
-        geom_histogram(color = NA,
-                       fill = "#006fd1",
-                       alpha = 0.2,
-                       bins = prod(count(wgt_table, wgt_cat)$n)) +
-        scale_y_continuous(expand = c(0, 0),
-                           breaks = pretty) +
-        scale_x_continuous(breaks = pretty) +
-        ggtitle("Distribution of weight factors") +
-        labs(x = "Weight factor",
-             y = "Count") +
-        theme_bw()
-    
-    print(wgt_dist)
-    print(wgt_uwgt_chart)
-    
-    output <- list(deviance = wgt_table,
-                   effects = check_table)
-    
-    # print summary to screen - invisible output object
-    title1 <- 'post-rake deviance'
-    num_dashes1 <- nchar(title1) + 4
-    rem_dashes1 <- 80 - num_dashes1
-    
-    title2 <- 'post-rake effects'
-    num_dashes2 <- nchar(title2) + 4
-    rem_dashes2 <- 80 - num_dashes2
-    
-    cat('\n-- ' %+% 
-            bold(title1) %+% 
-            ' ' %+%
-            paste(rep('-', times = rem_dashes1), collapse = "") %+%
-            '\n')
-    print.data.frame(wgt_table, row.names = FALSE)
-    cat('\n-- ' %+% 
-            bold(title2) %+% 
-            ' ' %+%
-            paste(rep('-', times = rem_dashes2), collapse = "") %+%
-            '\n')
-    cat('Unweighted N: ' %+% paste0(n, '\n'))
-    cat(' Effective N: ' %+% paste0(round(neff, 2), '\n'))
-    cat('  Weighted N: ' %+% paste0(wgt_n, '\n'))
-    cat('  Efficiency: ' %+% paste0(scales::percent(round(efficiency, 4)), '\n'))
-    cat('        Loss: ' %+% paste0(round(loss, 3), '\n\n') )
-    invisible(output)
+    return(out)
     
 }
