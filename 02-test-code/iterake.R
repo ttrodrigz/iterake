@@ -1,6 +1,6 @@
 iterake <- function(df, id, pop.model, wgt.name = "weight", 
-                    join.weights = TRUE, wgt.lim = 3, threshold = 1e-20, 
-                    max.iter = 50, stuck.limit = 5, N, summary = TRUE) {
+                    wgt.lim = 3, threshold = 1e-20, max.iter = 50, 
+                    stuck.limit = 5, N, summary = TRUE) {
     
     # step 1) setup + error checking ----
     if (!("pop_model" %in% class(pop.model))) {
@@ -226,22 +226,13 @@ iterake <- function(df, id, pop.model, wgt.name = "weight",
             x.factor <- 1
         }
 
-        if (join.weights) {
-            out <-
-                df %>%
-                dplyr::left_join(., to_weight %>% select(!! id, wgt), by = dplyr::quo_name(id)) %>%
-                dplyr::mutate(wgt = wgt * x.factor) %>%
-                dplyr::arrange(!! id) %>%
-                tibble::as_tibble()
-        } else {
-            out <- 
-                to_weight %>%
-                dplyr::select(!! id, wgt) %>%
-                dplyr::mutate(wgt = wgt * x.factor) %>%
-                dplyr::arrange(!! id) %>%
-                tibble::as_tibble()
-        }
-        
+        out <-
+            df %>%
+            dplyr::left_join(to_weight %>% select(!! id, wgt), by = dplyr::quo_name(id)) %>%
+            dplyr::mutate(wgt = wgt * x.factor) %>%
+            dplyr::arrange(!! id) %>%
+            tibble::as_tibble()
+
         # calculate stats
         wgt <- out$wgt
         n <- nrow(out)
