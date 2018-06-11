@@ -1,3 +1,29 @@
+#' Create weighting category
+#' 
+#' To be fed into \code{pop.model()}, this function creates an individual weighting category. (E.g., age group.)
+#' 
+#' @param name Name given to weighting category, character. Must have exact match in the column names of data you intend to weight.
+#' @param buckets Vector corresponding to the "buckets" in which your sample is divided.
+#' @param targets Numeric vector of the proportions each element of \code{`buckets`} represents in the population.
+#' @param sum.1 Whether or not to force inputs to \code{`targets`} to sum to one.
+#' 
+#' @return A nested \code{tibble} with special class \code{wgt_cat}.
+#' 
+#' @examples 
+#' wgt_cat(
+#'   name = "age",
+#'   buckets = c("18-54", "55+"),
+#'   targets = c(0.645, 0.355)
+#' )
+#' 
+#' wgt_cat(
+#'   name = "vehicle",
+#'   buckets = c("car", "suv", "truck"),
+#'   targets = c(0.3333, 0.3333, 0.3333),
+#'   sum.1 = TRUE
+#' )
+#' 
+#' @export
 wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
     
     if (!is.character(name) || length(name) != 1) {
@@ -8,7 +34,7 @@ wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
         stop("Length of `buckets` must match `targets`.")
     }
     
-    if (str_length(name) == 0) {
+    if (stringr::str_length(name) == 0) {
         stop("String length of `name` must be greater than zero.")
     }
     
@@ -21,15 +47,16 @@ wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
     }
     
     out <- 
-        tibble(
+        tibble::tibble(
             wgt_cat = name,
             data = list(
-                tibble(buckets = buckets,
-                       targ_prop = targets)
+                tibble::tibble(buckets = buckets,
+                               targ_prop = targets)
             )
         )
     
     class(out) <- c(class(out), "wgt_cat")
+    
     return(out)
     
 }
