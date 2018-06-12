@@ -1,2 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^resources$
+^01-idea-code$
+^02-test-code$
+^03-approved-code$
+^99-junk-code$
+^logo$
+^data-for-testing$
+^README\.Rmd$
+^README_files$

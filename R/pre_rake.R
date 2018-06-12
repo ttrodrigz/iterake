@@ -41,6 +41,8 @@
 #' )
 #' 
 #' @export
+utils::globalVariables(c("bucket", "buckets", "uwgt_n", "data", "comb", "uwgt_prop", "targ_prop"))
+
 pre_rake <- function(df, design, plot = FALSE) {
     
     # step 1: error checking tbd ----
