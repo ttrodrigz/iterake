@@ -1,6 +1,6 @@
 library(iterake)
 
-source("./03-approved-code/post_rake.r")
+#devtools::use_build_ignore(c("resources", "01-idea-code", "02-test-code", "03-approved-code", "99-junk-code", "logo", "data-for-testing", "README.Rmd", "README_files"))
 
 fake <- readr::read_rds("./data-for-testing/test_data.rds")
 mod <- wgt_design(df = fake,
@@ -22,12 +22,12 @@ mod <- wgt_design(df = fake,
     
 )
 
-pre_rake(fake, mod, plot = T)
+wgt_review(fake, mod, plot = T)
 wgt <- iterake(fake, id, mod)
-post_rake(wgt, weight, mod, plot = T)
+wgt_review(wgt, mod, weight, plot = T)
 
 raked <- iterake(fake, id, mod, wgt.lim = 4)
-post_rake_details <- post_rake(raked, weight, mod)
+post_rake_details <- wgt_review(raked, mod, weight)
 
 # checking iterake
 
@@ -73,4 +73,4 @@ iterake(df = fake, design = mod, id = id,
 # will succeed
 wgts <- iterake(fake, id, mod, wgt.lim = 3)
 
-post_rake(comb, weight, mod)
+wgt_review(comb, mod, weight)

@@ -1,8 +1,6 @@
 library(mpace)
 library(iterake)
 
-source("./03-approved-code/post_rake.r")
-
 # Testing iterake vs. mpace/anesrake
 
 # load data
@@ -28,9 +26,9 @@ mod <- wgt_design(df = fake,
     
 )
 
-pre_rake(df = fake, design = mod)
+wgt_review(df = fake, design = mod)
 weights <- iterake(fake, id, mod, threshold = 1e-15)
-post_rake(weights, weight, mod)
+wgt_review(weights, mod, weight)
 
 # set up things using mpace/anesrake
 # recode to be all numeric
@@ -74,9 +72,9 @@ mod2 <- wgt_design(df = fakempace,
     
 )
 
-pre_rake(df = fakempace, design = mod2)
+wgt_review(df = fakempace, design = mod2)
 weights2 <- iterake(fakempace, id, mod2, threshold = 1e-15)
-post_rake(weights2, weight, mod2)
+wgt_review(weights2, mod2, weight)
 
 # vector of differences
 diff2 <- weights2$weight - weightsmpace$weight
@@ -132,9 +130,9 @@ wgt_check(weightsmpace_missing2)
 
 
 # tidywgt/iterake
-pre_rake(df = testpace, design = mod3)
+wgt_review(df = testpace, design = mod3)
 weights_missing <- iterake(testpace, id, mod3, threshold = 1e-15)
-post_rake(weights_missing, weight, mod3)
+wgt_review(weights_missing, mod3, weight)
 
 # vector of differences
 diff_missing <- weights_missing$weight - weightsmpace_missing$weight
@@ -188,6 +186,6 @@ designIterake <- wgt_design(df = weight_me %>% filter(group == 1),
                                            prev.wgt = origWeight)
 )
 
-pre_rake(df = weight_me %>% filter(group == 1), design = designIterake)
+wgt_review(df = weight_me %>% filter(group == 1), design = designIterake)
 weightsIterake <- iterake(weight_me %>% filter(group == 1), id, designIterake, threshold = 1e-15)
-post_rake(weightsIterake, weight, designIterake)
+wgt_review(weightsIterake, designIterake, weight)

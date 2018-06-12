@@ -1,33 +1,73 @@
-# set up ----
-library(iterake)
-library(tidyverse)
-
-fake <- readr::read_rds("./data-for-testing/test_data.rds")
-mod <- wgt_design(df = fake,
-                  
-                  # age category
-                  wgt_cat(name = "age",
-                          buckets = c("18-34", "35-54", "55+"),
-                          targets = c(0.300, 0.360, 0.340)),
-                  
-                  # gender category
-                  wgt_cat(name = "gender",
-                          buckets = c("Female", "Male"),
-                          targets = c(0.500, 0.500)),
-                  
-                  # vehicle category
-                  wgt_cat(name = "vehicle",
-                          buckets = c("Car", "SUV", "Truck"),
-                          targets = c(0.400, 0.450, 0.150))
-                  
-)
-
-# new function ----
+#' Compare unweighted or weighted data to targets
+#' 
+#' Inspect by what degree the unweighted or weighted sample proportions deviate from the
+#' target proportions in the weight design.
+#' 
+#' @param df Data frame of the data you intend on weighting.
+#' @param design Full weighting design created by \code{wgt_design()}.
+#' @param weight Name of weight variable, optional.
+#' @param plot Display plot, default = FALSE.
+#' 
+#' @importFrom dplyr select group_by summarise mutate ungroup n bind_rows left_join rename one_of
+#' @importFrom purrr map map2 set_names
+#' @importFrom rlang !! :=
+#' @importFrom tibble as_tibble
+#' @importFrom tidyr nest unnest
+#' @importFrom ggplot2 ggplot aes geom_errorbar geom_point scale_y_continuous facet_wrap labs element_rect ggtitle coord_flip theme_bw theme scale_color_manual
+#' 
+#' @return A tibble of unweighted counts and proportions, difference between 
+#' unweighted and target proportions. If \code{`weight`} is given, it also includes
+#' weighted counts and proportions, difference between weighted and target proportions.
+#' Optionally, a plot of this information.
+#' 
+#' @examples 
+#' data("weight_me")
+#' 
+#' mod <- wgt_design(
+#' 
+#'     df = weight_me,
+#' 
+#'     wgt_cat(
+#'         name = "gender",
+#'         buckets = c(1, 2),
+#'         targets = c(0.5, 0.5)),
+#' 
+#'     wgt_cat(
+#'         name = "vehicle",
+#'         buckets = c(1, 2, 3),
+#'         targets = c(0.333, 0.333, 0.333))
+#' )
+#' 
+#' wgt_review(
+#'     df = weight_me,
+#'     design = mod,
+#'     plot = TRUE
+#' )
+#'
+#' @export
 wgt_review <- function(df, design, weight, plot = FALSE) {
-    
+
     # make sure you've got a df
     if (!is.data.frame(df)) {
         stop("`df` must be a dataframe.")
+    }
+    
+    if (!"wgt_design" %in% class(design)) {
+        stop("'design' must be of class 'wgt_design', rerun wgt_design()")
+    }
+    
+    df.names <- names(df)
+    mod.names <- design$wgt_cat
+    bad.names <- mod.names[!mod.names %in% df.names]
+    
+    if (length(bad.names) > 0) {
+        stop(
+            paste(
+                "Each weighting category in `design` must have a matching column name in `df`. The following weighting cagegories have no match:",
+                paste(bad.names, collapse = ", "),
+                sep = "\n"
+            )
+        )
     }
     
     # deal with weights possibly being/not being provided
@@ -90,12 +130,8 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
         ) %>%
         
         # calculate differences
-        # mutate(uwgt_diff = targ_prop - uwgt_prop,
-        #        wgt_diff  = targ_prop - wgt_prop)
         mutate(uwgt_diff = uwgt_prop - targ_prop,
-               wgt_diff  = wgt_prop - targ_prop) %>%
-        tibble(tibble-options())
-    
+               wgt_diff  = wgt_prop - targ_prop)
     
     # modify output based on whether or not weights are provided
     if (missing(weight)) {
@@ -108,25 +144,27 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
     
     if (isTRUE(plot)) {
         
+        # prepare chart_data based on weight being given
         if (missing(weight)) {
             chart_data <- calcd
         } else {
             chart_data <-
                 calcd %>%
-                dplyr::group_by(wgt_cat) %>%
-                tidyr::gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
-                dplyr::mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
-                              wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
+                group_by(wgt_cat) %>%
+                gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
+                mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
+                       wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
         }
 
+        # create chart object
         chart <- 
             chart_data %>%
             
             # begin plot
-            ggplot2::ggplot(aes(x = as.character(buckets))) +
+            ggplot(aes(x = as.character(buckets))) +
             
             # errorbars
-            ggplot2::geom_errorbar(
+            geom_errorbar(
                 aes(ymin = targ_prop,
                     ymax = targ_prop),
                 lty = "longdash",
@@ -139,14 +177,14 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
                    chart + 
                    
                    # points
-                   ggplot2::geom_point(
+                   geom_point(
                        aes(y = uwgt_prop),
                        size = 3,
                        color = "#d10000"
                    ) + 
                    
                    # adjust scales, use 0 to max of uwgt/targ props
-                   ggplot2::scale_y_continuous(
+                   scale_y_continuous(
                        breaks = pretty,
                        limits = c(0, max(chart_data$uwgt_prop, chart_data$targ_prop))
                    )
@@ -156,20 +194,20 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
                    chart +
                    
                    # points
-                   ggplot2::geom_point(
+                   geom_point(
                        aes(y = wgt_val,
                            color = wgt_type),
                        size = 3
                    ) +
                    
                    # set point colors
-                   ggplot2::scale_color_manual(
+                   scale_color_manual(
                        values = c("Unweighted" = "#d10000", 
                                   "Weighted" = "#006fd1")
                    ) +
                    
                    # adjust scales, use 0 to max of wgt_val props
-                   ggplot2::scale_y_continuous(
+                   scale_y_continuous(
                        breaks = pretty,
                        limits = c(0, max(chart_data$wgt_val))
                    )
@@ -179,10 +217,10 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
             chart +
             
             # facet plots, independent y (eventually x) axes
-            ggplot2::facet_wrap(~wgt_cat, scales = "free_y") +
+            facet_wrap(~wgt_cat, scales = "free_y") +
             
             # tweak labels
-            ggplot2::labs(
+            labs(
                 x = NULL,
                 y = "Proportion",
                 color = NULL
@@ -194,7 +232,7 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
                    chart +
                    
                    # add title
-                   ggplot2::ggtitle(
+                   ggtitle(
                        "Unweighted vs. Target Proportions",
                        "Dashed line = target"
                    )
@@ -204,7 +242,7 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
                    chart +
                    
                    # add title
-                   ggplot2::ggtitle(
+                   ggtitle(
                        "Unweighted and Weighted vs. Target Proportions",
                        "Dashed line = target")
         )
@@ -212,18 +250,14 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
         # final theming
         chart <- 
             chart +
-            ggplot2::theme_bw() +
-            ggplot2::theme(strip.background = element_rect(fill = "#fff6b5")) +
-            ggplot2::coord_flip()
+            theme_bw() +
+            theme(strip.background = element_rect(fill = "#fff6b5")) +
+            coord_flip()
 
         print(chart)
     }
     
     return(calcd)
 }
-pre_rake(fake, mod)
-wgt_review(fake, mod, plot = F)
-wgt_review(fake, mod, plot = T)
-out <- iterake(fake, id, mod)
-wgt_review(out, mod, weight, plot = T)
 
+utils::globalVariables(c("buckets", "data", "uwgt_n", "uwgt_prop", "targ_prop", "weight_var", "props", "wgt_prop", "wgt_diff", "wgt_type", "wgt_val", "uwgt_diff"))    

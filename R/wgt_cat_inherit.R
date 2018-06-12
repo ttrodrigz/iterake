@@ -29,8 +29,6 @@
 #' )
 #' 
 #' @export
-utils::globalVariables(c("prevWeight", "value", "wgt_n"))
-
 wgt_cat_inherit <- function(name, df, prev.wgt) {
     
     # verify parameters
@@ -88,3 +86,5 @@ wgt_cat_inherit <- function(name, df, prev.wgt) {
     return(out)
     
 }
+
+utils::globalVariables(c("prevWeight", "value", "wgt_n"))

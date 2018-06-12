@@ -48,8 +48,6 @@
 #' )
 #' 
 #' @export
-utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff"))
-
 iterake <- function(df, id, design, wgt.name = "weight", 
                     wgt.lim = 3, threshold = 1e-20, max.iter = 50, 
                     stuck.limit = 5, N, summary = TRUE) {
@@ -341,3 +339,5 @@ iterake <- function(df, id, design, wgt.name = "weight",
     }
     
 }
+
+utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff"))

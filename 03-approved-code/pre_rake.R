@@ -1,4 +1,49 @@
-pre_rake <- function(df, pop.model, plot = FALSE) {
+#' Compare unweighted data to targets
+#' 
+#' Inspect by what degree the unweighted sample proportions deviate from the
+#' target proportions in the population model.
+#' 
+#' @param df Data frame of the data you intend on weighting.
+#' @param design Full weighting design created by \code{wgt_design()}.
+#' @param plot Display plot, default = FALSE.
+#' 
+#' @importFrom dplyr select group_by summarise mutate ungroup n bind_rows left_join rename one_of
+#' @importFrom purrr map map2 set_names
+#' @importFrom tibble as_tibble
+#' @importFrom tidyr nest unnest
+#' @importFrom ggplot2 ggplot aes geom_errorbar geom_point scale_y_continuous facet_wrap labs element_rect ggtitle coord_flip theme_bw theme
+#' 
+#' @return A tibble of unweighted counts and proportions, difference between 
+#' unweighted and target proportions. Optionally, a plot of this information.
+#' 
+#' @examples 
+#' data("weight_me")
+#' 
+#' mod <- wgt_design(
+#' 
+#'     df = weight_me,
+#' 
+#'     wgt_cat(
+#'         name = "gender",
+#'         buckets = c(1, 2),
+#'         targets = c(0.5, 0.5)),
+#' 
+#'     wgt_cat(
+#'         name = "vehicle",
+#'         buckets = c(1, 2, 3),
+#'         targets = c(0.333, 0.333, 0.333))
+#' )
+#' 
+#' pre_rake(
+#'     df = weight_me,
+#'     design = mod,
+#'     plot = TRUE
+#' )
+#' 
+#' @export
+utils::globalVariables(c("bucket", "buckets", "uwgt_n", "data", "comb", "uwgt_prop", "targ_prop"))
+
+pre_rake <- function(df, design, plot = FALSE) {
     
     # step 1: error checking tbd ----
     if (!is.data.frame(df)) {
@@ -6,13 +51,13 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
     }
     
     df.names <- names(df)
-    mod.names <- pop.model$wgt_cat
+    mod.names <- design$wgt_cat
     bad.names <- mod.names[!mod.names %in% df.names]
     
     if (length(bad.names) > 0) {
         stop(
             paste(
-                "Each weighting category in `pop.model` must have a matching column name in `df`. The following weighting cagegories have no match:",
+                "Each weighting category in `design` must have a matching column name in `df`. The following weighting cagegories have no match:",
                 paste(bad.names, collapse = ", "),
                 sep = "\n"
             )
@@ -25,10 +70,10 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
     calcs <- function(x) {
         
         calc <- x %>%
-            dplyr::group_by(buckets) %>%
-            dplyr::summarise(uwgt_n = n()) %>%
-            dplyr::mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
-            dplyr::ungroup()
+            group_by(buckets) %>%
+            summarise(uwgt_n = n()) %>%
+            mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
+            ungroup()
         
     }
     
@@ -49,92 +94,91 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
         df %>%
         
         # need only wgt_cat vars
-        dplyr::select(one_of(pop.model$wgt_cat)) %>%
+        select(one_of(design$wgt_cat)) %>%
         
         # to maintain metadata
-        purrr::map(as_tibble) %>%
-        purrr::map(set_names, "buckets") %>%
+        map(as_tibble) %>%
+        map(set_names, "buckets") %>%
         
         # do the calcs
-        purrr::map(calcs) %>%
+        map(calcs) %>%
         
         # to bind all together
         add_wgt_cat() %>%
-        purrr::map(group_by, wgt_cat) %>%
-        purrr::map(nest, .key = "uwgt") %>%
-        dplyr::bind_rows()
+        map(group_by, wgt_cat) %>%
+        map(nest, .key = "uwgt") %>%
+        bind_rows()
     
     # step 3: create final output ----
     out <-
-
+        
         # join population model
         uwgt %>%
-        dplyr::left_join(pop.model, by = "wgt_cat") %>%
-
+        left_join(design, by = "wgt_cat") %>%
+        
         # join data from population model to unweighted props
         # calculate difference from unweighted to target
-        dplyr::mutate(comb = map2(uwgt, data, dplyr::left_join, by = "buckets")) %>%
-        dplyr::select(wgt_cat, comb) %>%
-        dplyr::mutate(comb = map(comb, function(x)
-            x %>%
-                dplyr::mutate(uwgt_diff = uwgt_prop - targ_prop))
+        mutate(comb = map2(uwgt, data, left_join, by = "buckets")) %>%
+        select(wgt_cat, comb) %>%
+        mutate(comb = map(comb, function(x)
+            x %>% mutate(uwgt_diff = uwgt_prop - targ_prop))
         ) %>%
-
+        
         # unnest results
-        tidyr::unnest(comb) %>%
-        dplyr::rename(bucket = buckets)
-
+        unnest(comb) %>%
+        rename(bucket = buckets)
+    
     out
     
     # step 4: plot ----
     if (isTRUE(plot)) {
         print(
             out %>%
-
+                
                 # begin plot
-                ggplot2::ggplot(aes(x = as.character(bucket))) +
-
+                ggplot(aes(x = as.character(bucket))) +
+                
                 # errorbars
-                ggplot2::geom_errorbar(
+                geom_errorbar(
                     aes(ymin = targ_prop,
                         ymax = targ_prop),
                     lty = "longdash",
                     color = "#4b4b4b"
                 ) +
-
+                
                 # points
-                ggplot2::geom_point(
+                geom_point(
                     aes(y = uwgt_prop),
                     size = 3,
                     color = "#d10000"
                 ) +
-
+                
                 # adjust scales, use 0 to max of uwgt/targ props
-                ggplot2::scale_y_continuous(
+                scale_y_continuous(
                     breaks = pretty,
                     limits = c(0, max(out$uwgt_prop, out$targ_prop))
                 ) +
-
+                
                 # facet plots, independent y (eventually x) axes
-                ggplot2::facet_wrap(~wgt_cat, scales = "free_y") +
-
+                facet_wrap(~wgt_cat, scales = "free_y") +
+                
                 # tweak labels
-                ggplot2::labs(
+                labs(
                     x = NULL,
                     y = "Proportion",
                     color = NULL
                 ) +
-
+                
                 # add title
-                ggplot2::ggtitle(
+                ggtitle(
                     "Unweighted vs. Target Proportions",
                     "Dashed line = target"
                 ) +
-
+                
                 # final theming
-                ggplot2::coord_flip() +
-                ggplot2::theme_bw() +
-                ggplot2::theme(strip.background = element_rect(fill = "#fff6b5"))
+                coord_flip() +
+                theme_bw() +
+                theme(strip.background = element_rect(fill = "#fff6b5"))
         )
     }
     
