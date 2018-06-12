@@ -1,17 +1,9 @@
-library(data.table)
-library(magrittr)
-library(tidyverse)
-library(crayon)
+library(iterake)
 
-source("./R/pop_model.r")
-source("./R/wgt_cat.r")
-source("./R/wgt_cat_inherit.r")
-source("./03-approved-code/pre_rake.r")
-source("./03-approved-code/iterake.r")
 source("./03-approved-code/post_rake.r")
 
-fake <- read_rds("./data-for-testing/test_data.rds")
-mod <- pop_model(df = fake,
+fake <- readr::read_rds("./data-for-testing/test_data.rds")
+mod <- wgt_design(df = fake,
     
     # age category
     wgt_cat(name = "age",
@@ -40,49 +32,45 @@ post_rake_details <- post_rake(raked, weight, mod)
 # checking iterake
 
 ## wrong data type
-iterake(data = list(), pop.model = mod)
+iterake(df = list(), design = mod)
 
 ## no id
-iterake(data = fake, pop.model = mod)
+iterake(df = fake, design = mod)
 
 ## wrong id
-iterake(data = fake, pop.model = mod, id = shit)
+iterake(df = fake, design = mod, id = shit)
 
 ## bad wgt.names
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         wgt.name = c("wgt1", "wgt2"))
 
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         wgt.name = 1)
 
 ## bad numeric stuff
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         wgt.lim = "0.5")
 
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         wgt.lim = 0.5)
 
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         threshold = "0.5")
 
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         max.iter = c(1, 1))
 
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         max.iter = 0)
 
 # will fail
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         wgt.lim = 1.01)
 
-iterake(data = fake, pop.model = mod, id = id,
+iterake(df = fake, design = mod, id = id,
         max.iter = 1)
 
 # will succeed
 wgts <- iterake(fake, id, mod, wgt.lim = 3)
-
-wgts_only <- iterake(fake, id, mod, wgt.lim = 3, join.weights = FALSE)
-
-comb <- fake %>% left_join(wgts, by = "id")
 
 post_rake(comb, weight, mod)

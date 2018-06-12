@@ -17,7 +17,7 @@ wgt_cat_inherit(name, df, prev.wgt)
 A nested \code{tibble} with special class \code{wgt_cat}.
 }
 \description{
-To be fed into \code{pop.model()}, this function creates an individual weighting category. (E.g., age group.)
+To be fed into \code{wgt_design()}, this function creates an individual weighting category. (E.g., age group.)
 Unlike \code{wgt_cat()}, this function creates bucket targets from a dataframe instead of being directly assigned.
 }
 \examples{

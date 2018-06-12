@@ -9,11 +9,14 @@ df <- tibble(
     AGE = runif(n),
     GENDER = runif(n),
     VEHICLE = runif(n),
+    GROUP = runif(n),
     age = ifelse(AGE < 1/3, "18-34",
                  ifelse(AGE > 1/3 & AGE < 2/3, "35-54", "55+")),
     gender = ifelse(GENDER < 0.55, "Female", "Male"),
     vehicle = ifelse(VEHICLE < 0.35, "Car",
-                    ifelse(VEHICLE > 0.35 & VEHICLE < 0.85, "SUV", "Truck"))
+                    ifelse(VEHICLE > 0.35 & VEHICLE < 0.85, "SUV", "Truck")),
+    group = ifelse(GROUP < 0.5, 1, 2),
+    prevWeight = 1 + 0.15*(rnorm(n))
     ) %>%
     select(id, age, gender, vehicle)
 

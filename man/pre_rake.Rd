@@ -9,9 +9,9 @@ pre_rake(df, design, plot = FALSE)
 \arguments{
 \item{df}{Data frame of the data you intend on weighting.}
 
-\item{plot}{Display plot, default = FALSE.}
+\item{design}{Full weighting design created by \code{wgt_design()}.}
 
-\item{pop.model}{Full weighting design created by \code{wgt_design()}.}
+\item{plot}{Display plot, default = FALSE.}
 }
 \value{
 A tibble of unweighted counts and proportions, difference between 
@@ -41,7 +41,7 @@ mod <- wgt_design(
 
 pre_rake(
     df = weight_me,
-    pop.model = mod,
+    design = mod,
     plot = TRUE
 )
 

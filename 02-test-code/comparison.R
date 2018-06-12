@@ -1,14 +1,6 @@
-library(data.table)
-library(magrittr)
-library(tidyverse)
-library(crayon)
 library(mpace)
+library(iterake)
 
-source("./R/pop_model.r")
-source("./R/wgt_cat.r")
-source("./R/wgt_cat_inherit.r")
-source("./03-approved-code/pre_rake.r")
-source("./03-approved-code/iterake.r")
 source("./03-approved-code/post_rake.r")
 
 # Testing iterake vs. mpace/anesrake
@@ -17,7 +9,7 @@ source("./03-approved-code/post_rake.r")
 fake <- read_rds("./data-for-testing/test_data.rds")
 
 # set up things using tidywgt/iterake
-mod <- pop_model(df = fake,
+mod <- wgt_design(df = fake,
     
     # age category
     wgt_cat(name = "age",
@@ -36,7 +28,7 @@ mod <- pop_model(df = fake,
     
 )
 
-pre_rake(df = fake, pop.model = mod)
+pre_rake(df = fake, design = mod)
 weights <- iterake(fake, id, mod, threshold = 1e-15)
 post_rake(weights, weight, mod)
 
@@ -63,7 +55,7 @@ summary(diff)
 sum(abs(diff))
 
 # test iterake w/ numeric data from mpace test
-mod2 <- pop_model(df = fakempace,
+mod2 <- wgt_design(df = fakempace,
     
     # age category
     wgt_cat(name = "age",
@@ -82,7 +74,7 @@ mod2 <- pop_model(df = fakempace,
     
 )
 
-pre_rake(df = fakempace, pop.model = mod2)
+pre_rake(df = fakempace, design = mod2)
 weights2 <- iterake(fakempace, id, mod2, threshold = 1e-15)
 post_rake(weights2, weight, mod2)
 
@@ -97,7 +89,7 @@ sum(abs(diff2))
 testpace <- fakempace
 testpace[1:5, 2] <- NA
 
-mod3 <- pop_model(df = testpace,
+mod3 <- wgt_design(df = testpace,
                   
                   # age category
                   wgt_cat(name = "age",
@@ -140,7 +132,7 @@ wgt_check(weightsmpace_missing2)
 
 
 # tidywgt/iterake
-pre_rake(df = testpace, pop.model = mod3)
+pre_rake(df = testpace, design = mod3)
 weights_missing <- iterake(testpace, id, mod3, threshold = 1e-15)
 post_rake(weights_missing, weight, mod3)
 
@@ -183,7 +175,7 @@ wgt_tab(weight_me %>% filter(group == 1), designMpace, weightsMpace)
 wgt_check(weightsMpace)
 
 # do it the iterake way
-designIterake <- pop_model(df = weight_me %>% filter(group == 1),
+designIterake <- wgt_design(df = weight_me %>% filter(group == 1),
                            
                            # gender category
                            wgt_cat_inherit(name = "gender",
@@ -196,6 +188,6 @@ designIterake <- pop_model(df = weight_me %>% filter(group == 1),
                                            prev.wgt = origWeight)
 )
 
-pre_rake(df = weight_me %>% filter(group == 1), pop.model = designIterake)
+pre_rake(df = weight_me %>% filter(group == 1), design = designIterake)
 weightsIterake <- iterake(weight_me %>% filter(group == 1), id, designIterake, threshold = 1e-15)
 post_rake(weightsIterake, weight, designIterake)

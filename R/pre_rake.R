@@ -4,13 +4,14 @@
 #' target proportions in the population model.
 #' 
 #' @param df Data frame of the data you intend on weighting.
-#' @param pop.model Full weighting design created by \code{wgt_design()}.
+#' @param design Full weighting design created by \code{wgt_design()}.
 #' @param plot Display plot, default = FALSE.
 #' 
 #' @importFrom dplyr select group_by summarise mutate ungroup n bind_rows left_join rename one_of
 #' @importFrom purrr map map2 set_names
 #' @importFrom tibble as_tibble
 #' @importFrom tidyr nest unnest
+#' @importFrom ggplot2 ggplot aes geom_errorbar geom_point scale_y_continuous facet_wrap labs element_rect ggtitle coord_flip theme_bw theme
 #' 
 #' @return A tibble of unweighted counts and proportions, difference between 
 #' unweighted and target proportions. Optionally, a plot of this information.
@@ -35,7 +36,7 @@
 #' 
 #' pre_rake(
 #'     df = weight_me,
-#'     pop.model = mod,
+#'     design = mod,
 #'     plot = TRUE
 #' )
 #' 

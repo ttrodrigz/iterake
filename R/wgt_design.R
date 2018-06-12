@@ -6,12 +6,17 @@
 #' @param df Data frame containing data you intend to weight.
 #' @param ... Object or objects of special class \code{wgt_cat}.
 #' 
-#' @return A nested \code{tibble} with special class \code{pop_model}.
+#' @importFrom purrr map_lgl pmap 
+#' @importFrom dplyr bind_rows pull group_by_ summarise mutate select %>%
+#' @importFrom crayon %+%
+#' @importFrom tibble tibble
+#' 
+#' @return A nested \code{tibble} with special class \code{wgt_design}.
 #' 
 #' @examples 
 #' data("weight_me")
 #' 
-#' pop_model(
+#' wgt_design(
 #'     df = weight_me,
 #' 
 #'     wgt_cat(
@@ -26,7 +31,7 @@
 #' )
 #' 
 #' @export
-pop_model <- function(df, ...) {
+wgt_design <- function(df, ...) {
     
     # make sure dataframe is supplied
     if (!is.data.frame(df)) {
@@ -37,16 +42,16 @@ pop_model <- function(df, ...) {
     wgt_cats <- list(...)
     
     # are all inputs to this function wgt_cats?
-    if (!(all(purrr::map_lgl(wgt_cats, function(x) "wgt_cat" %in% class(x))))) {
-        stop("Each input to pop_model must be of the class `wgt_cat`. Use `wgt_cat()` to construct this input.")
+    if (!(all(map_lgl(wgt_cats, function(x) "wgt_cat" %in% class(x))))) {
+        stop("Each input to wgt_design must be of the class `wgt_cat`. Use `wgt_cat()` to construct this input.")
     } 
     
     # smush 'em together into final form
-    out <- dplyr::bind_rows(wgt_cats)
+    out <- bind_rows(wgt_cats)
     
     # make sure each wgt_cat in pop.model has a matching column in df
     df.names  <- names(df)
-    mod.names <- dplyr::pull(out, wgt_cat)
+    mod.names <- pull(out, wgt_cat)
     bad.names <- mod.names[!mod.names %in% df.names]
     
     if (length(bad.names) > 0) {
@@ -86,7 +91,7 @@ pop_model <- function(df, ...) {
     }
     
     # adjust targets for any NA in wgt_cats and adjust attributes as needed
-    adjusted_model <- purrr::pmap(out, function(..., main_data = df) {
+    adjusted_model <- pmap(out, function(..., main_data = df) {
         
         ## create list object out of all unspecified arguments passed from pmap
         ## - this is basically the row being evaluated
@@ -95,10 +100,10 @@ pop_model <- function(df, ...) {
         # get actual proportions to determine existance of NA
         act_props <- 
             main_data %>% 
-            dplyr::group_by_(inputList$wgt_cat) %>%
-            dplyr::summarise(n = n()) %>%
-            dplyr::mutate(act_prop = n / sum(n)) %>%
-            dplyr::select(-n)
+            group_by_(inputList$wgt_cat) %>%
+            summarise(n = n()) %>%
+            mutate(act_prop = n / sum(n)) %>%
+            select(-n)
         
         # figure out what row of above has NA if any
         na_val_a <- which(is.na(act_props[1]))
@@ -117,7 +122,7 @@ pop_model <- function(df, ...) {
             # adjust current targets by a factor of 1 - na_prop
             new_targets <- 
                 inputList$data %>%
-                dplyr::mutate(targ_prop = targ_prop * (1 - na_prop))
+                mutate(targ_prop = targ_prop * (1 - na_prop))
 
             # insert a new row with the NA info
             new_targets[na_val_a, ] <- c(NA, na_prop)
@@ -129,20 +134,20 @@ pop_model <- function(df, ...) {
         inputList$data$buckets <- inherit_chr_fct(inputList$data$buckets, act_props[[inputList$wgt_cat]])
         
         # recreate tibble similar to how it's put together in wgt_Cat
-        tibble::tibble(
+        tibble(
             wgt_cat = inputList$wgt_cat,
             data = list(
-                tibble::tibble(
+                tibble(
                     buckets = inputList$data$buckets,
                     targ_prop = inputList$data$targ_prop)))
         
     }) %>%
         
         # bind it all together
-        dplyr::bind_rows()
+        bind_rows()
     
     # assign class
-    class(adjusted_model) <- c(class(adjusted_model), "pop_model")
+    class(adjusted_model) <- c(class(adjusted_model), "wgt_design")
     
     return(adjusted_model)
 
