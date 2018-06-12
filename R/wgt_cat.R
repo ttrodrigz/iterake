@@ -32,10 +32,10 @@ wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
     }
     
     if (length(buckets) != length(targets)) {
-        stop("Length of `buckets` must match `targets`.")
+        stop("Length of `buckets` must match length `targets`.")
     }
     
-    if (stringr::str_length(name) == 0) {
+    if (nchar(name) == 0) {
         stop("String length of `name` must be greater than zero.")
     }
     
