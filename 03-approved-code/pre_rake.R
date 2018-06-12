@@ -27,7 +27,6 @@ pre_rake <- function(df, pop.model, plot = FALSE) {
         calc <- x %>%
             dplyr::group_by(buckets) %>%
             dplyr::summarise(uwgt_n = n()) %>%
-            dplyr::ungroup() %>%
             dplyr::mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
             dplyr::ungroup()
         

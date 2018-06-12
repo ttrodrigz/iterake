@@ -3,14 +3,14 @@ library(magrittr)
 library(tidyverse)
 library(crayon)
 
-source("./03-approved-code/pop_model.r")
-source("./03-approved-code/wgt_cat.r")
-source("./02-test-code/wgt_cat_inherit.r")
-source("./02-test-code/pre_rake.r")
-source("./02-test-code/iterake.r")
-source("./02-test-code/post_rake.r")
+source("./R/pop_model.r")
+source("./R/wgt_cat.r")
+source("./R/wgt_cat_inherit.r")
+source("./03-approved-code/pre_rake.r")
+source("./03-approved-code/iterake.r")
+source("./03-approved-code/post_rake.r")
 
-fake <- read_rds("./data/test_data.rds")
+fake <- read_rds("./data-for-testing/test_data.rds")
 mod <- pop_model(df = fake,
     
     # age category

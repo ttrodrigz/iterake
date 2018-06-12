@@ -1,6 +1,6 @@
 #' Create weighting category
 #' 
-#' To be fed into \code{pop.model()}, this function creates an individual weighting category. (E.g., age group.)
+#' To be fed into \code{pop_model()}, this function creates an individual weighting category. (E.g., age group.)
 #' 
 #' @param name Name given to weighting category, character. Must have exact match in the column names of data you intend to weight.
 #' @param buckets Vector corresponding to the "buckets" in which your sample is divided.
@@ -26,6 +26,7 @@
 #' @export
 wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
     
+    # verify parameters
     if (!is.character(name) || length(name) != 1) {
         stop("`name` must be a character vector of length one.")
     }
@@ -38,6 +39,7 @@ wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
         stop("String length of `name` must be greater than zero.")
     }
     
+    # adjust if specified
     if (isTRUE(sum.1)) {
         targets <- targets / sum(targets)
     }
@@ -46,6 +48,7 @@ wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
         stop("`targets` must sum to 1. Review target proportions or force them to sum to 1 by setting `sum.1` = TRUE.")
     }
     
+    # create nested tibble structure
     out <- 
         tibble::tibble(
             wgt_cat = name,
@@ -55,8 +58,9 @@ wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
             )
         )
     
+    # assign class
     class(out) <- c(class(out), "wgt_cat")
-    
+
     return(out)
     
 }

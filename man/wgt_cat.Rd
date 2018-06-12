@@ -19,7 +19,7 @@ wgt_cat(name, buckets, targets, sum.1 = FALSE)
 A nested \code{tibble} with special class \code{wgt_cat}.
 }
 \description{
-To be fed into \code{pop.model()}, this function creates an individual weighting category. (E.g., age group.)
+To be fed into \code{pop_model()}, this function creates an individual weighting category. (E.g., age group.)
 }
 \examples{
 wgt_cat(

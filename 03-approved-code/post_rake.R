@@ -42,7 +42,6 @@ post_rake <- function(df, weight, pop.model, plot = FALSE) {
         calc <- x %>%
             dplyr::group_by(buckets) %>%
             dplyr::summarise(uwgt_n = n()) %>%
-            dplyr::ungroup() %>%
             dplyr::mutate(uwgt_prop = uwgt_n / sum(uwgt_n)) %>%
             dplyr::ungroup()
         
@@ -55,7 +54,6 @@ post_rake <- function(df, weight, pop.model, plot = FALSE) {
             dplyr::mutate(wgt = weight) %>%
             dplyr::group_by(buckets) %>%
             dplyr::summarise(wgt_n = sum(wgt)) %>%
-            dplyr::ungroup() %>%
             dplyr::mutate(wgt_prop = wgt_n / sum(wgt_n)) %>%
             dplyr::ungroup()
         
@@ -92,7 +90,7 @@ post_rake <- function(df, weight, pop.model, plot = FALSE) {
         purrr::map(group_by, wgt_cat) %>%
         purrr::map(nest, .key = "uwgt") %>%
         dplyr::bind_rows()
-    
+
     wgt <- 
         
         df %>%
