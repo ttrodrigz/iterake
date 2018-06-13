@@ -4,26 +4,28 @@ set.seed(999)
 # first dataset
 n <- 200
 
-df <- tibble(
-    id = 1:n,
-    AGE = runif(n),
-    GENDER = runif(n),
-    VEHICLE = runif(n),
-    GROUP = runif(n),
-    age = ifelse(AGE < 1/3, "18-34",
-                 ifelse(AGE > 1/3 & AGE < 2/3, "35-54", "55+")),
-    gender = ifelse(GENDER < 0.55, "Female", "Male"),
-    vehicle = ifelse(VEHICLE < 0.35, "Car",
-                    ifelse(VEHICLE > 0.35 & VEHICLE < 0.85, "SUV", "Truck")),
-    group = ifelse(GROUP < 0.5, 1, 2),
-    prevWeight = 1 + 0.15*(rnorm(n))
+weight_me <- tibble(
+    order = 1:n,
+    SEEDS = runif(n),
+    COSTUME = runif(n),
+    TRANSPORT = runif(n),
+    SAT = runif(n),
+    seeds = ifelse(SEEDS < 1/3, "Tornado",
+                 ifelse(SEEDS > 1/3 & SEEDS < 2/3, "Bird", "Earthquake")),
+    costume = ifelse(COSTUME < 0.55, "Bat Man", "Cactus"),
+    transport = ifelse(TRANSPORT < 0.35, "Rocket Cart",
+                    ifelse(TRANSPORT > 0.35 & TRANSPORT < 0.85, "Jet Propelled Skis", "Jet Propelled Unicycle")),
+    satisfied = ifelse(SAT < 0.5, "Yes", "No"),
+    prev_weight = 1 + 0.15*(rnorm(n))
     ) %>%
-    select(id, age, gender, vehicle)
+    select(order, seeds, costume, transport, satisfied, prev_weight)
 
-write_csv(df, path = "./data/test_data.csv")
-haven::write_sas(df, path = "./data/test_data.sas7bdat")
-saveRDS(df, "./data/test_data.RDS")
-saveRDS(df, "./data/test_data.Rdata")
+save(weight_me, file = "./data/weight_me.RData")
+
+write_csv(weight_me, path = "./data-for-testing/test_data.csv")
+haven::write_sas(weight_me, path = "./data-for-testing/test_data.sas7bdat")
+saveRDS(weight_me, "./data-for-testing/test_data.RDS")
+saveRDS(weight_me, "./data-for-testing/test_data.Rdata")
 
 sim_size <- function(n) {
     
@@ -55,6 +57,6 @@ df_1 <- sim_size(1000)
 df_2 <- sim_size(1e5)
 df_3 <- sim_size(1e7)
 
-saveRDS(df_1, "./data-test/df_1.rds")
-saveRDS(df_2, "./data-test/df_2.rds")
-saveRDS(df_3, "./data-test/df_3.rds")
+saveRDS(df_1, "./data-for-testing/df_1.rds")
+saveRDS(df_2, "./data-for-testing/df_2.rds")
+saveRDS(df_3, "./data-for-testing/df_3.rds")

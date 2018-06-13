@@ -21,17 +21,17 @@ To be fed into \code{wgt_design()}, this function creates an individual weightin
 Unlike \code{wgt_cat()}, this function creates bucket targets from a dataframe instead of being directly assigned.
 }
 \examples{
-data("weight_me")
+data(weight_me)
 
 wgt_cat_inherit(
-  name = "gender",
-  df = weight_me \%>\% filter(group == 2)
+  name = "costume",
+  df = dplyr::filter(weight_me, satisfied == "No")
 )
 
 wgt_cat_inherit(
-  name = "vehicle",
-  df = weight_me \%>\% filter(group == 2),
-  prev.wgt = origWeight
+  name = "transport",
+  df = dplyr::filter(weight_me, satisfied == "No"),
+  prev.wgt = prev_weight
 )
 
 }

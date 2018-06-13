@@ -15,17 +15,17 @@
 #' @return A nested \code{tibble} with special class \code{wgt_cat}.
 #' 
 #' @examples 
-#' data("weight_me")
+#' data(weight_me)
 #' 
 #' wgt_cat_inherit(
-#'   name = "gender",
-#'   df = weight_me %>% filter(group == 2)
+#'   name = "costume",
+#'   df = dplyr::filter(weight_me, satisfied == "No")
 #' )
 #' 
 #' wgt_cat_inherit(
-#'   name = "vehicle",
-#'   df = weight_me %>% filter(group == 2),
-#'   prev.wgt = origWeight
+#'   name = "transport",
+#'   df = dplyr::filter(weight_me, satisfied == "No"),
+#'   prev.wgt = prev_weight
 #' )
 #' 
 #' @export

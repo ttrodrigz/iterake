@@ -12,24 +12,28 @@
 #' efficiency and loss values for the supplied weight data.
 #' 
 #' @examples 
-#' data("weight_me")
+#' data(weight_me)
 #' 
 #' wgts <- iterake(
 #'     df = weight_me,
-#'     id = id, 
-#'     design = wgt_design(df = weight_me,
+#'     id = order, 
+#'     design = wgt_design(
+#'         df = weight_me,
 #' 
-#'                         wgt_cat(name = "age",
-#'                                 buckets = c("18-34", "35-54", "55+"),
-#'                                 targets = c(0.300, 0.360, 0.340)),
+#'         wgt_cat(
+#'             name = "seeds",
+#'             buckets = c("Tornado", "Bird", "Earthquake"),
+#'             targets = c(0.300, 0.360, 0.340)),
 #' 
-#'                         wgt_cat(name = "gender",
-#'                                 buckets = c("Female", "Male"),
-#'                                 targets = c(0.500, 0.500)),
+#'         wgt_cat(
+#'             name = "costume",
+#'             buckets = c("Bat Man", "Cactus"),
+#'             targets = c(0.500, 0.500)),
 #' 
-#'                         wgt_cat(name = "vehicle",
-#'                                 buckets = c("Car", "SUV", "Truck"),
-#'                                 targets = c(0.400, 0.450, 0.150))
+#'         wgt_cat(
+#'             name = "transport",
+#'             buckets = c("Rocket Cart", "Jet Propelled Skis", "Jet Propelled Unicycle"),
+#'             targets = c(0.400, 0.450, 0.150))
 #' 
 #'     )
 #' )

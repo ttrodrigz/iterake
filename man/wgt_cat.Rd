@@ -23,14 +23,14 @@ To be fed into \code{wgt_design()}, this function creates an individual weightin
 }
 \examples{
 wgt_cat(
-  name = "age",
-  buckets = c("18-54", "55+"),
+  name = "costume",
+  buckets = c("Bat Man", "Cactus"),
   targets = c(0.645, 0.355)
 )
 
 wgt_cat(
-  name = "vehicle",
-  buckets = c("car", "suv", "truck"),
+  name = "seeds",
+  buckets = c("Tornado", "Bird", "Earthquake"),
   targets = c(0.3333, 0.3333, 0.3333),
   sum.1 = TRUE
 )

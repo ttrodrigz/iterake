@@ -19,20 +19,20 @@ This combines any number of objects with special class \code{wgt_cat}. It also c
 for \code{NA} data in the data frame to be weighted.
 }
 \examples{
-data("weight_me")
+data(weight_me)
 
 wgt_design(
     df = weight_me,
 
     wgt_cat(
-        name = "gender",
-        buckets = c(1, 2),
+        name = "costume",
+        buckets = c("Bat Man", "Cactus"),
         targets = c(0.5, 0.5)),
 
     wgt_cat(
-        name = "vehicle",
-        buckets = c(1, 2, 3),
-        targets = c(0.333, 0.333, 0.333))
+        name = "seeds",
+        buckets = c("Tornado", "Bird", "Earthquake"),
+        targets = c(0.4, 0.3, 0.3))
 )
 
 }

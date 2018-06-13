@@ -25,24 +25,28 @@
 #' @return Data frame with the resulting weight variable appended to it.
 #' 
 #' @examples 
-#' data("weight_me")
+#' data(weight_me)
 #' 
 #' iterake(
 #'     df = weight_me,
-#'     id = id, 
-#'     design = wgt_design(df = weight_me,
+#'     id = order, 
+#'     design = wgt_design(
+#'         df = weight_me,
 #' 
-#'                         wgt_cat(name = "age",
-#'                                 buckets = c("18-34", "35-54", "55+"),
-#'                                 targets = c(0.300, 0.360, 0.340)),
+#'         wgt_cat(
+#'             name = "seeds",
+#'             buckets = c("Tornado", "Bird", "Earthquake"),
+#'             targets = c(0.300, 0.360, 0.340)),
 #' 
-#'                         wgt_cat(name = "gender",
-#'                                 buckets = c("Female", "Male"),
-#'                                 targets = c(0.500, 0.500)),
+#'         wgt_cat(
+#'             name = "costume",
+#'             buckets = c("Bat Man", "Cactus"),
+#'             targets = c(0.500, 0.500)),
 #' 
-#'                         wgt_cat(name = "vehicle",
-#'                                 buckets = c("Car", "SUV", "Truck"),
-#'                                 targets = c(0.400, 0.450, 0.150))
+#'         wgt_cat(
+#'             name = "transport",
+#'             buckets = c("Rocket Cart", "Jet Propelled Skis", "Jet Propelled Unicycle"),
+#'             targets = c(0.400, 0.450, 0.150))
 #' 
 #'     )
 #' )
@@ -291,8 +295,8 @@ iterake <- function(df, id, design, wgt.name = "weight",
         uwgt_n <- nrow(out)
         wgt_n <- sum(wgt)
         eff_n <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
-        loss <- round((n / eff_n) - 1, 3)
-        efficiency <- (eff_n / n)
+        loss <- round((uwgt_n / eff_n) - 1, 3)
+        efficiency <- (eff_n / uwgt_n)
         
         # apply new weight name
         names(out)[names(out) == 'wgt'] <- wgt.name

@@ -26,21 +26,21 @@ Inspect by what degree the unweighted or weighted sample proportions deviate fro
 target proportions in the weight design.
 }
 \examples{
-data("weight_me")
+data(weight_me)
 
 mod <- wgt_design(
 
     df = weight_me,
 
     wgt_cat(
-        name = "gender",
-        buckets = c(1, 2),
+        name = "costume",
+        buckets = c("Bat Man", "Cactus"),
         targets = c(0.5, 0.5)),
 
     wgt_cat(
-        name = "vehicle",
-        buckets = c(1, 2, 3),
-        targets = c(0.333, 0.333, 0.333))
+        name = "seeds",
+        buckets = c("Tornado", "Bird", "Earthquake"),
+        targets = c(0.3, 0.3, 0.4))
 )
 
 wgt_review(
@@ -48,5 +48,17 @@ wgt_review(
     design = mod,
     plot = TRUE
 )
+
+wgts <- iterake(
+    df = weight_me,
+    id = order, 
+    design = mod
+)
+
+wgt_review(
+    df = wgts,
+    design = mod,
+    weight = weight,
+    plot = FALSE)
 
 }
