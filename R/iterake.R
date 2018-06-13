@@ -166,7 +166,7 @@ iterake <- function(df, id, design, wgt.name = "weight",
 
         # iteration limit check
         if (count >= max.iter) {
-            n <- nrow(to_weight)
+            uwgt_n <- nrow(to_weight)
             to_weight <- NULL
             break
         }
@@ -262,7 +262,7 @@ iterake <- function(df, id, design, wgt.name = "weight",
                 '\n')
         cat(' Convergence: ' %+% red('Failed '%+% '\U2718') %+% '\n')
         cat('  Iterations: ' %+% paste0(max.iter) %+% '\n\n')
-        cat('Unweighted N: ' %+% paste0(n) %+% '\n')
+        cat('Unweighted N: ' %+% paste0(uwgt_n) %+% '\n')
         cat(' Effective N: ' %+% '--\n')
         cat('  Weighted N: ' %+% '--\n')
         cat('  Efficiency: ' %+% '--\n')
@@ -288,11 +288,11 @@ iterake <- function(df, id, design, wgt.name = "weight",
 
         # calculate stats
         wgt <- out$wgt
-        n <- nrow(out)
+        uwgt_n <- nrow(out)
         wgt_n <- sum(wgt)
-        neff <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
-        loss <- round((n / neff) - 1, 3)
-        efficiency <- (neff / n)
+        eff_n <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
+        loss <- round((n / eff_n) - 1, 3)
+        efficiency <- (eff_n / n)
         
         # apply new weight name
         names(out)[names(out) == 'wgt'] <- wgt.name
@@ -317,8 +317,8 @@ iterake <- function(df, id, design, wgt.name = "weight",
                 cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')    
             }
             cat('  Iterations: ' %+% paste0(count) %+% '\n\n')
-            cat('Unweighted N: ' %+% paste0(sprintf("%.2f", n)) %+% '\n')
-            cat(' Effective N: ' %+% paste0(round(neff,  2)) %+% '\n')
+            cat('Unweighted N: ' %+% paste0(sprintf("%.2f", uwgt_n)) %+% '\n')
+            cat(' Effective N: ' %+% paste0(round(eff_n,  2)) %+% '\n')
             cat('  Weighted N: ' %+% paste0(sprintf("%.2f", wgt_n)) %+% '\n')
             cat('  Efficiency: ' %+% paste0(percent(round(efficiency, 4))) %+% '\n')
             cat('        Loss: ' %+% paste0(loss) %+% '\n\n')

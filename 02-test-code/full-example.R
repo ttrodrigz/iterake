@@ -26,6 +26,22 @@ wgt_review(fake, mod, plot = T)
 wgt <- iterake(fake, id, mod)
 wgt_review(wgt, mod, weight, plot = T)
 
+# numeric vector
+wgt_stats(wgt$weight)
+
+# non-numeric vector
+wgt_stats(wgt$age)
+
+# multi-col df
+wgt_stats(wgt)
+
+# numeric one-col df
+wgt_stats(dplyr::select(wgt, weight))
+
+# non-numeric one col df
+wgt_stats(dplyr::select(wgt, age))
+
+
 raked <- iterake(fake, id, mod, wgt.lim = 4)
 post_rake_details <- wgt_review(raked, mod, weight)
 
