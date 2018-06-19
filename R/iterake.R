@@ -186,7 +186,10 @@ iterake <- function(df, id, design, wgt.name = "weight",
                 table_data %>%
                 group_by_(design$wgt_cat[[i]]) %>%
                 summarise(act_prop = sum(wgt) / nrow(.)) %>%
-                mutate(wgt_temp = ifelse(act_prop == 0, 0, design$data[[i]]$targ_prop / act_prop)) %>%
+                mutate(wgt_temp = 
+                           ifelse(act_prop == 0, 
+                                  0, 
+                                  design$data[[i]] %>% arrange(buckets) %>% pull(targ_prop) / act_prop)) %>%
                 select(design$wgt_cat[[i]], "wgt_temp") %>%
                 data.table(., key = design$wgt_cat[[i]])
 
@@ -225,7 +228,8 @@ iterake <- function(df, id, design, wgt.name = "weight",
                 to_weight %>%
                 group_by_(design$wgt_cat[[i]]) %>%
                 summarise(act_prop = sum(wgt) / nrow(.)) %>%
-                mutate(prop_diff = abs(design$data[[i]]$targ_prop - act_prop)) %>%
+                mutate(prop_diff = 
+                           abs(design$data[[i]] %>% arrange(buckets) %>% pull(targ_prop) - act_prop)) %>%
                 summarise(out = sum(prop_diff)) %>%
                 pull(out)
             

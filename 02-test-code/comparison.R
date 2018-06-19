@@ -189,3 +189,48 @@ designIterake <- wgt_design(df = weight_me %>% filter(group == 1),
 wgt_review(df = weight_me %>% filter(group == 1), design = designIterake)
 weightsIterake <- iterake(weight_me %>% filter(group == 1), id, designIterake, threshold = 1e-15)
 wgt_review(weightsIterake, designIterake, weight)
+
+# using included data tests...
+library(iterake)
+
+data(weight_me)
+mod <- wgt_design(
+    df = weight_me,
+    
+    wgt_cat(
+        name = "costume",
+        buckets = c("Bat Man", "Cactus"),
+        targets = c(0.5, 0.5)),
+    
+    wgt_cat(
+        name = "seeds",
+        buckets = c("Tornado", "Bird", "Earthquake"),
+        targets = c(0.4, 0.3, 0.3))
+)
+
+wgt_review(weight_me, mod, plot = T)
+wgt <- iterake(weight_me, order, mod)
+wgt_review(wgt, mod, weight, plot = T)
+
+
+test <- weight_me
+test$logical <- ifelse(test$costume == "Bat Man", TRUE, FALSE)
+test$number <- as.numeric(as.factor(test$seeds))
+
+mod2 <- wgt_design(
+    df = test,
+    
+    wgt_cat(
+        name = "logical",
+        buckets = c(TRUE, FALSE),
+        targets = c(0.5, 0.5)),
+    
+    wgt_cat(
+        name = "number",
+        buckets = c(1, 2, 3),
+        targets = c(0.3, 0.3, 0.4))
+)
+
+wgt_review(test, mod2)
+wgt2 <- iterake(test, order, mod)
+wgt_review(wgt2, mod2, weight)

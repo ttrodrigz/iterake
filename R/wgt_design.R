@@ -45,7 +45,7 @@ wgt_design <- function(df, ...) {
     if (!(all(map_lgl(wgt_cats, function(x) "wgt_cat" %in% class(x))))) {
         stop("Each input to wgt_design must be of the class `wgt_cat`. Use `wgt_cat()` to construct this input.")
     } 
-    
+
     # smush 'em together into final form
     out <- bind_rows(wgt_cats)
     
@@ -96,7 +96,7 @@ wgt_design <- function(df, ...) {
         ## create list object out of all unspecified arguments passed from pmap
         ## - this is basically the row being evaluated
         inputList <- list(...)
-        
+
         # get actual proportions to determine existance of NA
         act_props <- 
             main_data %>% 

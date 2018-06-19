@@ -8,7 +8,7 @@
 #' @param weight Name of weight variable, optional.
 #' @param plot Display plot, default = FALSE.
 #' 
-#' @importFrom dplyr select group_by summarise mutate ungroup n bind_rows left_join rename one_of
+#' @importFrom dplyr select group_by summarise mutate mutate_at vars funs ungroup n bind_rows left_join rename one_of
 #' @importFrom purrr map map2 set_names
 #' @importFrom rlang !! :=
 #' @importFrom tibble as_tibble
@@ -107,6 +107,7 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
     # prepare data by nesting
     nested <- 
         tmp %>%
+        mutate_at(vars(-weight_var), funs(as.character)) %>%
         gather(wgt_cat, buckets, -weight_var) %>%
         group_by(wgt_cat) %>%
         nest()
@@ -136,8 +137,11 @@ wgt_review <- function(df, design, weight, plot = FALSE) {
         
         # join in targets from design
         left_join(
-            y = unnest(design) %>% 
-                mutate(buckets = as.character(buckets)), 
+            y = unnest(design %>% 
+                           mutate(data = map(data, function(x) {
+                               x$buckets <- as.character(x$buckets)
+                               x}))
+            ), 
             by = c("wgt_cat", "buckets")
         ) %>%
         
