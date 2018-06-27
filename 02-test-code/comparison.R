@@ -11,18 +11,18 @@ mod <- wgt_design(df = fake,
     
     # age category
     wgt_cat(name = "age",
-            value = c("18-34", "35-54", "55+"),
-            targ.prop = c(0.300, 0.360, 0.340)),
+            buckets = c("18-34", "35-54", "55+"),
+            targets = c(0.300, 0.360, 0.340)),
     
     # gender category
     wgt_cat(name = "gender",
-            value = c("Female", "Male"),
-            targ.prop = c(0.500, 0.500)),
+            buckets = c("Female", "Male"),
+            targets = c(0.500, 0.500)),
     
     # vehicle category
     wgt_cat(name = "vehicle",
-            value = c("Car", "SUV", "Truck"),
-            targ.prop = c(0.400, 0.450, 0.150))
+            buckets = c("Car", "SUV", "Truck"),
+            targets = c(0.400, 0.450, 0.150))
     
 )
 
@@ -57,18 +57,18 @@ mod2 <- wgt_design(df = fakempace,
     
     # age category
     wgt_cat(name = "age",
-            value = c(1, 2, 3),
-            targ.prop = c(0.300, 0.360, 0.340)),
+            buckets = c(1, 2, 3),
+            targets = c(0.300, 0.360, 0.340)),
     
     # gender category
     wgt_cat(name = "gender",
-            value = c(1, 2),
-            targ.prop = c(0.500, 0.500)),
+            buckets = c(1, 2),
+            targets = c(0.500, 0.500)),
     
     # vehicle category
     wgt_cat(name = "vehicle",
-            value = c(1, 2, 3),
-            targ.prop = c(0.400, 0.450, 0.150))
+            buckets = c(1, 2, 3),
+            targets = c(0.400, 0.450, 0.150))
     
 )
 
@@ -91,18 +91,18 @@ mod3 <- wgt_design(df = testpace,
                   
                   # age category
                   wgt_cat(name = "age",
-                          value = c(1, 2, 3),
-                          targ.prop = c(0.300, 0.360, 0.340)),
+                          buckets = c(1, 2, 3),
+                          targets = c(0.300, 0.360, 0.340)),
                   
                   # gender category
                   wgt_cat(name = "gender",
-                          value = c(1, 2),
-                          targ.prop = c(0.500, 0.500)),
+                          buckets = c(1, 2),
+                          targets = c(0.500, 0.500)),
                   
                   # vehicle category
                   wgt_cat(name = "vehicle",
-                          value = c(1, 2, 3),
-                          targ.prop = c(0.400, 0.450, 0.150))
+                          buckets = c(1, 2, 3),
+                          targets = c(0.400, 0.450, 0.150))
                   
 )
 
