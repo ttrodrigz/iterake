@@ -181,20 +181,42 @@ iterake <- function(df, id, design, wgt.name = "weight",
             # create data.table version of data with target var as key
             table_data <- data.table(to_weight, key = design$wgt_cat[[i]])
             
-            # create data.table version of weights by value with target var as key
-            table_wgt <- 
-                table_data %>%
-                group_by_(design$wgt_cat[[i]]) %>%
-                summarise(act_prop = sum(wgt) / nrow(.)) %>%
-                mutate(wgt_temp = 
-                           ifelse(act_prop == 0, 
-                                  0, 
-                                  design$data[[i]] %>% arrange(buckets) %>% pull(targ_prop) / act_prop)) %>%
-                select(design$wgt_cat[[i]], "wgt_temp") %>%
-                data.table(., key = design$wgt_cat[[i]])
+            # this string of code merges in a wgt_temp variable based on target / actual proportions
+            # for the weighting category of interest - using data.table approach to merging
+            
+            # start with original data.table-ized object
+            table_merge <- table_data[
+                
+                # this is the data.table object that will be merged with the original - since
+                # it's based on table_data so it has the same key...
+                table_data[
+                    
+                    # this line calculates actual proportions grouped by design$wgt_cat[[i]]
+                    , .(act_prop = sum(wgt) / nrow(table_data)), by = c(design$wgt_cat[[i]])][
+                        
+                        # this line merges those actual proportions with the target proportions from design$data[[i]]
+                        data.table(design$data[[i]])][
+                            
+                            # this line calculates wgt_temp = targ / actual, with values of 0 used if actual is 0
+                            # again grouped by design$wgt_cat[[i]]
+                            , .(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)), by = c(design$wgt_cat[[i]])
+                            ]
+                ]
 
-            # merge the data.table way - works as both have same key
-            table_merge <- table_data[table_wgt]
+            # # create data.table version of weights by value with target var as key
+            # table_wgt <- 
+            #     table_data %>%
+            #     group_by_(design$wgt_cat[[i]]) %>%
+            #     summarise(act_prop = sum(wgt) / nrow(.)) %>%
+            #     mutate(wgt_temp = 
+            #                ifelse(act_prop == 0, 
+            #                       0, 
+            #                       design$data[[i]] %>% arrange(buckets) %>% pull(targ_prop) / act_prop)) %>%
+            #     select(design$wgt_cat[[i]], "wgt_temp") %>%
+            #     data.table(., key = design$wgt_cat[[i]])
+            # 
+            # # merge the data.table way - works as both have same key
+            # table_merge <- table_data[table_wgt]
             
             # combine weights, cap as needed, and remove wgt_tmp
             to_weight <- 
