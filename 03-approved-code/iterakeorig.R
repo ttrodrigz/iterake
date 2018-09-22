@@ -146,7 +146,7 @@ iterake <- function(df, id, design, wgt.name = "weight",
         if (!deparse(substitute(id)) %in% names(df)) {
             stop(paste0("id variable '", deparse(substitute(id)), "' not found in data."))
         }
-        #test <- id
+        
         id <- enquo(id)
         
         to_weight <- to_weight %>%
@@ -165,9 +165,6 @@ iterake <- function(df, id, design, wgt.name = "weight",
     stuck_count <- 0
     stuck_check <- 0
     
-    N <- nrow(to_weight)
-    wgt_names <- design[["wgt_cat"]]
-    
     # do the loops until the threshold is reached
     while (check > threshold) {
 
@@ -177,73 +174,86 @@ iterake <- function(df, id, design, wgt.name = "weight",
             to_weight <- NULL
             break
         }
-        
+
+        # loop through each variable in design$wgt_cat to generate weight
+        for (i in seq_along(design$wgt_cat)) {
+
+            # create data.table version of data with target var as key
+            table_data <- data.table(to_weight, key = design$wgt_cat[[i]])
+            
+            # this string of code merges in a wgt_temp variable based on target / actual proportions
+            # for the weighting category of interest - using data.table approach to merging
+            
+            # start with original data.table-ized object
+            table_merge <- table_data[
+                
+                # this is the data.table object that will be merged with the original - since
+                # it's based on table_data so it has the same key...
+                table_data[
+                    
+                    # this line calculates actual proportions grouped by design$wgt_cat[[i]]
+                    , .(act_prop = sum(wgt) / nrow(table_data)), by = c(design$wgt_cat[[i]])][
+                        
+                        # this line merges those actual proportions with the target proportions from design$data[[i]]
+                        data.table(design$data[[i]])][
+                            
+                            # this line calculates wgt_temp = targ / actual, with values of 0 used if actual is 0
+                            # again grouped by design$wgt_cat[[i]]
+                            , .(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)), by = c(design$wgt_cat[[i]])
+                            ]
+                ]
+
+            # # create data.table version of weights by value with target var as key
+            # table_wgt <- 
+            #     table_data %>%
+            #     group_by_(design$wgt_cat[[i]]) %>%
+            #     summarise(act_prop = sum(wgt) / nrow(.)) %>%
+            #     mutate(wgt_temp = 
+            #                ifelse(act_prop == 0, 
+            #                       0, 
+            #                       design$data[[i]] %>% arrange(buckets) %>% pull(targ_prop) / act_prop)) %>%
+            #     select(design$wgt_cat[[i]], "wgt_temp") %>%
+            #     data.table(., key = design$wgt_cat[[i]])
+            # 
+            # # merge the data.table way - works as both have same key
+            # table_merge <- table_data[table_wgt]
+            
+            # combine weights, cap as needed, and remove wgt_tmp
+            to_weight <- 
+                table_merge %>%
+                mutate(wgt = wgt * wgt_temp,
+                       
+                       # and force them to be no larger than wgt.lim, no smaller than 1/wgt.lim
+                       wgt = ifelse(wgt >= wgt.lim, wgt.lim, wgt)) %>%
+
+                ## THIS CAPS AT LOWER BOUND, REMOVING FOR NOW ****
+                # # and force them to be no larger than wgt.lim, no smaller than 1/wgt.lim
+                # wgt = ifelse(wgt >= wgt.lim, wgt.lim,
+                #              ifelse(wgt <= 1/wgt.lim,
+                #                     1/wgt.lim, wgt))) %>%
+
+                # and remove wgt_temp
+                select(-wgt_temp)
+                
+        }
+
         # store previous summed difference between targets and actuals
         prev_check <- check
         # reset/initialize check value
         check <- 0
         
-        # loop through each variable in design$wgt_cat to generate weight
-        for (i in seq_along(wgt_names)) {
-            
-            # data.table versions of:
-            # - data being weighted, i'th weighting column as key
-            # - i'th dataset (targets) of design
-            DT_data   <- data.table(to_weight, key = wgt_names[i])
-            DT_design <- data.table(design[["data"]][[i]])
-            
-            # start with original data.table-ized object
-            DT_merge <- 
-                
-                # original everything is getting merged to
-                DT_data[
-                    
-                    # DT object to be merged with the original
-                    # ideal becuase it uses the same key for merging
-                    DT_data[, 
-                            # calcs the "haves" by the i'th weighting category
-                            .(act_prop = sum(wgt) / N),
-                            by = c(wgt_names[i])
-                            
-                            # merge haves with wants
-                            ][DT_design
-                              
-                              ][, 
-                                # calculate wants over haves by the i'th weighting category
-                                .(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)), 
-                                by = c(wgt_names[i])
-                                ]
-                    ]
-            
-            # creates the weight factor, max out at the weight limit
-            to_weight <- DT_merge[, wgt := ifelse(wgt * wgt_temp > wgt.lim, wgt.lim, wgt * wgt_temp)][
-                # temporary weight no longer needed
-                , wgt_temp := NULL]
-            
-        }
-
         # loop through each to calculate discrepencies
-        for (i in seq_along(wgt_names)) {
+        for (i in seq_along(design$wgt_cat)) {
             
-            DT_design <- data.table(design[["data"]][[i]])
-            DT_data   <- data.table(to_weight, key = wgt_names[i])
-            
-            sum_diffs <- DT_data[, 
-                                   # calcs the "haves" by the i'th weighting category
-                                   .(act_prop = sum(wgt) / N),
-                                   by = c(wgt_names[i])
-                                   
-                                   # merge haves with wants
-                                   ][DT_design
-                                     
-                                     ][,
-                                       # calculate sum of prop diffs
-                                       .(sum = sum(targ_prop - act_prop))
-                                       
-                                       ][,
-                                         
-                                         # just return this sum
-                                         sum]
+            # compare new actuals to targets, sum abs(differences)
+            sum_diffs <- 
+                to_weight %>%
+                group_by_(design$wgt_cat[[i]]) %>%
+                summarise(act_prop = sum(wgt) / nrow(.)) %>%
+                mutate(prop_diff = 
+                           abs(design$data[[i]] %>% arrange(buckets) %>% pull(targ_prop) - act_prop)) %>%
+                summarise(out = sum(prop_diff)) %>%
+                pull(out)
             
             # check is the sum of whatever check already is + sum_diffs
             check <- check + sum_diffs
@@ -300,8 +310,11 @@ iterake <- function(df, id, design, wgt.name = "weight",
         }
 
         out <-
-            to_weight[order(substitute(id))][, wgt := wgt * x.factor] %>%
-            as.tibble()
+            df %>%
+            left_join(to_weight %>% select(!! id, wgt), by = quo_name(id)) %>%
+            mutate(wgt = wgt * x.factor) %>%
+            arrange(!! id) %>%
+            as_tibble()
 
         # calculate stats
         wgt <- out$wgt
