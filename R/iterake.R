@@ -15,11 +15,11 @@
 #' @param N Numeric value representing expansion factor to be applied to generated weights, optional.
 #' @param summary Boolean value for whether to show summary output of the procedure, optional.
 #' 
-#' @importFrom dplyr pull enquo mutate select group_by_ summarise left_join arrange quo_name %>%
+#' @importFrom dplyr pull enquo mutate select %>%
 #' @importFrom rlang !!
 #' @importFrom data.table data.table
 #' @importFrom crayon red yellow green bold %+%
-#' @importFrom tibble as_tibble
+#' @importFrom tibble as.tibble
 #' @importFrom scales percent
 #' 
 #' @return Data frame with the resulting weight variable appended to it.
@@ -30,20 +30,20 @@
 #' iterake(
 #'     df = weight_me,
 #'     id = order, 
-#'     design = wgt_design(
+#'     design = universe(
 #'         df = weight_me,
 #' 
-#'         wgt_cat(
+#'         build_margin(
 #'             name = "seeds",
 #'             buckets = c("Tornado", "Bird", "Earthquake"),
 #'             targets = c(0.300, 0.360, 0.340)),
 #' 
-#'         wgt_cat(
+#'         build_margin(
 #'             name = "costume",
 #'             buckets = c("Bat Man", "Cactus"),
 #'             targets = c(0.500, 0.500)),
 #' 
-#'         wgt_cat(
+#'         build_margin(
 #'             name = "transport",
 #'             buckets = c("Rocket Cart", "Jet Propelled Skis", "Jet Propelled Unicycle"),
 #'             targets = c(0.400, 0.450, 0.150))
@@ -57,8 +57,8 @@ iterake <- function(df, id, design, wgt.name = "weight",
                     stuck.limit = 5, N, summary = TRUE) {
     
     # step 1) setup + error checking ----
-    if (!("wgt_design" %in% class(design))) {
-        stop("Input to `design` must be output created by `wgt_design()`.")
+    if (!("universe" %in% class(design))) {
+        stop("Input to `design` must be output created by `universe()`.")
     }
     
     # do stuff to to_weight
@@ -237,8 +237,8 @@ iterake <- function(df, id, design, wgt.name = "weight",
                                    ][DT_design
                                      
                                      ][,
-                                       # calculate sum of prop diffs
-                                       .(sum = sum(targ_prop - act_prop))
+                                       # calculate sum of abs(prop diffs)
+                                       .(sum = sum(abs(targ_prop - act_prop)))
                                        
                                        ][,
                                          

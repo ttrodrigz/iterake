@@ -1,6 +1,7 @@
 #' Create weighting category
 #' 
-#' To be fed into \code{wgt_design()}, this function creates an individual weighting category. (E.g., age group.)
+#' To be fed into \code{universe()}, this function creates an individual weighting category 
+#' with known marginal probabilities. (E.g., age group.)
 #' 
 #' @param name Name given to weighting category, character. Must have exact match in the column names of data you intend to weight.
 #' @param buckets Vector corresponding to the "buckets" in which your sample is divided.
@@ -9,16 +10,16 @@
 #' 
 #' @importFrom tibble tibble
 #' 
-#' @return A nested \code{tibble} with special class \code{wgt_cat}.
+#' @return A nested \code{tibble} with special class \code{build_margin}.
 #' 
 #' @examples 
-#' wgt_cat(
+#' build_margin(
 #'   name = "costume",
 #'   buckets = c("Bat Man", "Cactus"),
 #'   targets = c(0.645, 0.355)
 #' )
 #' 
-#' wgt_cat(
+#' build_margin(
 #'   name = "seeds",
 #'   buckets = c("Tornado", "Bird", "Earthquake"),
 #'   targets = c(0.3333, 0.3333, 0.3333),
@@ -26,7 +27,7 @@
 #' )
 #' 
 #' @export
-wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
+build_margin <- function(name, buckets, targets, sum.1 = FALSE) {
     
     # verify parameters
     if (!is.character(name) || length(name) != 1) {
@@ -61,7 +62,7 @@ wgt_cat <- function(name, buckets, targets, sum.1 = FALSE) {
         )
     
     # assign class
-    class(out) <- c(class(out), "wgt_cat")
+    class(out) <- c(class(out), "build_margin")
     
     return(out)
     

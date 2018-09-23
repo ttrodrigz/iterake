@@ -1,38 +1,37 @@
-library(data.table)
-library(tidyverse)
-library(mpace)
-library(readr)
 library(iterake)
 
 # Testing iterake vs. mpace/anesrake
 
 # load data
-fake <- read_rds("./data-for-testing/test_data.rds")
+fake <- readr::read_rds("./data-for-testing/test_data.rds")
 
 # set up things using tidywgt/iterake
-mod <- wgt_design(df = fake,
+mod <- universe(df = fake,
     
     # age category
-    wgt_cat(name = "age",
+    build_margin(name = "age",
             buckets = c("18-34", "35-54", "55+"),
             targets = c(0.300, 0.360, 0.340)),
     
     # gender category
-    wgt_cat(name = "gender",
+    build_margin(name = "gender",
             buckets = c("Female", "Male"),
             targets = c(0.500, 0.500)),
     
     # vehicle category
-    wgt_cat(name = "vehicle",
+    build_margin(name = "vehicle",
             buckets = c("Car", "SUV", "Truck"),
             targets = c(0.400, 0.450, 0.150))
     
 )
 
-wgt_review(df = fake, design = mod)
+compare_margin(df = fake, design = mod)
 weights <- iterake(fake, id, mod, threshold = 1e-15)
-wgt_review(weights, mod, weight)
+compare_margin(weights, mod, weight)
 
+
+library(tidyverse)
+library(mpace)
 # set up things using mpace/anesrake
 # recode to be all numeric
 fakempace <- fake %>%
@@ -56,28 +55,28 @@ summary(diff)
 sum(abs(diff))
 
 # test iterake w/ numeric data from mpace test
-mod2 <- wgt_design(df = fakempace,
+mod2 <- universe(df = fakempace,
     
     # age category
-    wgt_cat(name = "age",
+    build_margin(name = "age",
             buckets = c(1, 2, 3),
             targets = c(0.300, 0.360, 0.340)),
     
     # gender category
-    wgt_cat(name = "gender",
+    build_margin(name = "gender",
             buckets = c(1, 2),
             targets = c(0.500, 0.500)),
     
     # vehicle category
-    wgt_cat(name = "vehicle",
+    build_margin(name = "vehicle",
             buckets = c(1, 2, 3),
             targets = c(0.400, 0.450, 0.150))
     
 )
 
-wgt_review(df = fakempace, design = mod2)
+compare_margins(df = fakempace, design = mod2)
 weights2 <- iterake(fakempace, id, mod2, threshold = 1e-15)
-wgt_review(weights2, mod2, weight)
+compare_margins(weights2, mod2, weight)
 
 # vector of differences
 diff2 <- weights2$weight - weightsmpace$weight
@@ -90,22 +89,22 @@ sum(abs(diff2))
 testpace <- fakempace
 testpace[1:5, 2] <- NA
 
-mod3 <- wgt_design(df = testpace,
-                  
-                  # age category
-                  wgt_cat(name = "age",
-                          buckets = c(1, 2, 3),
-                          targets = c(0.300, 0.360, 0.340)),
-                  
-                  # gender category
-                  wgt_cat(name = "gender",
-                          buckets = c(1, 2),
-                          targets = c(0.500, 0.500)),
-                  
-                  # vehicle category
-                  wgt_cat(name = "vehicle",
-                          buckets = c(1, 2, 3),
-                          targets = c(0.400, 0.450, 0.150))
+mod3 <- universe(df = testpace,
+                 
+                 # age category
+                 build_margin(name = "age",
+                              buckets = c(1, 2, 3),
+                              targets = c(0.300, 0.360, 0.340)),
+                 
+                 # gender category
+                 build_margin(name = "gender",
+                              buckets = c(1, 2),
+                              targets = c(0.500, 0.500)),
+                 
+                 # vehicle category
+                 build_margin(name = "vehicle",
+                              buckets = c(1, 2, 3),
+                              targets = c(0.400, 0.450, 0.150))
                   
 )
 
@@ -132,10 +131,10 @@ weightsmpace_missing2 <- wgt_rake(newtest, design2) # works again
 wgt_check(weightsmpace_missing2)
 
 
-# tidywgt/iterake
-wgt_review(df = testpace, design = mod3)
+# iterake
+compare_margins(df = testpace, design = mod3)
 weights_missing <- iterake(testpace, id, mod3, threshold = 1e-15)
-wgt_review(weights_missing, mod3, weight)
+compare_margins(weights_missing, mod3, weight)
 
 # vector of differences
 diff_missing <- weights_missing$weight - weightsmpace_missing$weight
@@ -176,64 +175,64 @@ wgt_tab(weight_me %>% filter(group == 1), designMpace, weightsMpace)
 wgt_check(weightsMpace)
 
 # do it the iterake way
-designIterake <- wgt_design(df = weight_me %>% filter(group == 1),
+designIterake <- universe(df = weight_me %>% filter(group == 1),
                            
-                           # gender category
-                           wgt_cat_inherit(name = "gender",
-                                           df = weight_me %>% filter(group == 2),
-                                           prev.wgt = origWeight),
-                           
-                           # vehicle category
-                           wgt_cat_inherit(name = "vehicle",
-                                           df = weight_me %>% filter(group == 2),
-                                           prev.wgt = origWeight)
+                          # gender category
+                          build_margin_inherit(name = "gender",
+                                               df = weight_me %>% filter(group == 2),
+                                               prev.wgt = origWeight),
+                          
+                          # vehicle category
+                          build_margin_inherit(name = "vehicle",
+                                               df = weight_me %>% filter(group == 2),
+                                               prev.wgt = origWeight)
 )
 
-wgt_review(df = weight_me %>% filter(group == 1), design = designIterake)
+compare_margins(df = weight_me %>% filter(group == 1), design = designIterake)
 weightsIterake <- iterake(weight_me %>% filter(group == 1), id, designIterake, threshold = 1e-15)
-wgt_review(weightsIterake, designIterake, weight)
+compare_margins(weightsIterake, designIterake, weight)
 
 # using included data tests...
 library(iterake)
 
 data(weight_me)
-mod <- wgt_design(
+mod <- universe(
     df = weight_me,
     
-    wgt_cat(
+    build_margin(
         name = "costume",
         buckets = c("Bat Man", "Cactus"),
         targets = c(0.5, 0.5)),
     
-    wgt_cat(
+    build_margin(
         name = "seeds",
         buckets = c("Tornado", "Bird", "Earthquake"),
         targets = c(0.4, 0.3, 0.3))
 )
 
-wgt_review(weight_me, mod, plot = T)
+compare_margins(weight_me, mod, plot = T)
 wgt <- iterake(weight_me, order, mod)
-wgt_review(wgt, mod, weight, plot = T)
+compare_margins(wgt, mod, weight, plot = T)
 
 
 test <- weight_me
 test$logical <- ifelse(test$costume == "Bat Man", TRUE, FALSE)
 test$number <- as.numeric(as.factor(test$seeds))
 
-mod2 <- wgt_design(
+mod2 <- universe(
     df = test,
     
-    wgt_cat(
+    build_margin(
         name = "logical",
         buckets = c(TRUE, FALSE),
         targets = c(0.5, 0.5)),
     
-    wgt_cat(
+    build_margin(
         name = "number",
         buckets = c(1, 2, 3),
         targets = c(0.3, 0.3, 0.4))
 )
 
-wgt_review(test, mod2)
+compare_margins(test, mod2)
 wgt2 <- iterake(test, order, mod)
-wgt_review(wgt2, mod2, weight)
+compare_margins(wgt2, mod2, weight)

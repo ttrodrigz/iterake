@@ -1,37 +1,37 @@
 #' Create full weighting design
 #' 
-#' This combines any number of objects with special class \code{wgt_cat}. It also checks and adjusts
+#' This combines any number of objects with special class \code{build_margin}. It also checks and adjusts
 #' for \code{NA} data in the data frame to be weighted.
 #' 
 #' @param df Data frame containing data you intend to weight.
-#' @param ... Object or objects of special class \code{wgt_cat}.
+#' @param ... Object or objects of special class \code{build_margin}.
 #' 
 #' @importFrom purrr map_lgl pmap 
 #' @importFrom dplyr bind_rows pull group_by_ summarise mutate select %>%
 #' @importFrom crayon %+%
 #' @importFrom tibble tibble
 #' 
-#' @return A nested \code{tibble} with special class \code{wgt_design}.
+#' @return A nested \code{tibble} with special class \code{universe}.
 #' 
 #' @examples 
 #' data(weight_me)
 #' 
-#' wgt_design(
+#' universe(
 #'     df = weight_me,
 #' 
-#'     wgt_cat(
+#'     build_margin(
 #'         name = "costume",
 #'         buckets = c("Bat Man", "Cactus"),
 #'         targets = c(0.5, 0.5)),
 #' 
-#'     wgt_cat(
+#'     build_margin(
 #'         name = "seeds",
 #'         buckets = c("Tornado", "Bird", "Earthquake"),
 #'         targets = c(0.4, 0.3, 0.3))
 #' )
 #' 
 #' @export
-wgt_design <- function(df, ...) {
+universe <- function(df, ...) {
     
     # make sure dataframe is supplied
     if (!is.data.frame(df)) {
@@ -39,25 +39,27 @@ wgt_design <- function(df, ...) {
     }
     
     # list object of all unspecified arguments passed to function
-    wgt_cats <- list(...)
+    build_margins <- list(...)
     
     # are all inputs to this function wgt_cats?
-    if (!(all(map_lgl(wgt_cats, function(x) "wgt_cat" %in% class(x))))) {
-        stop("Each input to wgt_design must be of the class `wgt_cat`. Use `wgt_cat()` to construct this input.")
+    if (!(all(map_lgl(build_margins, function(x) "build_margin" %in% class(x))))) {
+        stop("Each input to universe() must be of the class `build_margin`. Use `build_margin()` to construct this input.")
     } 
 
     # smush 'em together into final form
-    out <- bind_rows(wgt_cats)
+    out <- bind_rows(build_margins)
     
-    # make sure each wgt_cat in pop.model has a matching column in df
+    # make sure each wgt_cat in universe has a matching column in df
     df.names  <- names(df)
+    
+    # wgt_cat here refers to the variable created in build_margin that identifies a target weighting variable
     mod.names <- pull(out, wgt_cat)
     bad.names <- mod.names[!mod.names %in% df.names]
     
     if (length(bad.names) > 0) {
         stop(
             paste(
-                "Each weighting category in `pop.model` must have a matching column name in `df`. The following weighting cagegories have no match:",
+                "Each weighting category in `universe` must have a matching column name in `df`. The following weighting cagegories have no match:",
                 paste(bad.names, collapse = ", "),
                 sep = "\n"
             )
@@ -133,7 +135,7 @@ wgt_design <- function(df, ...) {
         # reassign attribute types to match supplied data
         inputList$data$buckets <- inherit_chr_fct(inputList$data$buckets, act_props[[inputList$wgt_cat]])
         
-        # recreate tibble similar to how it's put together in wgt_Cat
+        # recreate tibble similar to how it's put together in build_margin
         tibble(
             wgt_cat = inputList$wgt_cat,
             data = list(
@@ -147,7 +149,7 @@ wgt_design <- function(df, ...) {
         bind_rows()
     
     # assign class
-    class(adjusted_model) <- c(class(adjusted_model), "wgt_design")
+    class(adjusted_model) <- c(class(adjusted_model), "universe")
     
     return(adjusted_model)
 

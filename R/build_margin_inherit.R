@@ -1,7 +1,7 @@
 #' Create weighting category from data
 #' 
-#' To be fed into \code{wgt_design()}, this function creates an individual weighting category. (E.g., age group.)
-#' Unlike \code{wgt_cat()}, this function creates bucket targets from a dataframe instead of being directly assigned.
+#' To be fed into \code{universe()}, this function creates an individual weighting category. (E.g., age group.)
+#' Unlike \code{build_margin()}, this function creates bucket targets from a dataframe instead of being directly assigned.
 #' 
 #' @param name Name given to weighting category, character. Must have exact match in the column names of data you intend to weight.
 #' @param df Data frame containing data you intend to weight.
@@ -12,24 +12,24 @@
 #' @importFrom tidyr gather
 #' @importFrom tibble tibble
 #' 
-#' @return A nested \code{tibble} with special class \code{wgt_cat}.
+#' @return A nested \code{tibble} with special class \code{build_margin}.
 #' 
 #' @examples 
 #' data(weight_me)
 #' 
-#' wgt_cat_inherit(
+#' build_margin_inherit(
 #'   name = "costume",
 #'   df = dplyr::filter(weight_me, satisfied == "No")
 #' )
 #' 
-#' wgt_cat_inherit(
+#' build_margin_inherit(
 #'   name = "transport",
 #'   df = dplyr::filter(weight_me, satisfied == "No"),
 #'   prev.wgt = prev_weight
 #' )
 #' 
 #' @export
-wgt_cat_inherit <- function(name, df, prev.wgt) {
+build_margin_inherit <- function(name, df, prev.wgt) {
     
     # verify parameters
     if (!is.character(name) || length(name) != 1) {
@@ -81,7 +81,7 @@ wgt_cat_inherit <- function(name, df, prev.wgt) {
         )
 
     # assign class    
-    class(out) <- c(class(out), "wgt_cat")
+    class(out) <- c(class(out), "build_margin")
     
     return(out)
     

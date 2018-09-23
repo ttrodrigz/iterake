@@ -1,43 +1,79 @@
 # setup ----
-library(data.table)
-library(magrittr)
 library(tidyverse)
-library(crayon)
 library(mpace)
-
-source("./03-approved-code/pop_model.r")
-source("./03-approved-code/wgt_cat.r")
-source("./02-test-code/missing_data_adjustment.r")
-source("./02-test-code/pre_rake.r")
-source("./02-test-code/iterake.r")
-source("./02-test-code/post_rake.r")
+library(iterake)
 
 # load data ----
-df_1 <- read_rds("./data-test/df_1.rds")
-df_2 <- read_rds("./data-test/df_2.rds")
-df_3 <- read_rds("./data-test/df_3.rds")
+df_1 <- readr::read_rds("./data-for-testing/df_1.rds")
+df_2 <- readr::read_rds("./data-for-testing/df_2.rds")
+df_3 <- readr::read_rds("./data-for-testing/df_3.rds")
 
-map_int(list(df_1, df_2, df_3), nrow)
+purrr::map_int(list(df_1, df_2, df_3), nrow)
 
 # existing proportions for the big dataset, use these actual props
 # to build pop model to be used for all three datasets
-map(df_1[, -1], table) %>% 
+purrr::map(df_1[, -1], table) %>% 
     map(prop.table)
 
 # set up iterake population model ----
-mod <- pop_model(
-    wgt_cat(name = "v1", 
-            value = c(1, 2, 3), 
-            targ.prop = c(0.6, 0.25, 0.15)),
-    wgt_cat(name = "v2", 
-            value = c(1, 2),
-            targ.prop = c(0.5, 0.5)),
-    wgt_cat(name = "v3",
-            value = c(1, 2, 3, 4, 5),
-            targ.prop = c(0.25, 0.15, 0.28, 0.18, 0.14)),
-    wgt_cat(name = "v4",
-            value = c(1, 2, 3, 4),
-            targ.prop = c(0.2, 0.5, 0.15, 0.15))
+mod1 <- universe(
+    df = df_1,
+    
+    build_margin(name = "v1",
+                 buckets = c(1, 2, 3),
+                 targets = c(0.6, 0.25, 0.15)),
+    
+    build_margin(name = "v2", 
+                 buckets = c(1, 2),
+                 targets = c(0.5, 0.5)),
+    
+    build_margin(name = "v3",
+                 buckets = c(1, 2, 3, 4, 5),
+                 targets = c(0.25, 0.15, 0.28, 0.18, 0.14)),
+    
+    build_margin(name = "v4",
+                 buckets = c(1, 2, 3, 4),
+                 targets = c(0.2, 0.5, 0.15, 0.15))
+)
+
+mod2 <- universe(
+    df = df_2,
+    
+    build_margin(name = "v1",
+                 buckets = c(1, 2, 3),
+                 targets = c(0.6, 0.25, 0.15)),
+    
+    build_margin(name = "v2", 
+                 buckets = c(1, 2),
+                 targets = c(0.5, 0.5)),
+    
+    build_margin(name = "v3",
+                 buckets = c(1, 2, 3, 4, 5),
+                 targets = c(0.25, 0.15, 0.28, 0.18, 0.14)),
+    
+    build_margin(name = "v4",
+                 buckets = c(1, 2, 3, 4),
+                 targets = c(0.2, 0.5, 0.15, 0.15))
+)
+
+mod3 <- universe(
+    df = df_3,
+    
+    build_margin(name = "v1",
+                 buckets = c(1, 2, 3),
+                 targets = c(0.6, 0.25, 0.15)),
+    
+    build_margin(name = "v2", 
+                 buckets = c(1, 2),
+                 targets = c(0.5, 0.5)),
+    
+    build_margin(name = "v3",
+                 buckets = c(1, 2, 3, 4, 5),
+                 targets = c(0.25, 0.15, 0.28, 0.18, 0.14)),
+    
+    build_margin(name = "v4",
+                 buckets = c(1, 2, 3, 4),
+                 targets = c(0.2, 0.5, 0.15, 0.15))
 )
 
 # setup mpace design ----
@@ -53,32 +89,46 @@ design <- wgt_design(
 # run iterake on three datasets ----
 
 ### DEVON!! LOOK HERE!!
-pre_rake(df_1, mod)
-wgt <- iterake(df_1, id, mod)
-post_rake(wgt, weight, mod)
+compare_margins(df_1, mod1)
+wgt <- iterake(df_1, id, mod1)
+compare_margins(wgt, mod1, weight)
 
-iterake(df = df_1, 
-        id = id,
-        pop.model = mod, 
-        wgt.lim = 3, 
-        max.iter = 2000)
+system.time(
+    iterake(df = df_1, 
+            id = id,
+            design = mod1, 
+            wgt.lim = 3, 
+            max.iter = 2000)
+)
+
+system.time(
+    wgt_rake(df_1, design)
+)
 
 wgt_check(wgt_rake(df_1, design))
 
+system.time(
+    iterake(df = df_2, 
+            id = id,
+            design = mod2, 
+            wgt.lim = 3, 
+            max.iter = 2000)
+)
 
-iterake(df = df_2, 
-        id = id,
-        pop.model = mod, 
-        wgt.lim = 3, 
-        max.iter = 2000)
-
+system.time(
+    wgt_rake(df_2, design)
+)
 wgt_check(wgt_rake(df_2, design))
 
 system.time(
 iterake(df = df_3, 
         id = id,
-        pop.model = mod, 
+        design = mod3, 
         wgt.lim = 3, 
         max.iter = 2000))
+
+system.time(
+    wgt_rake(df_3, design)
+)
 
 wgt_check(wgt_rake(df_3, design))

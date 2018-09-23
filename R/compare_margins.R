@@ -1,7 +1,7 @@
 #' Compare unweighted or weighted data to targets
 #' 
 #' Inspect by what degree the unweighted or weighted sample proportions deviate from the
-#' target proportions in the weight design.
+#' target proportions.
 #' 
 #' @param df Data frame of the data you intend on weighting.
 #' @param design Full weighting design created by \code{wgt_design()}.
@@ -23,22 +23,22 @@
 #' @examples 
 #' data(weight_me)
 #' 
-#' mod <- wgt_design(
+#' mod <- universe(
 #' 
 #'     df = weight_me,
 #' 
-#'     wgt_cat(
+#'     build_margin(
 #'         name = "costume",
 #'         buckets = c("Bat Man", "Cactus"),
 #'         targets = c(0.5, 0.5)),
 #' 
-#'     wgt_cat(
+#'     build_margin(
 #'         name = "seeds",
 #'         buckets = c("Tornado", "Bird", "Earthquake"),
 #'         targets = c(0.3, 0.3, 0.4))
 #' )
 #' 
-#' wgt_review(
+#' compare_margins(
 #'     df = weight_me,
 #'     design = mod,
 #'     plot = TRUE
@@ -50,25 +50,27 @@
 #'     design = mod
 #' )
 #' 
-#' wgt_review(
+#' compare_margins(
 #'     df = wgts,
 #'     design = mod,
 #'     weight = weight,
 #'     plot = FALSE)
 #'
 #' @export
-wgt_review <- function(df, design, weight, plot = FALSE) {
+compare_margins <- function(df, design, weight, plot = FALSE) {
 
     # make sure you've got a df
     if (!is.data.frame(df)) {
         stop("`df` must be a dataframe.")
     }
     
-    if (!"wgt_design" %in% class(design)) {
-        stop("'design' must be of class 'wgt_design', rerun wgt_design()")
+    if (!"universe" %in% class(design)) {
+        stop("'design' must be of class 'universe', rerun universe()")
     }
     
     df.names <- names(df)
+    
+    # wgt_cat here refers to the variable created in build_margin that identifies a target weighting variable
     mod.names <- design$wgt_cat
     bad.names <- mod.names[!mod.names %in% df.names]
     

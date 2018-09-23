@@ -1,49 +1,47 @@
 library(iterake)
 
-#devtools::use_build_ignore(c("resources", "01-idea-code", "02-test-code", "03-approved-code", "99-junk-code", "logo", "data-for-testing", "README.Rmd", "README_files"))
-
 fake <- readr::read_rds("./data-for-testing/test_data.rds")
-mod <- wgt_design(df = fake,
+mod <- universe(df = fake,
     
     # age category
-    wgt_cat(name = "age",
+    build_margin(name = "age",
             buckets = c("18-34", "35-54", "55+"),
             targets = c(0.300, 0.360, 0.340)),
     
     # gender category
-    wgt_cat(name = "gender",
+    build_margin(name = "gender",
             buckets = c("Female", "Male"),
             targets = c(0.500, 0.500)),
     
     # vehicle category
-    wgt_cat(name = "vehicle",
+    build_margin(name = "vehicle",
             buckets = c("Car", "SUV", "Truck"),
             targets = c(0.400, 0.450, 0.150))
     
 )
 
-wgt_review(fake, mod, plot = T)
+compare_margins(fake, mod, plot = T)
 wgt <- iterake(fake, id, mod)
-wgt_review(wgt, mod, weight, plot = T)
+compare_margins(wgt, mod, weight, plot = T)
 
 # numeric vector
-wgt_stats(wgt$weight)
+weight_stats(wgt$weight)
 
 # non-numeric vector
-wgt_stats(wgt$age)
+weight_stats(wgt$age)
 
 # multi-col df
-wgt_stats(wgt)
+weight_stats(wgt)
 
 # numeric one-col df
-wgt_stats(dplyr::select(wgt, weight))
+weight_stats(dplyr::select(wgt, weight))
 
 # non-numeric one col df
-wgt_stats(dplyr::select(wgt, age))
+weight_stats(dplyr::select(wgt, age))
 
 
 raked <- iterake(fake, id, mod, wgt.lim = 4)
-post_rake_details <- wgt_review(raked, mod, weight)
+post_rake_details <- compare_margins(raked, mod, weight)
 
 # checking iterake
 
@@ -89,4 +87,4 @@ iterake(df = fake, design = mod, id = id,
 # will succeed
 wgts <- iterake(fake, id, mod, wgt.lim = 3)
 
-wgt_review(comb, mod, weight)
+compare_margins(comb, mod, weight)

@@ -17,20 +17,20 @@
 #' wgts <- iterake(
 #'     df = weight_me,
 #'     id = order, 
-#'     design = wgt_design(
+#'     design = universe(
 #'         df = weight_me,
 #' 
-#'         wgt_cat(
+#'         build_margin(
 #'             name = "seeds",
 #'             buckets = c("Tornado", "Bird", "Earthquake"),
 #'             targets = c(0.300, 0.360, 0.340)),
 #' 
-#'         wgt_cat(
+#'         build_margin(
 #'             name = "costume",
 #'             buckets = c("Bat Man", "Cactus"),
 #'             targets = c(0.500, 0.500)),
 #' 
-#'         wgt_cat(
+#'         build_margin(
 #'             name = "transport",
 #'             buckets = c("Rocket Cart", "Jet Propelled Skis", "Jet Propelled Unicycle"),
 #'             targets = c(0.400, 0.450, 0.150))
@@ -38,10 +38,10 @@
 #'     )
 #' )
 #' 
-#' wgt_stats(wgts$weight)
+#' weight_stats(wgts$weight)
 #' 
 #' @export
-wgt_stats <- function(weight) {
+weight_stats <- function(weight) {
     
     # one col df's and numeric vectors are permissible
     if (!is.numeric(weight) & !is.data.frame(weight)) {
