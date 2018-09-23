@@ -7,11 +7,12 @@ iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" />
 Overview
 --------
 
-iterake's main utility is creating row-level weights using a process called iterative raking. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample from a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
+iterake's main utility is creating row-level weights using a process called iterative raking. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample and a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
 
 The weighting process with `iterake` is fairly straightforward; we suggest the following workflow:
 
-1.  Use `universe()` to build your known population. This is built with one or more weighting categories with the `marginal()` function.
+1.  Use the `universe()` function to build your population.
+    1.  The univerise is constructed with one or more characteristics where the marginal probabilites are known. These characteristics are built with the `build_margin()` function.
 2.  Compare the marginal proportions in your sample with the population with `compare_margins()` function.
 3.  If needed, create weights for your data using `iterake()`.
 4.  Verify that the weighted proportions in your sample now match the population. The `compare_margins()` function is again used here.
