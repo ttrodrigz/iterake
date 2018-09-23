@@ -14,20 +14,15 @@ knitr::opts_chunk$set(
   
 ## Overview 
 
-iterake performs an algorithm known as iterative raking to generate row/respondent level weights for a sample of data. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in your sample from a known population for a given set of variables.
+`iterake's main utility is creating row-level weights using a process called iterative raking, hence the name. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample from a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
 
-Three workhorse functions are inluded to help at every stage of the data weighting process:
+The weighting process with `iterake` is fairly straightforward; we suggest the following workflow: 
 
-* `pre_rake()` compares the unweighted data to the population model.
-* `iterake()` performs the iterative raking.
-* `post_rake()` evaluates the effects of the weighting model.
-
-Prior to weighting, two helper functions are used to construct the population model (your weighting targets):
-
-* `wgt_cat()` constructs an individual weighting category (e.g., gender).
-* `pop_model()` collects all of the individual weighting categories and prepares them for `iterake()`.
-
-This package was built to play nicely with the [tidyverse](https://www.tidyverse.org/), so the API should feel somewhat familiar to users of tidy tools.
+1. Use `universe()` to build your known population. This is built with one or more weighting categories with the `marginal()` function.
+2. Compare the marginal proportions in your sample with the population with `compare_margins()` function.  
+3. If needed, create weights for your data using `iterake()`.  
+4. Verify that the weighted proportions in your sample now match the population. The `compare_margins()` function is again used here.  
+5. Check the performance of the weighting model with `weight_stats()`.
 
 <!--
 ## Installation
