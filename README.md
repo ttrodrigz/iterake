@@ -7,63 +7,40 @@ iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" />
 Overview
 --------
 
-iterake performs an algorithm known as iterative raking to generate row/respondent level weights for a sample of data. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in your sample from a known population for a given set of variables.
+iterake's main utility is creating row-level weights using a process called iterative raking. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample from a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
 
-Three workhorse functions are inluded to help at every stage of the data weighting process:
+The weighting process with `iterake` is fairly straightforward; we suggest the following workflow:
 
--   `pre_rake()` compares the unweighted data to the population model.
--   `iterake()` performs the iterative raking.
--   `post_rake()` evaluates the effects of the weighting model.
+1.  Use `universe()` to build your known population. This is built with one or more weighting categories with the `marginal()` function.
+2.  Compare the marginal proportions in your sample with the population with `compare_margins()` function.
+3.  If needed, create weights for your data using `iterake()`.
+4.  Verify that the weighted proportions in your sample now match the population. The `compare_margins()` function is again used here.
+5.  Check the performance of the weighting model with `weight_stats()`.
 
-Prior to weighting, two helper functions are used to construct the population model (your weighting targets):
+Motivating Example
+------------------
 
--   `wgt_cat()` constructs an individual weighting category (e.g., gender).
--   `pop_model()` collects all of the individual weighting categories and prepares them for `iterake()`.
+Suppose a car dealership is interested in surveying the opinions of people who purchased a new vehicle from their lot. This dealership has been around since 2015 and has kept accurate records of its sales since its inception. The dealership randomly samples 200 individuals from its sales database to complete a customer satisfaction survey.
 
-This package was built to play nicely with the [tidyverse](https://www.tidyverse.org/), so the API should feel somewhat familiar to users of tidy tools.
+In order to try and make the sample represent the known population in their database, they calculate the marginal proportions of their sample and population for the following three categories:
 
-<!--
-## Installation
-```
-# install.packages("devtools")
-devtools::install_github("ttrodrigz/iterake")
-```
+| Value | Pop. | Sample |
+|:------|:-----|:-------|
+| 18-34 | 12%  | 17%    |
+| 35-54 | 58%  | 55%    |
+| 55+   | 30%  | 28%    |
 
-## Motivating Example
-Suppose you've sampled 200 individuals from your home town to perform a study on used car buyers. In our omniscience, we know characteristics about age, gender, and the vehicle type owned in the population from which we are sampling.
+|  Value| Pop. | Sample |
+|------:|:-----|:-------|
+|   2015| 23%  | 20%    |
+|   2016| 26%  | 23%    |
+|   2017| 30%  | 34%    |
+|   2018| 21%  | 23%    |
 
+| Value | Pop. | Sample |
+|:------|:-----|:-------|
+| Car   | 38%  | 36%    |
+| SUV   | 47%  | 52%    |
+| Truck | 15%  | 12%    |
 
-Table: Age
-
-Value   Pop.    Sample 
-------  ------  -------
-18-34   32.0%   34.0%  
-35-54   35.0%   33.5%  
-55+     33.0%   32.5%  
-
-
-
-Table: Gender
-
-Value    Pop.    Sample 
--------  ------  -------
-Female   54.0%   57.0%  
-Male     46.0%   43.0%  
-
-
-
-Table: Vehicle
-
-Value   Pop.    Sample 
-------  ------  -------
-Car     38.0%   35.5%  
-SUV     47.0%   51.5%  
-Truck   15.0%   13.0%  
-
-From the above tables, we can see there is a difference between what we collected in our sample and what is observed in the population. We can use the raking procedure to generate weights such that the weighted proportions of the sample will match (or come very close) to the population. 
-
-Note: we do not care about the joint probabilites of our weighting categories (i.e., percent of sample who are female, own an SUV, and are over 55 years old). As mentioned earlier, raking takes only into consideration the marginal probabilities.
-
-## Usage
-This is where I realize we should be using RMarkdown/knitr so we can include code + output. Oops.
--->
+There are slight deviations between what was collected in the sample and the known population. These deviations are small enough

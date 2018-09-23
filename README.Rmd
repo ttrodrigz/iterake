@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
   
 ## Overview 
 
-`iterake's main utility is creating row-level weights using a process called iterative raking, hence the name. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample from a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
+iterake's main utility is creating row-level weights using a process called iterative raking. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample from a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
 
 The weighting process with `iterake` is fairly straightforward; we suggest the following workflow: 
 
@@ -24,43 +24,33 @@ The weighting process with `iterake` is fairly straightforward; we suggest the f
 4. Verify that the weighted proportions in your sample now match the population. The `compare_margins()` function is again used here.  
 5. Check the performance of the weighting model with `weight_stats()`.
 
-<!--
-## Installation
-```
-# install.packages("devtools")
-devtools::install_github("ttrodrigz/iterake")
-```
 
 ## Motivating Example
-Suppose you've sampled 200 individuals from your home town to perform a study on used car buyers. In our omniscience, we know characteristics about age, gender, and the vehicle type owned in the population from which we are sampling.
+Suppose a car dealership is interested in surveying the opinions of people who purchased a new vehicle from their lot. This dealership has been around since 2015 and has kept accurate records of its sales since its inception. The dealership randomly samples 200 individuals from its sales database to complete a customer satisfaction survey.  
+
+In order to try and make the sample represent the known population in their database, they calculate the marginal proportions of their sample and population for the following three  categories:
 
 ```{r, echo=FALSE, results='asis'}
 age <- data.frame(
-    Value = c("18-34", "35-54", "55+"),
-    Pop. = c("32.0%", "35.0%", "33.0%"),
-    Sample = c("34.0%", "33.5%", "32.5%")
+    Value  = c("18-34", "35-54", "55+"),
+    Pop.   = c("12%", "58%", "30%"),
+    Sample = c("17%", "55%", "28%")
 )
-gender <- data.frame(
-    Value = c("Female", "Male"),
-    Pop. = c("54.0%", "46.0%"),
-    Sample = c("57.0%", "43.0%")
+year <- data.frame(
+    Value  = c(2015, 2016, 2017, 2018),
+    Pop.   = c("23%", "26%", "30%", "21%"),
+    Sample = c("20%", "23%", "34%", "23%")
 )
 vehicle <- data.frame(
-    Value = c("Car", "SUV", "Truck"),
-    Pop. = c("38.0%", "47.0%", "15.0%"),
-    Sample = c("35.5%", "51.5%", "13.0%")
+    Value  = c("Car", "SUV", "Truck"),
+    Pop.   = c("38%", "47%", "15%"),
+    Sample = c("36%", "52%", "12%")
 )
 
 knitr::kable(age, format = "pandoc", caption = "Age")
-knitr::kable(gender, format = "pandoc", caption = "Gender")
-knitr::kable(vehicle, format = "pandoc", caption = "Vehicle")
+knitr::kable(year, format = "pandoc", caption = "Sales Year")
+knitr::kable(vehicle, format = "pandoc", caption = "Body Style")
 ```
 
-From the above tables, we can see there is a difference between what we collected in our sample and what is observed in the population. We can use the raking procedure to generate weights such that the weighted proportions of the sample will match (or come very close) to the population. 
-
-Note: we do not care about the joint probabilites of our weighting categories (i.e., percent of sample who are female, own an SUV, and are over 55 years old). As mentioned earlier, raking takes only into consideration the marginal probabilities.
-
-## Usage
-This is where I realize we should be using RMarkdown/knitr so we can include code + output. Oops.
--->
+There are slight deviations between what was collected in the sample and the known population. These deviations are small enough 
 
