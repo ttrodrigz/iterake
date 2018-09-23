@@ -28,31 +28,173 @@ In order to try and make the sample represent the known population in their data
 <tbody>
 <tr>
 <td>
-| Value | Pop. | Sample |
-|:------|:-----|:-------|
-| 18-34 | 12%  | 17%    |
-| 35-54 | 58%  | 55%    |
-| 55+   | 30%  | 28%    |
-
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">
+Age
+</th>
+<th style="text-align:center;">
+Pop.
+</th>
+<th style="text-align:center;">
+Sample
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">
+18-34
 </td>
-<td>
-|  Value| Pop. | Sample |
-|------:|:-----|:-------|
-|   2015| 23%  | 20%    |
-|   2016| 26%  | 23%    |
-|   2017| 30%  | 34%    |
-|   2018| 21%  | 23%    |
-
+<td style="text-align:center;">
+12%
 </td>
-<td>
-| Value | Pop. | Sample |
-|:------|:-----|:-------|
-| Car   | 38%  | 36%    |
-| SUV   | 47%  | 52%    |
-| Truck | 15%  | 12%    |
-
+<td style="text-align:center;">
+17%
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+35-54
+</td>
+<td style="text-align:center;">
+58%
+</td>
+<td style="text-align:center;">
+55%
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+55+
+</td>
+<td style="text-align:center;">
+30%
+</td>
+<td style="text-align:center;">
+28%
 </td>
 </tr>
 </tbody>
 </table>
-There are slight deviations between what was collected in the sample and the known population. These deviations are small enough
+</td>
+<td>
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">
+Year
+</th>
+<th style="text-align:center;">
+Pop.
+</th>
+<th style="text-align:center;">
+Sample
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">
+2015
+</td>
+<td style="text-align:center;">
+23%
+</td>
+<td style="text-align:center;">
+20%
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+2016
+</td>
+<td style="text-align:center;">
+26%
+</td>
+<td style="text-align:center;">
+23%
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+2017
+</td>
+<td style="text-align:center;">
+30%
+</td>
+<td style="text-align:center;">
+34%
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+2018
+</td>
+<td style="text-align:center;">
+21%
+</td>
+<td style="text-align:center;">
+23%
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+<td>
+<table>
+<thead>
+<tr>
+<th style="text-align:center;">
+Type
+</th>
+<th style="text-align:center;">
+Pop.
+</th>
+<th style="text-align:center;">
+Sample
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center;">
+Car
+</td>
+<td style="text-align:center;">
+38%
+</td>
+<td style="text-align:center;">
+36%
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+SUV
+</td>
+<td style="text-align:center;">
+47%
+</td>
+<td style="text-align:center;">
+52%
+</td>
+</tr>
+<tr>
+<td style="text-align:center;">
+Truck
+</td>
+<td style="text-align:center;">
+15%
+</td>
+<td style="text-align:center;">
+12%
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+There are slight deviations between what was collected in the sample and the known population. These deviations are small enough where weighting can be performed to correct for these differences between the marginal proportions.
