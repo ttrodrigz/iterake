@@ -24,12 +24,18 @@ Suppose a car dealership is interested in surveying the opinions of people who p
 
 In order to try and make the sample represent the known population in their database, they calculate the marginal proportions of their sample and population for the following three categories:
 
+<table class="kable_wrapper">
+<tbody>
+<tr>
+<td>
 | Value | Pop. | Sample |
 |:------|:-----|:-------|
 | 18-34 | 12%  | 17%    |
 | 35-54 | 58%  | 55%    |
 | 55+   | 30%  | 28%    |
 
+</td>
+<td>
 |  Value| Pop. | Sample |
 |------:|:-----|:-------|
 |   2015| 23%  | 20%    |
@@ -37,10 +43,16 @@ In order to try and make the sample represent the known population in their data
 |   2017| 30%  | 34%    |
 |   2018| 21%  | 23%    |
 
+</td>
+<td>
 | Value | Pop. | Sample |
 |:------|:-----|:-------|
 | Car   | 38%  | 36%    |
 | SUV   | 47%  | 52%    |
 | Truck | 15%  | 12%    |
 
+</td>
+</tr>
+</tbody>
+</table>
 There are slight deviations between what was collected in the sample and the known population. These deviations are small enough

@@ -47,9 +47,13 @@ vehicle <- data.frame(
     Sample = c("36%", "52%", "12%")
 )
 
-knitr::kable(age, format = "pandoc", caption = "Age")
-knitr::kable(year, format = "pandoc", caption = "Sales Year")
-knitr::kable(vehicle, format = "pandoc", caption = "Body Style")
+# list(
+#     knitr::kable(age, format = "pandoc", caption = "Age"),
+#     knitr::kable(year, format = "pandoc", caption = "Sales Year"),
+#     knitr::kable(vehicle, format = "pandoc", caption = "Body Style")
+# )
+
+knitr::kable(list(age, year, vehicle), format = "pandoc")
 ```
 
 There are slight deviations between what was collected in the sample and the known population. These deviations are small enough 
