@@ -46,17 +46,17 @@ iterake(
     universe = universe(
         df = weight_me,
 
-        build_margin(
+        category(
             name = "seeds",
             buckets = c("Tornado", "Bird", "Earthquake"),
             targets = c(0.300, 0.360, 0.340)),
 
-        build_margin(
+        category(
             name = "costume",
             buckets = c("Bat Man", "Cactus"),
             targets = c(0.500, 0.500)),
 
-        build_margin(
+        category(
             name = "transport",
             buckets = c("Rocket Cart", "Jet Propelled Skis", "Jet Propelled Unicycle"),
             targets = c(0.400, 0.450, 0.150))
