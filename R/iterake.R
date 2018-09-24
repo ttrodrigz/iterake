@@ -329,7 +329,7 @@ iterake <- function(df, universe, wgt.name = "weight",
         
         # output message
         out_good <- green $ bold
-        title1 <- 'iterake summary & effects'
+        title1 <- 'iterake summary'
         num_dashes <- nchar(title1) + 4
         rem_dashes <- 80 - num_dashes
         

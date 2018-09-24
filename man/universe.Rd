@@ -2,21 +2,22 @@
 % Please edit documentation in R/universe.R
 \name{universe}
 \alias{universe}
-\title{Create full weighting design}
+\title{Create universe}
 \usage{
 universe(df, ...)
 }
 \arguments{
-\item{df}{Data frame containing data you intend to weight.}
+\item{df}{Data frame containing data where weights are desired.}
 
-\item{...}{Object or objects of special class \code{build_margin}.}
+\item{...}{One or more output objects from \code{category()}.}
 }
 \value{
 A nested \code{tibble} with special class \code{universe}.
 }
 \description{
-This combines any number of objects with special class \code{build_margin}. It also checks and adjusts
-for \code{NA} data in the data frame to be weighted.
+Along with the data to be weighted, this combines one or more objects of 
+class \code{category} to build the universe with known marginal proportions. 
+It also checks and adjusts the proportions to account for missing values in the data.
 }
 \examples{
 data(weight_me)
@@ -24,12 +25,12 @@ data(weight_me)
 universe(
     df = weight_me,
 
-    build_margin(
+    category(
         name = "costume",
         buckets = c("Bat Man", "Cactus"),
         targets = c(0.5, 0.5)),
 
-    build_margin(
+    category(
         name = "seeds",
         buckets = c("Tornado", "Bird", "Earthquake"),
         targets = c(0.4, 0.3, 0.3))

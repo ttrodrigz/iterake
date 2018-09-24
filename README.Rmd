@@ -10,7 +10,7 @@ knitr::opts_chunk$set(
 ```
 
 # iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" />  
-**NOTE**: This package is under active development and is not yet ready to be used.
+**NOTE**: This package is under active development, use at your own risk.
   
 ## Overview 
 
@@ -19,17 +19,25 @@ iterake's main utility is creating row-level weights using a process called iter
 The weighting process with `iterake` is fairly straightforward; we suggest the following workflow: 
 
 1. Use the `universe()` function to build your population. 
-    1. The univerise is constructed with one or more characteristics where the marginal probabilites are known. These characteristics are built with the `build_margin()` function.
+    1. The univerise is constructed with one or more categories where the marginal probabilites are known. These categories are built with the `category()` function.
 2. Compare the marginal proportions in your sample with the population with `compare_margins()` function.  
 3. If needed, create weights for your data using `iterake()`.  
-4. Verify that the weighted proportions in your sample now match the population. The `compare_margins()` function is again used here.  
+4. Verify that the weighted proportions in your sample now match the population. The `compare_margins()` is used here again.  
 5. Check the performance of the weighting model with `weight_stats()`.
+
+## Installation
+``` {r, eval = FALSE}
+# Install the development version from GitHub
+install.packages("devtools")
+devtools::install_github("ttrodrigz/iterake")
+```
 
 
 ## Motivating Example
-Suppose a car dealership is interested in surveying the opinions of people who purchased a new vehicle from their lot. This dealership has been around since 2015 and has kept accurate records of its sales since its inception. The dealership randomly samples 200 individuals from its sales database to complete a customer satisfaction survey.  
+Suppose a car dealership is interested in surveying the opinions of people who purchased a new vehicle from their lot. This dealership has been around since 2015 and has kept accurate records of its sales since its inception. The dealership randomly samples 400 individuals from its sales database to complete a customer satisfaction survey.  
 
-In order to try and make the sample represent the known population in their database, they calculate the marginal proportions of their sample and population for the following three  categories:
+The dealership wants to make sure their sample is representative of the population, so they
+calculate the marginal proportions of a few key categories:
 
 ```{r, echo=FALSE, results='asis'}
 age <- data.frame(

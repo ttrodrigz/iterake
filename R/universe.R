@@ -1,10 +1,11 @@
-#' Create full weighting design
+#' Create universe
 #' 
-#' This combines any number of objects with special class \code{build_margin}. It also checks and adjusts
-#' for \code{NA} data in the data frame to be weighted.
+#' Along with the data to be weighted, this combines one or more objects of 
+#' class \code{category} to build the universe with known marginal proportions. 
+#' It also checks and adjusts the proportions to account for missing values in the data.
 #' 
-#' @param df Data frame containing data you intend to weight.
-#' @param ... Object or objects of special class \code{build_margin}.
+#' @param df Data frame containing data where weights are desired.
+#' @param ... One or more output objects from \code{category()}.
 #' 
 #' @importFrom purrr map_lgl pmap 
 #' @importFrom dplyr bind_rows pull group_by_ summarise mutate select %>%
@@ -19,12 +20,12 @@
 #' universe(
 #'     df = weight_me,
 #' 
-#'     build_margin(
+#'     category(
 #'         name = "costume",
 #'         buckets = c("Bat Man", "Cactus"),
 #'         targets = c(0.5, 0.5)),
 #' 
-#'     build_margin(
+#'     category(
 #'         name = "seeds",
 #'         buckets = c("Tornado", "Bird", "Earthquake"),
 #'         targets = c(0.4, 0.3, 0.3))
@@ -39,28 +40,33 @@ universe <- function(df, ...) {
     }
     
     # list object of all unspecified arguments passed to function
-    build_margins <- list(...)
+    category <- list(...)
+    
+    # make sure at least one category was provided
+    if (length(category) < 1) {
+        stop("Provide at least one weighting category, use `category()` to construct this.")
+    }
     
     # are all inputs to this function wgt_cats?
-    if (!(all(map_lgl(build_margins, function(x) "build_margin" %in% class(x))))) {
-        stop("Each input to universe() must be of the class `build_margin`. Use `build_margin()` to construct this input.")
+    if (!(all(map_lgl(category, function(x) "category" %in% class(x))))) {
+        stop("Each input to `universe()` must be of the class 'category'. Use `category()` to construct this input.")
     } 
 
     # smush 'em together into final form
-    out <- bind_rows(build_margins)
+    out <- bind_rows(category)
     
     # make sure each wgt_cat in universe has a matching column in df
     df.names  <- names(df)
     
-    # wgt_cat here refers to the variable created in build_margin that identifies a target weighting variable
-    mod.names <- pull(out, wgt_cat)
-    bad.names <- mod.names[!mod.names %in% df.names]
+    # wgt_cat here refers to the variable created in category that identifies a target weighting variable
+    wgt.cats <- pull(out, wgt_cat)
+    bad.cats <- wgt.cats[!wgt.cats %in% df.names]
     
-    if (length(bad.names) > 0) {
+    if (length(bad.cats) > 0) {
         stop(
             paste(
-                "Each weighting category in `universe` must have a matching column name in `df`. The following weighting cagegories have no match:",
-                paste(bad.names, collapse = ", "),
+                "Each name given to a weighting category in `universe` must have a matching column name in `df`. The following weighting categories have no match:",
+                paste(bad.cats, collapse = ", "),
                 sep = "\n"
             )
         )
