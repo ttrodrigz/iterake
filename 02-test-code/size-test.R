@@ -90,12 +90,11 @@ design <- wgt_design(
 
 ### DEVON!! LOOK HERE!!
 compare_margins(df_1, mod1)
-wgt <- iterake(df_1, id, mod1)
+wgt <- iterake(df_1, mod1)
 compare_margins(wgt, mod1, weight)
 
 system.time(
-    iterake(df = df_1, 
-            id = id,
+    iterake(df = df_1,
             design = mod1, 
             wgt.lim = 3, 
             max.iter = 2000)
@@ -109,7 +108,6 @@ wgt_check(wgt_rake(df_1, design))
 
 system.time(
     iterake(df = df_2, 
-            id = id,
             design = mod2, 
             wgt.lim = 3, 
             max.iter = 2000)
@@ -122,7 +120,6 @@ wgt_check(wgt_rake(df_2, design))
 
 system.time(
 iterake(df = df_3, 
-        id = id,
         design = mod3, 
         wgt.lim = 3, 
         max.iter = 2000))

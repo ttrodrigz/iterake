@@ -26,7 +26,7 @@ mod <- universe(df = fake,
 )
 
 compare_margin(df = fake, design = mod)
-weights <- iterake(fake, id, mod, threshold = 1e-15)
+weights <- iterake(fake, mod, threshold = 1e-15)
 compare_margin(weights, mod, weight)
 
 
@@ -75,7 +75,7 @@ mod2 <- universe(df = fakempace,
 )
 
 compare_margins(df = fakempace, design = mod2)
-weights2 <- iterake(fakempace, id, mod2, threshold = 1e-15)
+weights2 <- iterake(fakempace, mod2, threshold = 1e-15)
 compare_margins(weights2, mod2, weight)
 
 # vector of differences
@@ -133,7 +133,7 @@ wgt_check(weightsmpace_missing2)
 
 # iterake
 compare_margins(df = testpace, design = mod3)
-weights_missing <- iterake(testpace, id, mod3, threshold = 1e-15)
+weights_missing <- iterake(testpace, mod3, threshold = 1e-15)
 compare_margins(weights_missing, mod3, weight)
 
 # vector of differences
@@ -189,7 +189,7 @@ designIterake <- universe(df = weight_me %>% filter(group == 1),
 )
 
 compare_margins(df = weight_me %>% filter(group == 1), design = designIterake)
-weightsIterake <- iterake(weight_me %>% filter(group == 1), id, designIterake, threshold = 1e-15)
+weightsIterake <- iterake(weight_me %>% filter(group == 1), designIterake, threshold = 1e-15)
 compare_margins(weightsIterake, designIterake, weight)
 
 # using included data tests...
@@ -211,7 +211,7 @@ mod <- universe(
 )
 
 compare_margins(weight_me, mod, plot = T)
-wgt <- iterake(weight_me, order, mod)
+wgt <- iterake(weight_me, mod)
 compare_margins(wgt, mod, weight, plot = T)
 
 
@@ -234,5 +234,5 @@ mod2 <- universe(
 )
 
 compare_margins(test, mod2)
-wgt2 <- iterake(test, order, mod)
+wgt2 <- iterake(test, mod)
 compare_margins(wgt2, mod2, weight)

@@ -4,7 +4,6 @@
 #' It then appends the weight variable to the data frame used to create the weights.
 #' 
 #' @param df Data frame containing data you intend to weight.
-#' @param id Variable name for unique identifier in \code{`df`}.
 #' @param design Data frame containing data you intend to weight.
 #' @param wgt.name Character name for created weight variable, optional.
 #' @param wgt.lim Numeric value created weights cannot exceed, optional.
@@ -17,7 +16,7 @@
 #' 
 #' @importFrom dplyr pull enquo mutate select %>%
 #' @importFrom rlang !!
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table setkey
 #' @importFrom crayon red yellow green bold %+%
 #' @importFrom tibble as.tibble
 #' @importFrom scales percent
@@ -29,7 +28,6 @@
 #' 
 #' iterake(
 #'     df = weight_me,
-#'     id = order, 
 #'     design = universe(
 #'         df = weight_me,
 #' 
@@ -52,7 +50,7 @@
 #' )
 #' 
 #' @export
-iterake <- function(df, id, design, wgt.name = "weight", 
+iterake <- function(df, design, wgt.name = "weight", 
                     wgt.lim = 3, threshold = 1e-20, max.iter = 50, 
                     stuck.limit = 5, N, summary = TRUE) {
     
@@ -61,8 +59,8 @@ iterake <- function(df, id, design, wgt.name = "weight",
         stop("Input to `design` must be output created by `universe()`.")
     }
     
-    # do stuff to to_weight
-    to_weight <- df
+    # do stuff to to_weight - make data.table and use rn as index
+    to_weight <- data.table(df, keep.rownames = TRUE)[, rn := as.numeric(rn)]
     
     # wgt_cats to get used later
     wgt_cats <- pull(design, wgt_cat)
@@ -137,24 +135,16 @@ iterake <- function(df, id, design, wgt.name = "weight",
         }
     }
 
-    # deal with id's, initialize wgt = 1
-    if (missing(id)) {
-        stop("`id` is missing, must supply a unique identifier.")
-        
-    } else {
-        
-        if (!deparse(substitute(id)) %in% names(df)) {
-            stop(paste0("id variable '", deparse(substitute(id)), "' not found in data."))
-        }
-        #test <- id
-        id <- enquo(id)
-        
-        to_weight <- to_weight %>%
-            mutate(wgt = 1) %>%
-            select(!! id, one_of(wgt_cats), wgt)
-        
-    }
-
+    # trim things and initialize wgt = 1
+    to_weight <- to_weight[, 
+                           
+                           # grab rn and wgt_cats
+                           c("rn", wgt_cats), with = FALSE][
+                               
+                               # start with initial wgt of 1
+                               # should there be some sort of duplicate "wgt" name detection here?
+                               , wgt := 1]
+    
     # data is now ready for weighting !!
     
     # step 2) do the raking ----
@@ -298,9 +288,22 @@ iterake <- function(df, id, design, wgt.name = "weight",
         } else {
             x.factor <- 1
         }
-
+        
         out <-
-            to_weight[order(substitute(id))][, wgt := wgt * x.factor] %>%
+            # first merge orig and new data...
+            
+            # get orig dataframe, make it a data.table with rn key/sorted as.numeric
+            setkey(data.table(df, keep.rownames = TRUE)[, rn := as.numeric(rn)], "rn")[
+                
+                # just grab rn and wgt from to_weight, keyed and sorted
+                setkey(to_weight[, c("rn", "wgt")], "rn")][
+                    
+                    # combine x.factor
+                    , wgt := wgt * x.factor][
+                        
+                        # scrap no-longer-needed rn
+                        , rn := NULL] %>%
+
             as.tibble()
 
         # calculate stats

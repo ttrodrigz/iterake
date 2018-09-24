@@ -4,13 +4,11 @@
 \alias{iterake}
 \title{Iterative rim weighting procedure}
 \usage{
-iterake(df, id, design, wgt.name = "weight", wgt.lim = 3,
-  threshold = 1e-20, max.iter = 50, stuck.limit = 5, N, summary = TRUE)
+iterake(df, design, wgt.name = "weight", wgt.lim = 3, threshold = 1e-20,
+  max.iter = 50, stuck.limit = 5, N, summary = TRUE)
 }
 \arguments{
 \item{df}{Data frame containing data you intend to weight.}
-
-\item{id}{Variable name for unique identifier in \code{`df`}.}
 
 \item{design}{Data frame containing data you intend to weight.}
 
@@ -41,7 +39,6 @@ data(weight_me)
 
 iterake(
     df = weight_me,
-    id = order, 
     design = universe(
         df = weight_me,
 
