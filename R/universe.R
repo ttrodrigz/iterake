@@ -15,8 +15,6 @@
 #' @return A nested \code{tibble} with special class \code{universe}.
 #' 
 #' @examples 
-#' library(iterake)
-#' 
 #' data(weight_me)
 #' 
 #' universe(
@@ -162,3 +160,5 @@ universe <- function(df, ...) {
     return(adjusted_model)
 
 }
+
+utils::globalVariables(c("wgt_cat"))    

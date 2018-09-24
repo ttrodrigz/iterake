@@ -39,7 +39,6 @@ set in \code{universe()}. Summary statistics of the weighting procedure are
 presented by default.
 }
 \examples{
-library(iterake)
 data(weight_me)
 
 iterake(

@@ -25,8 +25,6 @@ probabilities. (E.g., age group, eye color.) One or more of these are built and
 fed into \code{universe()}.
 }
 \examples{
-library(iterake)
-
 category(
   name = "costume",
   buckets = c("Bat Man", "Cactus"),

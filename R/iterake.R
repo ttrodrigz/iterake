@@ -28,7 +28,6 @@
 #' @return Data frame with the resulting weight variable appended to it.
 #' 
 #' @examples 
-#' library(iterake)
 #' data(weight_me)
 #' 
 #' iterake(
@@ -370,4 +369,4 @@ iterake <- function(df, universe, wgt.name = "weight",
     
 }
 
-utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff"))
+utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff", "rn"))
