@@ -9,17 +9,17 @@ fake <- readr::read_rds("./data-for-testing/test_data.rds")
 mod <- universe(df = fake,
     
     # age category
-    build_margin(name = "age",
+    category(name = "age",
             buckets = c("18-34", "35-54", "55+"),
             targets = c(0.300, 0.360, 0.340)),
     
     # gender category
-    build_margin(name = "gender",
+    category(name = "gender",
             buckets = c("Female", "Male"),
             targets = c(0.500, 0.500)),
     
     # vehicle category
-    build_margin(name = "vehicle",
+    category(name = "vehicle",
             buckets = c("Car", "SUV", "Truck"),
             targets = c(0.400, 0.450, 0.150))
     
@@ -58,17 +58,17 @@ sum(abs(diff))
 mod2 <- universe(df = fakempace,
     
     # age category
-    build_margin(name = "age",
+    category(name = "age",
             buckets = c(1, 2, 3),
             targets = c(0.300, 0.360, 0.340)),
     
     # gender category
-    build_margin(name = "gender",
+    category(name = "gender",
             buckets = c(1, 2),
             targets = c(0.500, 0.500)),
     
     # vehicle category
-    build_margin(name = "vehicle",
+    category(name = "vehicle",
             buckets = c(1, 2, 3),
             targets = c(0.400, 0.450, 0.150))
     
@@ -92,17 +92,17 @@ testpace[1:5, 2] <- NA
 mod3 <- universe(df = testpace,
                  
                  # age category
-                 build_margin(name = "age",
+                 category(name = "age",
                               buckets = c(1, 2, 3),
                               targets = c(0.300, 0.360, 0.340)),
                  
                  # gender category
-                 build_margin(name = "gender",
+                 category(name = "gender",
                               buckets = c(1, 2),
                               targets = c(0.500, 0.500)),
                  
                  # vehicle category
-                 build_margin(name = "vehicle",
+                 category(name = "vehicle",
                               buckets = c(1, 2, 3),
                               targets = c(0.400, 0.450, 0.150))
                   
@@ -178,12 +178,12 @@ wgt_check(weightsMpace)
 designIterake <- universe(df = weight_me %>% filter(group == 1),
                            
                           # gender category
-                          build_margin_inherit(name = "gender",
+                          category_inherit(name = "gender",
                                                df = weight_me %>% filter(group == 2),
                                                prev.wgt = origWeight),
                           
                           # vehicle category
-                          build_margin_inherit(name = "vehicle",
+                          category_inherit(name = "vehicle",
                                                df = weight_me %>% filter(group == 2),
                                                prev.wgt = origWeight)
 )
@@ -199,12 +199,12 @@ data(weight_me)
 mod <- universe(
     df = weight_me,
     
-    build_margin(
+    category(
         name = "costume",
         buckets = c("Bat Man", "Cactus"),
         targets = c(0.5, 0.5)),
     
-    build_margin(
+    category(
         name = "seeds",
         buckets = c("Tornado", "Bird", "Earthquake"),
         targets = c(0.4, 0.3, 0.3))
@@ -222,12 +222,12 @@ test$number <- as.numeric(as.factor(test$seeds))
 mod2 <- universe(
     df = test,
     
-    build_margin(
+    category(
         name = "logical",
         buckets = c(TRUE, FALSE),
         targets = c(0.5, 0.5)),
     
-    build_margin(
+    category(
         name = "number",
         buckets = c(1, 2, 3),
         targets = c(0.3, 0.3, 0.4))

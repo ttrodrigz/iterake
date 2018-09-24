@@ -15,6 +15,8 @@
 #' @return A nested \code{tibble} with special class \code{category}.
 #' 
 #' @examples 
+#' library(iterake)
+#' 
 #' category(
 #'   name = "costume",
 #'   buckets = c("Bat Man", "Cactus"),

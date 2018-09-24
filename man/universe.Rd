@@ -20,6 +20,8 @@ class \code{category} to build the universe with known marginal proportions.
 It also checks and adjusts the proportions to account for missing values in the data.
 }
 \examples{
+library(iterake)
+
 data(weight_me)
 
 universe(

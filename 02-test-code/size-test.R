@@ -19,19 +19,19 @@ purrr::map(df_1[, -1], table) %>%
 mod1 <- universe(
     df = df_1,
     
-    build_margin(name = "v1",
+    category(name = "v1",
                  buckets = c(1, 2, 3),
                  targets = c(0.6, 0.25, 0.15)),
     
-    build_margin(name = "v2", 
+    category(name = "v2", 
                  buckets = c(1, 2),
                  targets = c(0.5, 0.5)),
     
-    build_margin(name = "v3",
+    category(name = "v3",
                  buckets = c(1, 2, 3, 4, 5),
                  targets = c(0.25, 0.15, 0.28, 0.18, 0.14)),
     
-    build_margin(name = "v4",
+    category(name = "v4",
                  buckets = c(1, 2, 3, 4),
                  targets = c(0.2, 0.5, 0.15, 0.15))
 )
@@ -39,19 +39,19 @@ mod1 <- universe(
 mod2 <- universe(
     df = df_2,
     
-    build_margin(name = "v1",
+    category(name = "v1",
                  buckets = c(1, 2, 3),
                  targets = c(0.6, 0.25, 0.15)),
     
-    build_margin(name = "v2", 
+    category(name = "v2", 
                  buckets = c(1, 2),
                  targets = c(0.5, 0.5)),
     
-    build_margin(name = "v3",
+    category(name = "v3",
                  buckets = c(1, 2, 3, 4, 5),
                  targets = c(0.25, 0.15, 0.28, 0.18, 0.14)),
     
-    build_margin(name = "v4",
+    category(name = "v4",
                  buckets = c(1, 2, 3, 4),
                  targets = c(0.2, 0.5, 0.15, 0.15))
 )
@@ -59,19 +59,19 @@ mod2 <- universe(
 mod3 <- universe(
     df = df_3,
     
-    build_margin(name = "v1",
+    category(name = "v1",
                  buckets = c(1, 2, 3),
                  targets = c(0.6, 0.25, 0.15)),
     
-    build_margin(name = "v2", 
+    category(name = "v2", 
                  buckets = c(1, 2),
                  targets = c(0.5, 0.5)),
     
-    build_margin(name = "v3",
+    category(name = "v3",
                  buckets = c(1, 2, 3, 4, 5),
                  targets = c(0.25, 0.15, 0.28, 0.18, 0.14)),
     
-    build_margin(name = "v4",
+    category(name = "v4",
                  buckets = c(1, 2, 3, 4),
                  targets = c(0.2, 0.5, 0.15, 0.15))
 )
