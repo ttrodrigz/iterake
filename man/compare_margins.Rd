@@ -9,7 +9,7 @@ compare_margins(df, design, weight, plot = FALSE)
 \arguments{
 \item{df}{Data frame of the data you intend on weighting.}
 
-\item{design}{Full weighting design created by \code{wgt_design()}.}
+\item{design}{Full weighting design created by \code{universe()}.}
 
 \item{weight}{Name of weight variable, optional.}
 
@@ -32,12 +32,12 @@ mod <- universe(
 
     df = weight_me,
 
-    build_margin(
+    category(
         name = "costume",
         buckets = c("Bat Man", "Cactus"),
         targets = c(0.5, 0.5)),
 
-    build_margin(
+    category(
         name = "seeds",
         buckets = c("Tornado", "Bird", "Earthquake"),
         targets = c(0.3, 0.3, 0.4))
@@ -51,8 +51,7 @@ compare_margins(
 
 wgts <- iterake(
     df = weight_me,
-    id = order, 
-    design = mod
+    universe = mod
 )
 
 compare_margins(
