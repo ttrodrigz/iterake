@@ -24,4 +24,4 @@ Imports:
     scales
 Suggests:
     rmarkdown
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

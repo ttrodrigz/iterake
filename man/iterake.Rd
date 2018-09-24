@@ -2,44 +2,49 @@
 % Please edit documentation in R/iterake.R
 \name{iterake}
 \alias{iterake}
-\title{Iterative rim weighting procedure}
+\title{Iterative raking procedure}
 \usage{
-iterake(df, design, wgt.name = "weight", wgt.lim = 3, threshold = 1e-20,
-  max.iter = 50, stuck.limit = 5, N, summary = TRUE)
+iterake(df, universe, wgt.name = "weight", max.wgt = 3,
+  threshold = 1e-20, max.iter = 50, stuck.limit = 5,
+  summary = TRUE)
 }
 \arguments{
-\item{df}{Data frame containing data you intend to weight.}
+\item{df}{Data frame containing data where weights are desired.}
 
-\item{design}{Data frame containing data you intend to weight.}
+\item{universe}{Output object created with \code{universe()} function.}
 
-\item{wgt.name}{Character name for created weight variable, optional.}
+\item{wgt.name}{Name given to column of weights to be added to data, optional.}
 
-\item{wgt.lim}{Numeric value created weights cannot exceed, optional.}
+\item{max.wgt}{Maximum value weights can take on, optional.}
 
-\item{threshold}{Numeric value specifying minimum summed difference between target and weighted proportions, optional.}
+\item{threshold}{Value specifying minimum summed difference between weighted 
+marginal proportions of sample and universe before algorithm quits, optional.}
 
-\item{max.iter}{Numeric value capping number of iterations for the procedure, optional.}
+\item{max.iter}{Value capping number of iterations for the procedure, optional.}
 
-\item{stuck.limit}{Numeric value capping the number of times summed differences between target and weighted
-proportions can oscillate between increasing and decreasing, optional.}
+\item{stuck.limit}{Value capping the number of times summed differences between 
+sample and universe can oscillate between increasing and decreasing, optional.}
 
-\item{N}{Numeric value representing expansion factor to be applied to generated weights, optional.}
-
-\item{summary}{Boolean value for whether to show summary output of the procedure, optional.}
+\item{summary}{Whether or not to display summary output of the procedure, optional.}
 }
 \value{
 Data frame with the resulting weight variable appended to it.
 }
 \description{
-This function creates a weight variable that satisfies the targets described from the output of \code{wgt_design()}.
-It then appends the weight variable to the data frame used to create the weights.
+This function creates row-level weights using an iterative raking algorithm based
+on targets from a known population (established with \code{universe()}).
+The weights are appended as a new column in the data. If \code{iterake()} 
+converges, the weighted marginal proportions of the sample will match those
+set in \code{universe()}. Summary statistics of the weighting procedure are 
+presented by default.
 }
 \examples{
+library(iterake)
 data(weight_me)
 
 iterake(
     df = weight_me,
-    design = universe(
+    universe = universe(
         df = weight_me,
 
         build_margin(
