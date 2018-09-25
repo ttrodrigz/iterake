@@ -56,8 +56,8 @@
 #'     plot = FALSE)
 #'
 #' @export
-compare_margins <- function(df, universe, weight, plot = FALSE) {
-
+compare_margins <- function(df, weight, universe, plot = FALSE) {
+    
     # make sure you've got a df
     if (!is.data.frame(df)) {
         stop("`df` must be a dataframe.")
@@ -69,8 +69,8 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
     
     df.names <- names(df)
     
-    # wgt_cat here refers to the variable created in category() that identifies a target weighting variable
-    mod.names <- universe$wgt_cat
+    # category here refers to the variable created in category() that identifies a target weighting variable
+    mod.names <- universe$category
     bad.names <- mod.names[!mod.names %in% df.names]
     
     if (length(bad.names) > 0) {
@@ -90,7 +90,7 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
             df %>%
             mutate(weight_var = 1) %>%
             select(weight_var,
-                   one_of(universe$wgt_cat))
+                   one_of(universe$category))
     } else {
         if (!deparse(substitute(weight)) %in% names(df)) {
             stop(paste0("Weight variable '", deparse(substitute(weight)), "' not found in data."))
@@ -100,21 +100,21 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
         tmp <-
             df %>%
             select(!! wgt,
-                   one_of(universe$wgt_cat)) %>%
+                   one_of(universe$category)) %>%
             rename(weight_var := !! wgt)
-
+        
     }
     
     # prepare data by nesting
     nested <- 
         tmp %>%
         mutate_at(vars(-weight_var), funs(as.character)) %>%
-        gather(wgt_cat, buckets, -weight_var) %>%
-        group_by(wgt_cat) %>%
+        gather(category, buckets, -weight_var) %>%
+        group_by(category) %>%
         nest()
     
     prop.calcs <- function(x) {
-
+        
         x %>%
             # DID THIS SO ANY VARIABLE TYPE WILL UNNEST (AKA JOIN) TOGETHER
             mutate(buckets = as.character(buckets)) %>%
@@ -124,9 +124,9 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
             ungroup() %>%
             mutate(uwgt_prop = uwgt_n / sum(uwgt_n),
                    wgt_prop  = wgt_n  / sum(wgt_n))
-
+        
     }
-
+    
     # calculate all data
     calcd <-
         
@@ -143,12 +143,17 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
                                x$buckets <- as.character(x$buckets)
                                x}))
             ), 
-            by = c("wgt_cat", "buckets")
+            by = c("category", "buckets")
         ) %>%
         
         # calculate differences
         mutate(uwgt_diff = uwgt_prop - targ_prop,
-               wgt_diff  = wgt_prop - targ_prop)
+               wgt_diff  = wgt_prop - targ_prop) %>%
+        
+        # better names
+        rename(
+            bucket   = buckets
+        )
     
     # modify output based on whether or not weights are provided
     if (missing(weight)) {
@@ -167,18 +172,18 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
         } else {
             chart_data <-
                 calcd %>%
-                group_by(wgt_cat) %>%
-                gather(wgt_type, wgt_val, -c(wgt_cat:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
+                group_by(category) %>%
+                gather(wgt_type, wgt_val, -c(category:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
                 mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
                        wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
         }
-
+        
         # create chart object
         chart <- 
             chart_data %>%
             
             # begin plot
-            ggplot(aes(x = as.character(buckets))) +
+            ggplot(aes(x = as.character(bucket))) +
             
             # errorbars
             geom_errorbar(
@@ -234,7 +239,7 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
             chart +
             
             # facet plots, independent y (eventually x) axes
-            facet_wrap(~wgt_cat, scales = "free_y") +
+            facet_wrap(~category, scales = "free_y") +
             
             # tweak labels
             labs(
@@ -250,8 +255,8 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
                    
                    # add title
                    ggtitle(
-                       "Unweighted vs. Target Proportions",
-                       "Dashed line = target"
+                       "Unweighted Sample vs. Universe Proportions",
+                       "Dashed line = Universe"
                    )
                ,
                
@@ -260,21 +265,21 @@ compare_margins <- function(df, universe, weight, plot = FALSE) {
                    
                    # add title
                    ggtitle(
-                       "Unweighted and Weighted vs. Target Proportions",
-                       "Dashed line = target")
+                       "Unweighted and Weighted Sample vs. Universe Proportions",
+                       "Dashed line = Universe")
         )
-
+        
         # final theming
         chart <- 
             chart +
-            theme_bw() +
-            theme(strip.background = element_rect(fill = "#fff6b5")) +
+            theme_bw(base_size = 10) +
+            theme(strip.background = element_rect(fill = "#FCEBE4")) +
             coord_flip()
-
+        
         print(chart)
     }
     
     return(calcd)
 }
 
-utils::globalVariables(c("buckets", "data", "uwgt_n", "uwgt_prop", "targ_prop", "weight_var", "props", "wgt_prop", "wgt_diff", "wgt_type", "wgt_val", "uwgt_diff", "wgt_cat"))    
+utils::globalVariables(c("buckets", "data", "uwgt_n", "uwgt_prop", "targ_prop", "weight_var", "props", "wgt_prop", "wgt_diff", "wgt_type", "wgt_val", "uwgt_diff", "category", "bucket"))    

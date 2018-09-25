@@ -56,7 +56,7 @@ category <- function(name, buckets, targets, sum.1 = FALSE) {
     # create nested tibble structure
     out <- 
         tibble(
-            wgt_cat = name,
+            category = name,
             data = list(
                 tibble(buckets = buckets,
                        targ_prop = targets)

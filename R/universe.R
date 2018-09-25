@@ -51,15 +51,15 @@ universe <- function(df, ...) {
     if (!(all(map_lgl(category, function(x) "category" %in% class(x))))) {
         stop("Each input to `universe()` must be of the class 'category'. Use `category()` to construct this input.")
     } 
-
+    
     # smush 'em together into final form
     out <- bind_rows(category)
     
-    # make sure each wgt_cat in universe has a matching column in df
+    # make sure each category in universe has a matching column in df
     df.names  <- names(df)
     
-    # wgt_cat here refers to the variable created in category that identifies a target weighting variable
-    wgt.cats <- pull(out, wgt_cat)
+    # category here refers to the variable created in category that identifies a target weighting variable
+    wgt.cats <- pull(out, category)
     bad.cats <- wgt.cats[!wgt.cats %in% df.names]
     
     if (length(bad.cats) > 0) {
@@ -72,7 +72,7 @@ universe <- function(df, ...) {
         )
     }
     
-    # create function for matching wgt_cat attributes to data source
+    # create function for matching category attributes to data source
     inherit_chr_fct <- function(to, from) {
         
         # to = character, from = factor
@@ -104,11 +104,11 @@ universe <- function(df, ...) {
         ## create list object out of all unspecified arguments passed from pmap
         ## - this is basically the row being evaluated
         inputList <- list(...)
-
+        
         # get actual proportions to determine existance of NA
         act_props <- 
             main_data %>% 
-            group_by_(inputList$wgt_cat) %>%
+            group_by_(inputList$category) %>%
             summarise(n = n()) %>%
             mutate(act_prop = n / sum(n)) %>%
             select(-n)
@@ -122,7 +122,7 @@ universe <- function(df, ...) {
         if (length(na_val_a) == 1 & length(na_val_t) == 0) {
             
             # an attempt at notifying when a change happens due to NAs...
-            cat('NAs found in ' %+% paste0(inputList$wgt_cat) %+% '; adjusting targets...\n')
+            cat('NAs found in ' %+% paste0(inputList$category) %+% '; adjusting targets...\n')
             
             # determine proportion of NAs
             na_prop <- act_props[na_val_a, ]$act_prop
@@ -131,7 +131,7 @@ universe <- function(df, ...) {
             new_targets <- 
                 inputList$data %>%
                 mutate(targ_prop = targ_prop * (1 - na_prop))
-
+            
             # insert a new row with the NA info
             new_targets[na_val_a, ] <- c(NA, na_prop)
             # replace existing target model
@@ -139,11 +139,11 @@ universe <- function(df, ...) {
         }
         
         # reassign attribute types to match supplied data
-        inputList$data$buckets <- inherit_chr_fct(inputList$data$buckets, act_props[[inputList$wgt_cat]])
+        inputList$data$buckets <- inherit_chr_fct(inputList$data$buckets, act_props[[inputList$category]])
         
         # recreate tibble similar to how it's put together in category()
         tibble(
-            wgt_cat = inputList$wgt_cat,
+            category = inputList$category,
             data = list(
                 tibble(
                     buckets = inputList$data$buckets,
@@ -158,7 +158,7 @@ universe <- function(df, ...) {
     class(adjusted_model) <- c(class(adjusted_model), "universe")
     
     return(adjusted_model)
-
+    
 }
 
-utils::globalVariables(c("wgt_cat"))    
+utils::globalVariables(c("category"))    

@@ -77,6 +77,8 @@ weight_stats <- function(weight) {
     eff_n  <- (sum(weight) ^ 2) / sum(weight ^ 2)
     loss   <- (uwgt_n / eff_n) - 1
     efficiency <- (eff_n / uwgt_n)
+    min_wgt <- min(weight)
+    max_wgt <- max(weight)
     
     # output
     tibble(
@@ -84,7 +86,9 @@ weight_stats <- function(weight) {
         wgt_n  = wgt_n,
         eff_n  = eff_n,
         loss   = loss,
-        efficiency = efficiency
+        efficiency = efficiency,
+        min_wgt = min(weight),
+        max_wgt = max(weight)
     )
     
 }

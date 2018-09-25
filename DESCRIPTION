@@ -14,14 +14,16 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     tibble,
-    dplyr,
+    dplyr (>= 0.7.0),
     tidyr,
     purrr,
     ggplot2,
     rlang,
     crayon,
     data.table,
-    scales
+    scales,
+    Hmisc,
+    labelled
 Suggests:
     rmarkdown
 RoxygenNote: 6.1.0

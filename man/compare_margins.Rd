@@ -4,14 +4,14 @@
 \alias{compare_margins}
 \title{Compare unweighted or weighted data to targets}
 \usage{
-compare_margins(df, universe, weight, plot = FALSE)
+compare_margins(df, weight, universe, plot = FALSE)
 }
 \arguments{
 \item{df}{Data frame of the data you intend on weighting.}
 
-\item{universe}{Full weighting design created by \code{universe()}.}
-
 \item{weight}{Name of weight variable, optional.}
+
+\item{universe}{Full weighting design created by \code{universe()}.}
 
 \item{plot}{Display plot, default = FALSE.}
 }

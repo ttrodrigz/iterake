@@ -68,7 +68,7 @@ iterake <- function(df, universe, wgt.name = "weight",
     # do stuff to to_weight - make data.table and use rn as index
     to_weight <- data.table(df, keep.rownames = TRUE)[, rn := as.numeric(rn)]
     N <- nrow(to_weight)
-    wgt_cats <- universe[["wgt_cat"]]
+    wgt_cats <- universe[["category"]]
     
     # make sure data frame is supplied
     if (!is.data.frame(df)) {
@@ -145,8 +145,8 @@ iterake <- function(df, universe, wgt.name = "weight",
         stop("Input to `summary` requires TRUE/FALSE.")
     }
     
-
-
+    
+    
     # trim things and initialize wgt = 1
     to_weight <- to_weight[, 
                            
@@ -169,7 +169,7 @@ iterake <- function(df, universe, wgt.name = "weight",
     
     # do the loops until the threshold is reached
     while (check > threshold) {
-
+        
         # iteration limit check
         if (count >= max.iter) {
             uwgt_n <- nrow(to_weight)
@@ -182,7 +182,7 @@ iterake <- function(df, universe, wgt.name = "weight",
         # reset/initialize check value
         check <- 0
         
-        # loop through each variable in universe$wgt_cat to generate weight
+        # loop through each variable in universe$category to generate weight
         for (i in seq_along(wgt_cats)) {
             
             # data.table versions of:
@@ -220,7 +220,7 @@ iterake <- function(df, universe, wgt.name = "weight",
                 , wgt_temp := NULL]
             
         }
-
+        
         # loop through each to calculate discrepencies
         for (i in seq_along(wgt_cats)) {
             
@@ -228,26 +228,26 @@ iterake <- function(df, universe, wgt.name = "weight",
             DT_data   <- data.table(to_weight, key = wgt_cats[i])
             
             sum_diffs <- DT_data[, 
-                                   # calcs the "haves" by the i'th weighting category
-                                   .(act_prop = sum(wgt) / N),
-                                   by = c(wgt_cats[i])
+                                 # calcs the "haves" by the i'th weighting category
+                                 .(act_prop = sum(wgt) / N),
+                                 by = c(wgt_cats[i])
+                                 
+                                 # merge haves with wants
+                                 ][DT_design
                                    
-                                   # merge haves with wants
-                                   ][DT_design
+                                   ][,
+                                     # calculate sum of abs(prop diffs)
+                                     .(sum = sum(abs(targ_prop - act_prop)))
                                      
                                      ][,
-                                       # calculate sum of abs(prop diffs)
-                                       .(sum = sum(abs(targ_prop - act_prop)))
                                        
-                                       ][,
-                                         
-                                         # just return this sum
-                                         sum]
+                                       # just return this sum
+                                       sum]
             
             # check is the sum of whatever check already is + sum_diffs
             check <- check + sum_diffs
         }
-
+        
         # check to see if summed difference increased from last iteration
         if (prev_check < check) {
             # if so, increment stuck counter
@@ -259,7 +259,7 @@ iterake <- function(df, universe, wgt.name = "weight",
                 check <- threshold
             }
         }
-
+        
         # increment loop count
         count <- count + 1
     }
@@ -279,7 +279,7 @@ iterake <- function(df, universe, wgt.name = "weight",
                 ' ' %+%
                 paste(rep('-', times = rem_dashes), collapse = "") %+%
                 '\n')
-        cat(' Convergence: ' %+% red('Failed '%+% '\U2718') %+% '\n')
+        cat(' Convergence: ' %+% red('Failed') %+% '\n')
         cat('  Iterations: ' %+% paste0(max.iter) %+% '\n\n')
         cat('Unweighted N: ' %+% paste0(uwgt_n) %+% '\n')
         cat(' Effective N: ' %+% '--\n')
@@ -288,7 +288,7 @@ iterake <- function(df, universe, wgt.name = "weight",
         cat('        Loss: ' %+% '--\n')
         
     } else {
-
+        
         # clean df to output
         
         # expansion factor calc
@@ -312,9 +312,9 @@ iterake <- function(df, universe, wgt.name = "weight",
                         
                         # scrap no-longer-needed rn
                         , rn := NULL] %>%
-
+            
             as_tibble()
-
+        
         # calculate stats
         wgt <- out$wgt
         uwgt_n <- nrow(out)
@@ -341,9 +341,9 @@ iterake <- function(df, universe, wgt.name = "weight",
                     paste(rep('-', times = rem_dashes), collapse = "") %+%
                     '\n')
             if (stuck_check > 0) {
-                cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')
+                cat(' Convergence: ' %+% green('Success') %+% '\n')
             } else {
-                cat(' Convergence: ' %+% green('Success '%+% '\U2714') %+% '\n')    
+                cat(' Convergence: ' %+% green('Success') %+% '\n')    
             }
             cat('  Iterations: ' %+% paste0(count) %+% '\n\n')
             cat('Unweighted N: ' %+% paste0(sprintf("%.2f", uwgt_n)) %+% '\n')
