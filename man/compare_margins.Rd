@@ -4,12 +4,12 @@
 \alias{compare_margins}
 \title{Compare unweighted or weighted data to targets}
 \usage{
-compare_margins(df, design, weight, plot = FALSE)
+compare_margins(df, universe, weight, plot = FALSE)
 }
 \arguments{
 \item{df}{Data frame of the data you intend on weighting.}
 
-\item{design}{Full weighting design created by \code{universe()}.}
+\item{universe}{Full weighting design created by \code{universe()}.}
 
 \item{weight}{Name of weight variable, optional.}
 
@@ -45,7 +45,7 @@ mod <- universe(
 
 compare_margins(
     df = weight_me,
-    design = mod,
+    universe = mod,
     plot = TRUE
 )
 
@@ -56,7 +56,7 @@ wgts <- iterake(
 
 compare_margins(
     df = wgts,
-    design = mod,
+    universe = mod,
     weight = weight,
     plot = FALSE)
 

@@ -141,7 +141,7 @@ universe <- function(df, ...) {
         # reassign attribute types to match supplied data
         inputList$data$buckets <- inherit_chr_fct(inputList$data$buckets, act_props[[inputList$wgt_cat]])
         
-        # recreate tibble similar to how it's put together in build_margin
+        # recreate tibble similar to how it's put together in category()
         tibble(
             wgt_cat = inputList$wgt_cat,
             data = list(

@@ -95,7 +95,7 @@ compare_margins(wgt, mod1, weight)
 
 system.time(
     iterake(df = df_1,
-            design = mod1, 
+            universe = mod1, 
             wgt.lim = 3, 
             max.iter = 2000)
 )
@@ -108,7 +108,7 @@ wgt_check(wgt_rake(df_1, design))
 
 system.time(
     iterake(df = df_2, 
-            design = mod2, 
+            universe = mod2, 
             wgt.lim = 3, 
             max.iter = 2000)
 )
@@ -120,7 +120,7 @@ wgt_check(wgt_rake(df_2, design))
 
 system.time(
 iterake(df = df_3, 
-        design = mod3, 
+        universe = mod3, 
         wgt.lim = 3, 
         max.iter = 2000))
 

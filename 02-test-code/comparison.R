@@ -25,7 +25,7 @@ mod <- universe(df = fake,
     
 )
 
-compare_margin(df = fake, design = mod)
+compare_margin(df = fake, universe = mod)
 weights <- iterake(fake, mod, threshold = 1e-15)
 compare_margin(weights, mod, weight)
 
@@ -74,7 +74,7 @@ mod2 <- universe(df = fakempace,
     
 )
 
-compare_margins(df = fakempace, design = mod2)
+compare_margins(df = fakempace, universe = mod2)
 weights2 <- iterake(fakempace, mod2, threshold = 1e-15)
 compare_margins(weights2, mod2, weight)
 
@@ -132,7 +132,7 @@ wgt_check(weightsmpace_missing2)
 
 
 # iterake
-compare_margins(df = testpace, design = mod3)
+compare_margins(df = testpace, universe = mod3)
 weights_missing <- iterake(testpace, mod3, threshold = 1e-15)
 compare_margins(weights_missing, mod3, weight)
 

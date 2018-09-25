@@ -4,7 +4,7 @@
 #' target proportions.
 #' 
 #' @param df Data frame of the data you intend on weighting.
-#' @param design Full weighting design created by \code{universe()}.
+#' @param universe Full weighting design created by \code{universe()}.
 #' @param weight Name of weight variable, optional.
 #' @param plot Display plot, default = FALSE.
 #' 
@@ -40,7 +40,7 @@
 #' 
 #' compare_margins(
 #'     df = weight_me,
-#'     design = mod,
+#'     universe = mod,
 #'     plot = TRUE
 #' )
 #' 
@@ -51,32 +51,32 @@
 #' 
 #' compare_margins(
 #'     df = wgts,
-#'     design = mod,
+#'     universe = mod,
 #'     weight = weight,
 #'     plot = FALSE)
 #'
 #' @export
-compare_margins <- function(df, design, weight, plot = FALSE) {
+compare_margins <- function(df, universe, weight, plot = FALSE) {
 
     # make sure you've got a df
     if (!is.data.frame(df)) {
         stop("`df` must be a dataframe.")
     }
     
-    if (!"universe" %in% class(design)) {
-        stop("'design' must be of class 'universe', rerun universe()")
+    if (!"universe" %in% class(universe)) {
+        stop("'universe' must be of class 'universe', rerun universe()")
     }
     
     df.names <- names(df)
     
-    # wgt_cat here refers to the variable created in build_margin that identifies a target weighting variable
-    mod.names <- design$wgt_cat
+    # wgt_cat here refers to the variable created in category() that identifies a target weighting variable
+    mod.names <- universe$wgt_cat
     bad.names <- mod.names[!mod.names %in% df.names]
     
     if (length(bad.names) > 0) {
         stop(
             paste(
-                "Each weighting category in `design` must have a matching column name in `df`. The following weighting cagegories have no match:",
+                "Each weighting category in `universe` must have a matching column name in `df`. The following weighting cagegories have no match:",
                 paste(bad.names, collapse = ", "),
                 sep = "\n"
             )
@@ -90,7 +90,7 @@ compare_margins <- function(df, design, weight, plot = FALSE) {
             df %>%
             mutate(weight_var = 1) %>%
             select(weight_var,
-                   one_of(design$wgt_cat))
+                   one_of(universe$wgt_cat))
     } else {
         if (!deparse(substitute(weight)) %in% names(df)) {
             stop(paste0("Weight variable '", deparse(substitute(weight)), "' not found in data."))
@@ -100,7 +100,7 @@ compare_margins <- function(df, design, weight, plot = FALSE) {
         tmp <-
             df %>%
             select(!! wgt,
-                   one_of(design$wgt_cat)) %>%
+                   one_of(universe$wgt_cat)) %>%
             rename(weight_var := !! wgt)
 
     }
@@ -136,9 +136,9 @@ compare_margins <- function(df, design, weight, plot = FALSE) {
         mutate(props = map(data, prop.calcs)) %>%
         unnest(props) %>%
         
-        # join in targets from design
+        # join in targets from universe
         left_join(
-            y = unnest(design %>% 
+            y = unnest(universe %>% 
                            mutate(data = map(data, function(x) {
                                x$buckets <- as.character(x$buckets)
                                x}))
