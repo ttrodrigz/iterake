@@ -35,4 +35,4 @@ vignettes/*.pdf
 
 # Other things
 /old
-/data-for-testing
+/testdata
