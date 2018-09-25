@@ -24,6 +24,7 @@
 #'   name = "costume",
 #'   df = dplyr::filter(weight_me, satisfied == "No")
 #' )
+#' 
 #' category_inherit(
 #'   name = "transport",
 #'   df = dplyr::filter(weight_me, satisfied == "No"),
