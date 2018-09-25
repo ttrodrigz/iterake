@@ -5,8 +5,10 @@ output: github_document
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  cache = TRUE,
   comment = "#>"
 )
+library(iterake)
 ```
 
 # iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" />  
@@ -43,12 +45,12 @@ calculate the marginal proportions of a few key categories:
 age <- data.frame(
     Age    = c("18-34", "35-54", "55+"),
     Pop.   = c("12%", "58%", "30%"),
-    Sample = c("17%", "55%", "28%")
+    Sample = c("16%", "55.5%", "28.5%")
 )
 year <- data.frame(
     Year   = c(2015, 2016, 2017, 2018),
-    Pop.   = c("23%", "26%", "30%", "21%"),
-    Sample = c("20%", "23%", "34%", "23%")
+    Pop.   = c("22%", "25%", "32%", "21%"),
+    Sample = c("19%", "21%", "36%", "24%")
 )
 vehicle <- data.frame(
     Type   = c("Car", "SUV", "Truck"),
@@ -61,5 +63,66 @@ knitr::kable(list(age, year, vehicle), format = "html", align = "c")
 
 There are slight deviations between what was collected in the sample and the known population. These deviations are small enough where weighting can be performed to correct for these differences between the marginal proportions.
 
+#### **Step 1**: Build the universe with known marginal proportions based on categories of interest.
+```{r, include=TRUE, cache=TRUE, cache.lazy=TRUE, eval=TRUE}
+# load iterake and the data
+library(iterake)
+data("dealer_data")
 
+# build the 'universe'
+dealer_uni <- universe(
+    
+    df = dealer_data,
+    
+    category(
+        name = "Age",
+        buckets = c("18-34", "35-54", "55+"),
+        targets = c(.12, .58, .30)
+    ),
+    
+    category(
+        name = "Year",
+        buckets = c(2015, 2016, 2017, 2018),
+        targets = c(.22, .25, .32, .21)
+    ),
+    
+    category(
+        name = "Type",
+        buckets = c("Car", "SUV", "Truck"),
+        targets = c(.38, .47, .15)
+    )
+    
+)
+```  
 
+#### **Step 2**: Compare *unweighted* sample proportions to the universe.  
+```{r}
+compare_margins(
+    df = dealer_data,
+    universe = dealer_uni
+)
+```
+
+#### **Step 3**: Weight the data.
+```{r}
+dealer_weighted <- iterake(
+    df = dealer_data, 
+    universe = dealer_uni
+)
+
+dealer_weighted
+```
+
+#### **Step 4**: Compare *weighted* sample proportions to the universe.  
+````{r}
+compare_margins(
+    df = dealer_weighted,
+    universe = dealer_uni,
+    weight = weight
+)
+```
+
+#### **Step 5**: Inspect performance of weighting model.
+```{r}
+weight_stats(dealer_weighted$weight)
+````
