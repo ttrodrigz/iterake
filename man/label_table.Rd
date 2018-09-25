@@ -10,6 +10,11 @@ label_table(data, var, freq = FALSE, weight)
 \item{data}{Data frame.}
 
 \item{var}{A variable in the dataset where labels are desired.}
+
+\item{freq}{Boolean, indicates whether frequencies should be included, optional.}
+
+\item{weight}{A variable in the dataset representing weights to be used 
+for optional frequency calculation, optional.}
 }
 \value{
 By default, will return a dataset of variables and labels of every
@@ -22,7 +27,8 @@ It is often useful to inspect variable or value labels attached to datasets
 their associated labels, or, if requested, a variable and its value labels.
 }
 \examples{
-lab_tab(data = df)
-lab_tab(data = df, var = my_var)
+data(weight_me)
+
+label_table(data = weight_me, var = seeds)
 
 }

@@ -6,6 +6,9 @@
 #'
 #' @param data Data frame.
 #' @param var A variable in the dataset where labels are desired.
+#' @param freq Boolean, indicates whether frequencies should be included, optional.
+#' @param weight A variable in the dataset representing weights to be used 
+#' for optional frequency calculation, optional.
 #' 
 #' @importFrom labelled remove_val_labels val_labels is.labelled
 #' @importFrom Hmisc contents
@@ -20,8 +23,9 @@
 #' variable and its labels, as well as frequencies.
 #'
 #' @examples
-#' lab_tab(data = df)
-#' lab_tab(data = df, var = my_var)
+#' data(weight_me)
+#' 
+#' label_table(data = weight_me, var = seeds)
 #'
 #' @export
 label_table <- function(data, var, freq = FALSE, weight) {
@@ -175,3 +179,5 @@ label_table <- function(data, var, freq = FALSE, weight) {
     out
 
 }
+
+utils::globalVariables(c("lab", "valid.pct", "wgt_temp", "prop_diff", "rn"))
