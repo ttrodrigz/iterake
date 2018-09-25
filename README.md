@@ -2,20 +2,24 @@
 iterake <img src=logo/ITERAKE_LOGO_01.png width=140 height=140 align="right" />
 ===============================================================================
 
-**NOTE**: This package is under active development, use at your own risk.
-
 Overview
 --------
 
 iterake's main utility is creating row-level weights using a process called iterative raking. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample and a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
 
-The weighting process with `iterake` is fairly straightforward; we suggest the following workflow:
+iterake is designed with speed and simplicity in mind. The weighting algorithm is powered by [data.table](https://github.com/Rdatatable/data.table/wiki) and takes advantage of its fast [grouping](https://github.com/Rdatatable/data.table/wiki/Benchmarks-:-Grouping) and joining; it tends to scale well even with larger data sets. The functions of this package are designed to play nicely users of the [tidyverse](https://github.com/tidyverse/tidyverse). Columns in the data can be accessed without quotation, and every function returns a [tibble](https://github.com/tidyverse/tibble).
+
+Workflow
+--------
+
+The weighting process with `iterake` is fairly straightforward, we suggest:
 
 1.  Use the `universe()` function to build your population.
     1.  The univerise is constructed with one or more categories where the marginal probabilites are known. These categories are built with the `category()` function.
+    2.  If you want to use the natural marginal proportions from an existing dataset as your targets, you can use `inherit_category()`. Just make sure the name given to the category matches the existing data and the data you intend to weight.
 2.  Compare the marginal proportions in your sample with the population with `compare_margins()` function.
 3.  If needed, create weights for your data using `iterake()`.
-4.  Verify that the weighted proportions in your sample now match the population. The `compare_margins()` is used here again.
+4.  Use `compare_margins()` again to verify that the weighted proportions in your sample now match the population.
 5.  Check the performance of the weighting model with `weight_stats()`.
 
 Installation
@@ -212,7 +216,7 @@ There are slight deviations between what was collected in the sample and the kno
 #### **Step 1**: Build the universe with known marginal proportions based on categories of interest.
 
 ``` r
-# load iterake and the data
+# data comes pre-packaged with iterake
 library(iterake)
 data("dealer_data")
 
@@ -245,35 +249,29 @@ dealer_uni <- universe(
 #### **Step 2**: Compare *unweighted* sample proportions to the universe.
 
 ``` r
-compare_margins(
-    df = dealer_data,
-    universe = dealer_uni
-)
+compare_margins(dealer_data, universe = dealer_uni)
 #> # A tibble: 10 x 6
-#>    wgt_cat buckets uwgt_n uwgt_prop targ_prop uwgt_diff
-#>    <chr>   <chr>    <int>     <dbl>     <dbl>     <dbl>
-#>  1 Age     18-34       64     0.16      0.12     0.04  
-#>  2 Age     35-54      222     0.555     0.580   -0.0250
-#>  3 Age     55+        114     0.285     0.3     -0.015 
-#>  4 Year    2015        76     0.19      0.22    -0.03  
-#>  5 Year    2016        84     0.21      0.25    -0.04  
-#>  6 Year    2017       143     0.358     0.32     0.0375
-#>  7 Year    2018        97     0.242     0.21     0.0325
-#>  8 Type    Car        145     0.362     0.38    -0.0175
-#>  9 Type    SUV        207     0.518     0.47     0.0475
-#> 10 Type    Truck       48     0.12      0.15    -0.03
+#>    category bucket uwgt_n uwgt_prop targ_prop uwgt_diff
+#>    <chr>    <chr>   <int>     <dbl>     <dbl>     <dbl>
+#>  1 Age      18-34      64     0.16      0.12     0.04  
+#>  2 Age      35-54     222     0.555     0.580   -0.0250
+#>  3 Age      55+       114     0.285     0.3     -0.015 
+#>  4 Year     2015       76     0.19      0.22    -0.03  
+#>  5 Year     2016       84     0.21      0.25    -0.04  
+#>  6 Year     2017      143     0.358     0.32     0.0375
+#>  7 Year     2018       97     0.242     0.21     0.0325
+#>  8 Type     Car       145     0.362     0.38    -0.0175
+#>  9 Type     SUV       207     0.518     0.47     0.0475
+#> 10 Type     Truck      48     0.12      0.15    -0.03
 ```
 
 #### **Step 3**: Weight the data.
 
 ``` r
-dealer_weighted <- iterake(
-    df = dealer_data, 
-    universe = dealer_uni
-)
+dealer_weighted <- iterake(dealer_data, dealer_uni)
 #> 
 #> -- iterake summary -------------------------------------------------------------
-#>  Convergence: Success <U+2714>
+#>  Convergence: Success
 #>   Iterations: 13
 #> 
 #> Unweighted N: 400.00
@@ -304,33 +302,48 @@ dealer_weighted
 ``` r
 library(dplyr)
 
+# re-inspect proportions with plot
 compare_margins(
-    df = dealer_weighted,
+    df = dealer_weighted, 
+    weight = weight, 
     universe = dealer_uni,
-    weight = weight
+    plot = TRUE
 ) %>%
     select(-contains("uwgt"))
-#> # A tibble: 10 x 6
-#>    wgt_cat buckets wgt_n wgt_prop targ_prop wgt_diff
-#>    <chr>   <chr>   <dbl>    <dbl>     <dbl>    <dbl>
-#>  1 Age     18-34     48     0.12      0.12         0
-#>  2 Age     35-54    232     0.580     0.580        0
-#>  3 Age     55+      120.    0.3       0.3          0
-#>  4 Year    2015      88     0.22      0.22         0
-#>  5 Year    2016     100     0.25      0.25         0
-#>  6 Year    2017     128     0.32      0.32         0
-#>  7 Year    2018      84     0.21      0.21         0
-#>  8 Type    Car      152     0.38      0.38         0
-#>  9 Type    SUV      188     0.47      0.47         0
-#> 10 Type    Truck     60     0.15      0.15         0
 ```
+
+![](README_files/figure-markdown_github/unnamed-chunk-7-1.png)
+
+    #> # A tibble: 10 x 6
+    #>    category bucket wgt_n wgt_prop targ_prop wgt_diff
+    #>    <chr>    <chr>  <dbl>    <dbl>     <dbl>    <dbl>
+    #>  1 Age      18-34    48     0.12      0.12         0
+    #>  2 Age      35-54   232     0.580     0.580        0
+    #>  3 Age      55+     120.    0.3       0.3          0
+    #>  4 Year     2015     88     0.22      0.22         0
+    #>  5 Year     2016    100     0.25      0.25         0
+    #>  6 Year     2017    128     0.32      0.32         0
+    #>  7 Year     2018     84     0.21      0.21         0
+    #>  8 Type     Car     152     0.38      0.38         0
+    #>  9 Type     SUV     188     0.47      0.47         0
+    #> 10 Type     Truck    60     0.15      0.15         0
 
 #### **Step 5**: Inspect performance of weighting model.
 
 ``` r
+# want to make sure weighting model is efficient 
+# and there aren't any extreme weights
+
 weight_stats(dealer_weighted$weight)
-#> # A tibble: 1 x 5
-#>   uwgt_n wgt_n eff_n   loss efficiency
-#>    <int> <dbl> <dbl>  <dbl>      <dbl>
-#> 1    400   400  381. 0.0496      0.953
+#> # A tibble: 1 x 7
+#>   uwgt_n wgt_n eff_n   loss efficiency min_wgt max_wgt
+#>    <int> <dbl> <dbl>  <dbl>      <dbl>   <dbl>   <dbl>
+#> 1    400   400  381. 0.0496      0.953   0.559    1.64
 ```
+
+Final Notes
+-----------
+
+-   A big **THANK YOU** goes out to our friend James Bouchey for designing the `iterake` hex logo. Please check out his [portfolio](https://jamesbouchey.myportfolio.com/) as his talents extend far past making super clever package logos.
+-   We are currently preparing to submit iterake to CRAN, so any feedback is well-received.
+-   Stay tuned for a [pkgdown](https://github.com/r-lib/pkgdown) site for this package with more details on how, why, and when to use iterake.
