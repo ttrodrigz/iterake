@@ -114,12 +114,15 @@ dealer_weighted
 ```
 
 #### **Step 4**: Compare *weighted* sample proportions to the universe.  
-````{r}
+````{r, message=FALSE}
+library(dplyr)
+
 compare_margins(
     df = dealer_weighted,
     universe = dealer_uni,
     weight = weight
-)
+) %>%
+    select(-contains("uwgt"))
 ```
 
 #### **Step 5**: Inspect performance of weighting model.

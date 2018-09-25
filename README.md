@@ -61,7 +61,7 @@ Sample
 12%
 </td>
 <td style="text-align:center;">
-17%
+16%
 </td>
 </tr>
 <tr>
@@ -72,7 +72,7 @@ Sample
 58%
 </td>
 <td style="text-align:center;">
-55%
+55.5%
 </td>
 </tr>
 <tr>
@@ -83,7 +83,7 @@ Sample
 30%
 </td>
 <td style="text-align:center;">
-28%
+28.5%
 </td>
 </tr>
 </tbody>
@@ -110,10 +110,10 @@ Sample
 2015
 </td>
 <td style="text-align:center;">
-23%
+22%
 </td>
 <td style="text-align:center;">
-20%
+19%
 </td>
 </tr>
 <tr>
@@ -121,10 +121,10 @@ Sample
 2016
 </td>
 <td style="text-align:center;">
-26%
+25%
 </td>
 <td style="text-align:center;">
-23%
+21%
 </td>
 </tr>
 <tr>
@@ -132,10 +132,10 @@ Sample
 2017
 </td>
 <td style="text-align:center;">
-30%
+32%
 </td>
 <td style="text-align:center;">
-34%
+36%
 </td>
 </tr>
 <tr>
@@ -146,7 +146,7 @@ Sample
 21%
 </td>
 <td style="text-align:center;">
-23%
+24%
 </td>
 </tr>
 </tbody>
@@ -208,3 +208,129 @@ Truck
 </tbody>
 </table>
 There are slight deviations between what was collected in the sample and the known population. These deviations are small enough where weighting can be performed to correct for these differences between the marginal proportions.
+
+#### **Step 1**: Build the universe with known marginal proportions based on categories of interest.
+
+``` r
+# load iterake and the data
+library(iterake)
+data("dealer_data")
+
+# build the 'universe'
+dealer_uni <- universe(
+    
+    df = dealer_data,
+    
+    category(
+        name = "Age",
+        buckets = c("18-34", "35-54", "55+"),
+        targets = c(.12, .58, .30)
+    ),
+    
+    category(
+        name = "Year",
+        buckets = c(2015, 2016, 2017, 2018),
+        targets = c(.22, .25, .32, .21)
+    ),
+    
+    category(
+        name = "Type",
+        buckets = c("Car", "SUV", "Truck"),
+        targets = c(.38, .47, .15)
+    )
+    
+)
+```
+
+#### **Step 2**: Compare *unweighted* sample proportions to the universe.
+
+``` r
+compare_margins(
+    df = dealer_data,
+    universe = dealer_uni
+)
+#> # A tibble: 10 x 6
+#>    wgt_cat buckets uwgt_n uwgt_prop targ_prop uwgt_diff
+#>    <chr>   <chr>    <int>     <dbl>     <dbl>     <dbl>
+#>  1 Age     18-34       64     0.16      0.12     0.04  
+#>  2 Age     35-54      222     0.555     0.580   -0.0250
+#>  3 Age     55+        114     0.285     0.3     -0.015 
+#>  4 Year    2015        76     0.19      0.22    -0.03  
+#>  5 Year    2016        84     0.21      0.25    -0.04  
+#>  6 Year    2017       143     0.358     0.32     0.0375
+#>  7 Year    2018        97     0.242     0.21     0.0325
+#>  8 Type    Car        145     0.362     0.38    -0.0175
+#>  9 Type    SUV        207     0.518     0.47     0.0475
+#> 10 Type    Truck       48     0.12      0.15    -0.03
+```
+
+#### **Step 3**: Weight the data.
+
+``` r
+dealer_weighted <- iterake(
+    df = dealer_data, 
+    universe = dealer_uni
+)
+#> 
+#> -- iterake summary -------------------------------------------------------------
+#>  Convergence: Success <U+2714>
+#>   Iterations: 13
+#> 
+#> Unweighted N: 400.00
+#>  Effective N: 381.09
+#>   Weighted N: 400.00
+#>   Efficiency: 95.3%
+#>         Loss: 0.05
+
+dealer_weighted
+#> # A tibble: 400 x 5
+#>    Sales_ID Age    Year Type  weight
+#>       <int> <chr> <dbl> <chr>  <dbl>
+#>  1     4349 35-54  2016 SUV    1.15 
+#>  2     1394 55+    2017 Car    1.01 
+#>  3     7385 35-54  2017 SUV    0.841
+#>  4     6917 18-34  2017 Car    0.694
+#>  5     3247 55+    2017 SUV    0.862
+#>  6     3698 18-34  2017 SUV    0.594
+#>  7     6260 35-54  2018 SUV    0.792
+#>  8     3998 55+    2015 Car    1.31 
+#>  9     6593 18-34  2016 SUV    0.812
+#> 10     5907 35-54  2017 Car    0.982
+#> # ... with 390 more rows
+```
+
+#### **Step 4**: Compare *weighted* sample proportions to the universe.
+
+``` r
+library(dplyr)
+
+compare_margins(
+    df = dealer_weighted,
+    universe = dealer_uni,
+    weight = weight
+) %>%
+    select(-contains("uwgt"))
+#> # A tibble: 10 x 6
+#>    wgt_cat buckets wgt_n wgt_prop targ_prop wgt_diff
+#>    <chr>   <chr>   <dbl>    <dbl>     <dbl>    <dbl>
+#>  1 Age     18-34     48     0.12      0.12         0
+#>  2 Age     35-54    232     0.580     0.580        0
+#>  3 Age     55+      120.    0.3       0.3          0
+#>  4 Year    2015      88     0.22      0.22         0
+#>  5 Year    2016     100     0.25      0.25         0
+#>  6 Year    2017     128     0.32      0.32         0
+#>  7 Year    2018      84     0.21      0.21         0
+#>  8 Type    Car      152     0.38      0.38         0
+#>  9 Type    SUV      188     0.47      0.47         0
+#> 10 Type    Truck     60     0.15      0.15         0
+```
+
+#### **Step 5**: Inspect performance of weighting model.
+
+``` r
+weight_stats(dealer_weighted$weight)
+#> # A tibble: 1 x 5
+#>   uwgt_n wgt_n eff_n   loss efficiency
+#>    <int> <dbl> <dbl>  <dbl>      <dbl>
+#> 1    400   400  381. 0.0496      0.953
+```
