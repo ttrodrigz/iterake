@@ -21,7 +21,7 @@ takes place prior to applying expansion factor (if \code{N} is set in \code{univ
 \item{threshold}{Value specifying minimum summed difference between weighted 
 marginal proportions of sample and universe before algorithm quits, optional.}
 
-\item{max.iter}{Value capping number of iterations for the procedure.}
+\item{max.iter}{Value capping number of iterations for the procedure, optional.}
 
 \item{stuck.limit}{Value capping the number of times summed differences between 
 sample and universe can oscillate between increasing and decreasing, optional.}

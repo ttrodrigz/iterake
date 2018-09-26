@@ -14,7 +14,7 @@
 #' takes place prior to applying expansion factor (if \code{N} is set in \code{universe()}.
 #' @param threshold Value specifying minimum summed difference between weighted 
 #' marginal proportions of sample and universe before algorithm quits, optional.
-#' @param max.iter Value capping number of iterations for the procedure.
+#' @param max.iter Value capping number of iterations for the procedure, optional.
 #' @param stuck.limit Value capping the number of times summed differences between 
 #' sample and universe can oscillate between increasing and decreasing, optional.
 #' @param summary Whether or not to display summary output of the procedure, optional.
