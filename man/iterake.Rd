@@ -15,12 +15,13 @@ iterake(df, universe, wgt.name = "weight", max.wgt = 3,
 
 \item{wgt.name}{Name given to column of weights to be added to data, optional.}
 
-\item{max.wgt}{Maximum value weights can take on, optional.}
+\item{max.wgt}{Maximum value weights can take on, optional. The capping 
+takes place prior to applying expansion factor (if \code{N} is set in \code{universe()}.}
 
 \item{threshold}{Value specifying minimum summed difference between weighted 
 marginal proportions of sample and universe before algorithm quits, optional.}
 
-\item{max.iter}{Value capping number of iterations for the procedure, optional.}
+\item{max.iter}{Value capping number of iterations for the procedure.}
 
 \item{stuck.limit}{Value capping the number of times summed differences between 
 sample and universe can oscillate between increasing and decreasing, optional.}

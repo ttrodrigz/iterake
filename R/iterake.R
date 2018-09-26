@@ -373,4 +373,4 @@ iterake <- function(df, universe, wgt.name = "weight",
     
 }
 
-utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff", "rn"))
+utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff", "rn", "targ_n"))

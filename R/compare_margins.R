@@ -298,4 +298,4 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
     return(calcd)
 }
 
-utils::globalVariables(c("buckets", "data", "uwgt_n", "uwgt_prop", "targ_prop", "weight_var", "props", "wgt_prop", "wgt_diff", "wgt_type", "wgt_val", "uwgt_diff", "category", "bucket"))    
+utils::globalVariables(c("buckets", "data", "uwgt_n", "uwgt_prop", "targ_prop", "weight_var", "props", "wgt_prop", "wgt_diff", "wgt_type", "wgt_val", "uwgt_diff", "category", "bucket", "targ_n"))    

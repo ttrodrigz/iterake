@@ -4,12 +4,15 @@
 \alias{universe}
 \title{Create universe}
 \usage{
-universe(df, ...)
+universe(df, ..., N)
 }
 \arguments{
 \item{df}{Data frame containing data where weights are desired.}
 
 \item{...}{One or more output objects from \code{category()}.}
+
+\item{N}{Size of universe. If supplied, expansion factor will be applied
+to weights after convergence.}
 }
 \value{
 A nested \code{tibble} with special class \code{universe}.
