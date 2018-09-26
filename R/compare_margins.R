@@ -67,6 +67,13 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
         stop("'universe' must be of class 'universe', rerun universe()")
     }
     
+    # check to see if an `N` was supplied to universe
+    if ("targ_n" %in% names(universe$data[[1]])) {
+        uni_n <- TRUE
+    } else {
+        uni_n <- FALSE
+    }
+    
     df.names <- names(df)
     
     # category here refers to the variable created in category() that identifies a target weighting variable
@@ -164,6 +171,14 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
         
     }
     
+    # drop `targ_n` if it exists
+    if (uni_n) {
+        
+        calcd <-
+            calcd %>%
+            select(-targ_n)
+    }
+    
     if (isTRUE(plot)) {
         
         # prepare chart_data based on weight being given
@@ -177,6 +192,7 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
                 mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
                        wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
         }
+        
         
         # create chart object
         chart <- 

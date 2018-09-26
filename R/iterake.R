@@ -10,10 +10,11 @@
 #' @param df Data frame containing data where weights are desired.
 #' @param universe Output object created with \code{universe()} function.
 #' @param wgt.name Name given to column of weights to be added to data, optional.
-#' @param max.wgt Maximum value weights can take on, optional.
+#' @param max.wgt Maximum value weights can take on, optional. The capping 
+#' takes place prior to applying expansion factor (if \code{N} is set in \code{universe()}.
 #' @param threshold Value specifying minimum summed difference between weighted 
 #' marginal proportions of sample and universe before algorithm quits, optional.
-#' @param max.iter Value capping number of iterations for the procedure, optional.
+#' @param max.iter Value capping number of iterations for the procedure.
 #' @param stuck.limit Value capping the number of times summed differences between 
 #' sample and universe can oscillate between increasing and decreasing, optional.
 #' @param summary Whether or not to display summary output of the procedure, optional.
@@ -69,6 +70,17 @@ iterake <- function(df, universe, wgt.name = "weight",
     to_weight <- data.table(df, keep.rownames = TRUE)[, rn := as.numeric(rn)]
     N <- nrow(to_weight)
     wgt_cats <- universe[["category"]]
+    
+    # expansion factor calc
+    if ("targ_n" %in% names(universe$data[[1]])) {
+        
+        big_N <- universe[["data"]][[1]] %>% pull(targ_n) %>% sum()
+        
+        x.factor <- big_N / nrow(df)
+        
+    } else {
+        x.factor <- 1
+    }
     
     # make sure data frame is supplied
     if (!is.data.frame(df)) {
@@ -290,14 +302,6 @@ iterake <- function(df, universe, wgt.name = "weight",
     } else {
         
         # clean df to output
-        
-        # expansion factor calc
-        if (!missing(N)) {
-            x.factor <- N / nrow(df)
-        } else {
-            x.factor <- 1
-        }
-        
         out <-
             # first merge orig and new data...
             

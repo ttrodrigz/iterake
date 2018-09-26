@@ -6,6 +6,8 @@
 #' 
 #' @param df Data frame containing data where weights are desired.
 #' @param ... One or more output objects from \code{category()}.
+#' @param N Size of universe. If supplied, expansion factor will be applied
+#' to weights after convergence.
 #' 
 #' @importFrom purrr map_lgl pmap 
 #' @importFrom dplyr bind_rows pull group_by_ summarise mutate select %>%
@@ -32,7 +34,7 @@
 #' )
 #' 
 #' @export
-universe <- function(df, ...) {
+universe <- function(df, ..., N) {
     
     # make sure dataframe is supplied
     if (!is.data.frame(df)) {
@@ -52,6 +54,19 @@ universe <- function(df, ...) {
         stop("Each input to `universe()` must be of the class 'category'. Use `category()` to construct this input.")
     } 
     
+    # make sure N is good
+    if (!missing(N)) {
+        if (any(
+            N <=0,
+            !is.numeric(N),
+            N <= nrow(df) 
+        )) {
+            stop(paste0("Input to `N` must be a single numeric value larger than the size of your sample (",
+                        nrow(df),
+                        ")."))
+        }
+    }
+        
     # smush 'em together into final form
     out <- bind_rows(category)
     
@@ -154,11 +169,20 @@ universe <- function(df, ...) {
         # bind it all together
         bind_rows()
     
+    if (!missing(N)) {
+        
+        # calc target N's, used later to do expansion factor calcs
+        adjusted_model <-
+            adjusted_model %>%
+            mutate(data = map(data, function(x)
+                x %>% mutate(targ_n = targ_prop * N)))
+    }
     # assign class
     class(adjusted_model) <- c(class(adjusted_model), "universe")
     
     return(adjusted_model)
     
 }
+
 
 utils::globalVariables(c("category"))    
