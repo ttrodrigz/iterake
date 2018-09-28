@@ -110,7 +110,7 @@ dealer_weighted
 ```
 
 #### **Step 4**: Compare *weighted* sample proportions to the universe.  
-````{r, message=FALSE, fig.width = 10}
+````{r, message=FALSE, fig.width = 10, fig.height = 4}
 library(dplyr)
 
 # re-inspect proportions with plot
