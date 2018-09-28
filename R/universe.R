@@ -9,8 +9,9 @@
 #' @param N Size of universe. If supplied, expansion factor will be applied
 #' to weights after convergence.
 #' 
+#' @importFrom data.table data.table melt
 #' @importFrom purrr map_lgl pmap 
-#' @importFrom dplyr bind_rows pull group_by_ summarise mutate select %>%
+#' @importFrom dplyr anti_join bind_rows pull group_by_ summarise mutate select %>%
 #' @importFrom crayon %+%
 #' @importFrom tibble tibble
 #' 
@@ -49,7 +50,7 @@ universe <- function(df, ..., N) {
         stop("Provide at least one weighting category, use `category()` to construct this.")
     }
     
-    # are all inputs to this function wgt_cats?
+    # are all inputs to this function category class?
     if (!(all(map_lgl(category, function(x) "category" %in% class(x))))) {
         stop("Each input to `universe()` must be of the class 'category'. Use `category()` to construct this input.")
     } 
@@ -112,8 +113,49 @@ universe <- function(df, ..., N) {
         to
         
     }
+
+    # check that all buckets exist in data
+    missing_buckets <-
+        anti_join(
+            
+            out %>% 
+                unnest(data) %>%
+                select(-targ_prop),
+            
+            # using data.table-friendly approaches for speed in case df is large
+            unique(
+                melt(
+                    data.table(df, keep.rownames = TRUE), 
+                    id.vars = "rn", 
+                    variable.name = "category",
+                    variable.factor = FALSE,
+                    value.name = "buckets", 
+                    measure.vars = c(out$category))[, rn := NULL]),
+            
+            # the dplyr way
+            # weight_me %>%
+            #     select(seeds, costume) %>%
+            #     gather(category, buckets) %>%
+            #     group_by(category, buckets) %>%
+            #     filter(row_number() == 1),
+            
+            by = c("category", "buckets")
+            
+    )
     
-    # adjust targets for any NA in wgt_cats and adjust attributes as needed
+    # check if any rows exist - if so, stop as it means buckets in universe don't
+    # exist in the data - and that's bad... mmmkay
+    if (nrow(missing_buckets) > 0) {
+        stop(
+            paste0(
+                "Not all buckets in `universe` categories are found in `df`. Edit `category()` calls to remove the following:",
+                "\n\n",
+                paste(missing_buckets$buckets, "not found in", missing_buckets$category, collapse = "\n")
+            )
+        )
+    }
+    
+    # adjust targets for any NA in category and adjust attributes as needed
     adjusted_model <- pmap(out, function(..., main_data = df) {
         
         ## create list object out of all unspecified arguments passed from pmap

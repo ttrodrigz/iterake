@@ -49,7 +49,10 @@ category <- function(name, buckets, targets, sum.1 = FALSE) {
         targets <- targets / sum(targets)
     }
     
-    if (sum(targets) != 1) {
+    # the rounding is here in case of odd rounding issues...
+    # there were instances where sum(targets) seemed to equal 1, but was coming up as TRUE when 
+    # used in sum(targets) != 1 testing - rounding to 15 digits for some reason made it happy again...
+    if (round(sum(targets), 15) != 1) {
         stop("`targets` must sum to 1. Review target proportions or force them to sum to 1 by setting `sum.1` = TRUE.")
     }
     
