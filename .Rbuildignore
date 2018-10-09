@@ -6,3 +6,4 @@
 ^data-for-testing$
 ^README\.Rmd$
 ^README_files$
+^testdata$

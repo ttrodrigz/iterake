@@ -5,7 +5,7 @@
 \title{Iterative raking procedure}
 \usage{
 iterake(df, universe, wgt.name = "weight", max.wgt = 3,
-  threshold = 1e-20, max.iter = 50, stuck.limit = 5,
+  threshold = 1e-10, max.iter = 50, stuck.limit = 5,
   summary = TRUE)
 }
 \arguments{

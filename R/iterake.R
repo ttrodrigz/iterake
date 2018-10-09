@@ -56,7 +56,7 @@
 #' 
 #' @export
 iterake <- function(df, universe, wgt.name = "weight", 
-                    max.wgt = 3, threshold = 1e-20, max.iter = 50, 
+                    max.wgt = 3, threshold = 1e-10, max.iter = 50, 
                     stuck.limit = 5, summary = TRUE) {
     
     # step 1) setup + error checking ----
