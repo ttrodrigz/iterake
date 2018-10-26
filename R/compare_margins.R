@@ -192,8 +192,7 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
                 mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
                        wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
         }
-        
-        
+
         # create chart object
         chart <- 
             chart_data %>%
@@ -247,7 +246,7 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
                    # adjust scales, use 0 to max of wgt_val props
                    scale_y_continuous(
                        breaks = pretty,
-                       limits = c(0, max(chart_data$wgt_val))
+                       limits = c(0, max(chart_data$targ_prop, chart_data$wgt_val))
                    )
         )
         
