@@ -7,7 +7,7 @@ Overview
 
 iterake's main utility is creating row-level weights using a process called iterative raking. Iterative raking (also known as rim weighting), is one of several methods used to correct the deviation between the *marginal* proportions in a sample and a known population, or, universe as it was first referred to (Deming & Stephan 1940) for a given set of variables.
 
-iterake is designed with speed and simplicity in mind. The weighting algorithm is powered by [data.table](https://github.com/Rdatatable/data.table/wiki) and takes advantage of its fast [grouping](https://github.com/Rdatatable/data.table/wiki/Benchmarks-:-Grouping) and joining; it tends to scale well even with larger data sets. The functions of this package are designed to play nicely users of the [tidyverse](https://github.com/tidyverse/tidyverse). Columns in the data can be accessed without quotation, and every function returns a [tibble](https://github.com/tidyverse/tibble).
+iterake is designed with speed and simplicity in mind. The weighting algorithm is powered by [data.table](https://github.com/Rdatatable/data.table/wiki) and takes advantage of its fast [grouping](https://github.com/Rdatatable/data.table/wiki/Benchmarks-:-Grouping) and joining; it tends to scale well even with larger data sets. The functions of this package are designed to play nicely with users of the [tidyverse](https://github.com/tidyverse/tidyverse). Columns in the data can be accessed without quotation, and every function returns a [tibble](https://github.com/tidyverse/tibble).
 
 Workflow
 --------
