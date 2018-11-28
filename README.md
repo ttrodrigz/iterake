@@ -12,7 +12,7 @@ iterake is designed with speed and simplicity in mind. The weighting algorithm i
 Workflow
 --------
 
-The weighting process with `iterake` is fairly straightforward, we suggest:
+The weighting process with `iterake` is fairly straightforward. We suggest:
 
 1.  Use the `universe()` function to build your population.
     1.  The univerise is constructed with one or more categories where the marginal probabilites are known. These categories are built with the `category()` function.
