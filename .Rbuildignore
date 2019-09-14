@@ -7,3 +7,4 @@
 ^README\.Rmd$
 ^README_files$
 ^testdata$
+^test-code$
