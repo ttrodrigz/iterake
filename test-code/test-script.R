@@ -17,17 +17,33 @@ dd2 <- mutate(dd2, Type2 = factor(Type, c("Car", "SUV", "Truck")))
 
 universe2(
     
-    data = dd2,
+    data = demo_data,
     
     category2(
-        name = "Age2",
-        buckets = c("18-34", "35-54", "55+"),
-        targets = c(0.2, 0.6, 0.2)
+        name = "Sex",
+        buckets = factor(
+            x = c("Male", "Female"), 
+            levels = c("Male", "Female")
+        ),
+        targets = c(0.4, 0.5),
+        sum.1 = TRUE
     ),
     
     category2(
-        name = "Year",
-        buckets = c(2015:2018),
-        targets = c(0.15, 0.25, 0.4, 0.3)
+        name = "BirthYear",
+        buckets = c(1986:1990),
+        targets = rep(0.2, times = 5)
+    ),
+    
+    category2(
+        name = "EyeColor",
+        buckets = c("brown", "green", "blue"),
+        targets = c(0.8, 0.1, 0.1)
+    ),
+    
+    category2(
+        name = "HomeOwner",
+        buckets = c(T, F),
+        targets = c(1/3, 2/3)
     )
 )

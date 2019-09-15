@@ -1,5 +1,10 @@
 category2 <- function(name, buckets, targets, sum.1 = FALSE) {
     
+    # check to make sure targets sum to 1
+    if (sum(targets) != 1 & !sum.1) {
+        stop("Input to `targets` must sum to 1. Check proportions used, or force them to sum to 1 by setting sum.1 = TRUE.")
+    }
+    
     # adjust if specified
     if (sum.1) {
         targets <- targets / sum(targets)
@@ -65,6 +70,8 @@ Each name given to a weighting category in `universe()` must have a matching col
     
     for (i in 1:num.cats) {
         
+        # browser()
+        
         # vector class compatibility check here?
         
         # opted for `all.equal()` over `identical()` because `identical()`
@@ -105,6 +112,10 @@ There are mismatches between the buckets provided, and the unique values of `dat
     
     # Output from this process will be stored in a new list
     universe <- list()
+    
+    # This is used to print out the weighting categories which were adjusted
+    # for missing values
+    wgt.cats.adj <- character(0)
 
     for (i in 1:num.cats) {
         
@@ -133,9 +144,8 @@ There are mismatches between the buckets provided, and the unique values of `dat
         # 4. Find proportion missing
         if (any(is.na(all.prop))) {
             
-            cat(glue(
-                "Missing values were found in {wgt.cats[[i]]}, target proportions are being adjusted.\n"
-            ))
+            # collect category name for printing
+            wgt.cats.adj <- c(wgt.cats.adj, wgt.cats[[i]])
             
             p.na <- 
                 all.prop %>%
@@ -156,12 +166,19 @@ There are mismatches between the buckets provided, and the unique values of `dat
         universe[[i]] <-
             all.prop %>%
             rename("bucket" = 1) %>%
-            add_column(wgt_cat = wgt.cats[[i]], .before = 1)
+            add_column(category = wgt.cats[[i]], .before = 1)
         
     }
     
+    warning(glue(
+        "Missing data was found in the following categories:",
+        "{glue_collapse(wgt.cats.adj, sep = ', ')}",
+        "Target proportions have been reproportioned to account for missing data.",
+        .sep = "\n"
+    ))
+    
     names(universe) <- wgt.cats
-    class(universe) <- "universe"
+    class(universe) <- c(class(universe), "universe")
     
     return(universe)
     
