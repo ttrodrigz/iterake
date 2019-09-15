@@ -59,11 +59,13 @@ Each name given to a weighting category in `universe()` must have a matching col
     # this may come in handy later...
     drop_na_vec <- function(x) x[!is.na(x)]
 
-    num.cats <- length(wgt.cats)
-    df.unique <- data[wgt.cats] %>% map(unique)
-    wgt.buckets <- categories %>% map(pluck, "buckets")
+    num.cats    <- length(wgt.cats)
+    df.unique   <- map(data[wgt.cats], unique)
+    wgt.buckets <- map(categories, pluck, "buckets")
     
     for (i in 1:num.cats) {
+        
+        # vector class compatibility check here?
         
         # opted for `all.equal()` over `identical()` because `identical()`
         # got hung up on mismatches between numeric/integer
@@ -93,47 +95,78 @@ There are mismatches between the buckets provided, and the unique values of `dat
     # adjust the population model ---------------------------------------------
 
     # This works by doing the following steps:
-    # 1. Determine if the unique values in the column of the weighting category
-    #    contain missing values
-    # 2. If they do, find the proportion of values missing in the data
-    # 3. Adjust the targets by target * (1 - prop missing)
-    # 4. Add NA to the targets with the value of prop missing from the data
-    # 5. Add NA to the buckets
+    # 1. Find the actual proportions in the data.
+    # 2. Create a data frame of the target proportions.
+    # 3. Join actual proportions to target full_join(), this ensures that 
+    #    correct ordering is maintained, and identifies proportions of NA's 
+    #    in the data.
+    # 4. Check to see if NA's exist in the data, if so, find proportion.
+    # 5. If NA's exist, adjust the targets by target * (1 - prop NA)
     
-    wgt.targets <- map(categories, pluck, "targ_prop")
-    
+    # Output from this process will be stored in a new list
+    universe <- list()
+
     for (i in 1:num.cats) {
         
-        # 1. Do NA's exist?
-        if (any(is.na(df.unique[[i]]))) {
+        # 1. Find actual proportions in the data
+        wc <- sym(wgt.cats[[i]])
+        
+        act.prop <-
+            data %>%
+            count({{ wc }}) %>%
+            mutate(act_prop = n / sum(n)) %>%
+            select(-n)
+        
+        # 2. Data frame of targets proportions
+        targ.prop <- tibble(
+            {{ wc }} := categories[[i]][["buckets"]],
+            targ_prop = categories[[i]][["targ_prop"]]
+        )
+        
+        # 3. Join target to actual
+        all.prop <- full_join(
+            targ.prop,
+            act.prop,
+            by = wgt.cats[[i]]
+        )
+        
+        # 4. Find proportion missing
+        if (any(is.na(all.prop))) {
             
-            # 2. Find proportion missing in data
-            wc <- sym(wgt.cats[[i]])
+            cat(glue(
+                "Missing values were found in {wgt.cats[[i]]}, target proportions are being adjusted.\n"
+            ))
             
-            p.na <-
-                data %>%
-                count({{ wc }}) %>%
-                mutate(p = n / sum(n)) %>%
-                filter(is.na({{wc}})) %>%
-                pull(p)
+            p.na <- 
+                all.prop %>%
+                filter(is.na({{ wc }})) %>%
+                pull(act_prop)
             
-            # 3/4. Re-proportion the targets
-            wgt.targets[[i]] <- c(
-                wgt.targets[[i]] * (1 - p.na),
-                p.na
-            )
-            
-            # 5. Add NA to buckets
-            wgt.buckets[[i]] <- c(
-                wgt.buckets[[i]],
-                NA
-            )
+            # 5. Adjust target proportions to account for p NA
+            all.prop <-
+                all.prop %>%
+                mutate(targ_prop = case_when(
+                    is.na(targ_prop) ~ p.na,
+                    TRUE ~ targ_prop * (1 - p.na)
+                ))
             
         }
         
+        # Add finalized data frame to the output list
+        universe[[i]] <-
+            all.prop %>%
+            rename("bucket" = 1) %>%
+            add_column(wgt_cat = wgt.cats[[i]], .before = 1)
         
     }
     
-
+    names(universe) <- wgt.cats
+    class(universe) <- "universe"
+    
+    return(universe)
+    
 }
+
+
+
 

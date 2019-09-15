@@ -5,7 +5,18 @@ library(glue)
 
 dd2 <- mutate(dealer_data, Age2 = inject_value(Age, p = 0.1))
 
+# One thing I haven't accounted for yet is factors...
+
+dd2 <- mutate(dd2, Type2 = factor(Type, c("Car", "SUV", "Truck")))
+
+# Also in universe(), should there be a type check? Make sure that type
+# which gets defined by the buckts in category() matches the data?
+
+# Also, what happens if `NA` is used as a bucket, is this acceptable? My thought
+# is no, not sure though...?
+
 universe2(
+    
     data = dd2,
     
     category2(
