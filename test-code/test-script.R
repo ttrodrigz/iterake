@@ -2,6 +2,9 @@ library(tidyverse)
 library(iterake)
 library(toolbox)
 library(glue)
+library(data.table)
+library(scales)
+library(crayon)
 
 dd2 <- mutate(dealer_data, Age2 = inject_value(Age, p = 0.1))
 
@@ -10,9 +13,9 @@ dd2 <- mutate(dealer_data, Age2 = inject_value(Age, p = 0.1))
 dd2 <- mutate(dd2, Type2 = factor(Type, c("Car", "SUV", "Truck")))
 
 
-universe2(
+univ <- universe2(
     
-    data = demo_data, N = 100,
+    data = demo_data, N = 400,
     # category2(
     #     name = "Sex",
     #     buckets = c("Male", "Female"),
@@ -48,3 +51,5 @@ universe2(
         targets = c(1/3, 2/3)
     )
 )
+
+iterak2(univ)
