@@ -27,7 +27,43 @@ category2 <- function(name, buckets, targets, sum.1 = FALSE) {
 
 universe2 <- function(data, ..., N) {
     
+
+    # up front error checks ---------------------------------------------------
+
+    # make sure data frame is supplied
+    if (!is.data.frame(data)) {
+        stop("Input to `data` must be a data frame.")
+    }
+    
+    # list object of all unspecified arguments passed to function
     categories <- list(...)
+    
+    # make sure at least one category was provided
+    if (length(categories) < 1) {
+        stop("Provide at least one weighting category, use `category()` to construct this.")
+    }
+    
+    # are all inputs to this function category class?
+    if (!(all(map_lgl(categories, function(x) "category" %in% class(x))))) {
+        stop("Each input to `...` must be of the class 'category'. Use `category()` to construct this input.")
+    } 
+
+    
+    # would this work best for doing the expansion factor calculation?
+    if (missing(N)) {
+        N <- 1
+    }
+    
+    # make sure N is good
+    if (!missing(N)) {
+        if (N <= nrow(data)) {
+            stop(glue(
+                "
+Input to `N` must be a single numeric value larger than the size of your sample ({nrow(data)}).
+                "
+            ))
+        }
+    }
     
     # verify categories specified exist in the data ---------------------------
 
@@ -70,9 +106,33 @@ Each name given to a weighting category in `universe()` must have a matching col
     
     for (i in 1:num.cats) {
         
-        # browser()
+        # vector class compatibility
+        df.class  <- class(df.unique[[i]])
+        wgt.class <- class(wgt.buckets[[i]])
         
-        # vector class compatibility check here?
+        classes.match <- df.class == wgt.class
+        
+        if (!classes.match) {
+            stop(glue(
+                "
+Mismatch in variable classes for '{wgt.cats[[i]]}' weighting category.
+---------------------------------------------------------------------------
+        Class in data: {df.class}
+Class in `category()`: {wgt.class}
+---------------------------------------------------------------------------
+Please reconcile this difference before proceeding.
+                "
+            ))
+        }
+        
+        # do not allow NA's in bucket
+        if (any(is.na(wgt.buckets[[i]]))) {
+            stop(glue("
+`NA` is not a valid bucket, please review input to `category()` for '{wgt.cats[[i]]}' weighting category.
+                 "
+            ))
+        }
+        
         
         # opted for `all.equal()` over `identical()` because `identical()`
         # got hung up on mismatches between numeric/integer
@@ -85,11 +145,18 @@ Each name given to a weighting category in `universe()` must have a matching col
             
         ))
         
+
         if (!buckets.match) {
             
             stop.message <- glue(
                 "
 There are mismatches between the buckets provided, and the unique values of `data` for the '{wgt.cats[[i]]}' weighting category. 
+---------------------------------------------------------------------------
+        Unique in data: {glue_collapse(sort(df.unique[[i]]), sep = ', ')}
+Unique in `category()`: {glue_collapse(sort(wgt.buckets[[i]]), sep = ', ')}
+---------------------------------------------------------------------------
+Please reconcile this difference before proceeding.
+*Note: Missing values (NA) in the data are acceptable.
                 "
             )
             
@@ -144,13 +211,17 @@ There are mismatches between the buckets provided, and the unique values of `dat
         # 4. Find proportion missing
         if (any(is.na(all.prop))) {
             
-            # collect category name for printing
-            wgt.cats.adj <- c(wgt.cats.adj, wgt.cats[[i]])
-            
             p.na <- 
                 all.prop %>%
                 filter(is.na({{ wc }})) %>%
                 pull(act_prop)
+            
+            # collect category name for printing
+            wgt.cats.adj <- c(
+                wgt.cats.adj, 
+                glue("{wgt.cats[[i]]} ({scales::percent(p.na, accuracy = 0.1)})")
+            )
+            
             
             # 5. Adjust target proportions to account for p NA
             all.prop <-
@@ -171,16 +242,29 @@ There are mismatches between the buckets provided, and the unique values of `dat
     }
     
     warning(glue(
-        "Missing data was found in the following categories:",
-        "{glue_collapse(wgt.cats.adj, sep = ', ')}",
-        "Target proportions have been reproportioned to account for missing data.",
-        .sep = "\n"
+        "
+Missing data was found in the following categories:
+---------------------------------------------------------------------------
+{glue_collapse(wgt.cats.adj, sep = '\n')}
+---------------------------------------------------------------------------
+Target proportions have been reproportioned to account for missing data.
+        "
     ))
     
+
+    # final return ------------------------------------------------------------
+
     names(universe) <- wgt.cats
-    class(universe) <- c(class(universe), "universe")
     
-    return(universe)
+    out <- list(
+        data = data,
+        universe = universe,
+        N = N
+    )
+    
+    class(out) <- c(class(universe), "universe")
+    
+    return(out)
     
 }
 
