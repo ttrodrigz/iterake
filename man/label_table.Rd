@@ -27,8 +27,8 @@ It is often useful to inspect variable or value labels attached to datasets
 their associated labels, or, if requested, a variable and its value labels.
 }
 \examples{
-data(weight_me)
+data(demo_data)
 
-label_table(data = weight_me, var = seeds)
+label_table(data = demo_data, var = EyeColor)
 
 }

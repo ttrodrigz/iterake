@@ -10,9 +10,7 @@
 #' @param targets Numeric vector of the proportions each element of \code{`buckets`} represents in the population.
 #' @param sum.1 Whether or not to force inputs to \code{`targets`} to sum to one.
 #' 
-#' @importFrom tibble tibble
-#' 
-#' @return A nested \code{tibble} with special class \code{category}.
+#' @return A \code{list} with special class \code{category}.
 #' 
 #' @examples 
 #' category(
@@ -44,27 +42,22 @@ category <- function(name, buckets, targets, sum.1 = FALSE) {
         stop("String length of `name` must be greater than zero.")
     }
     
+    # check to make sure targets sum to 1
+    if (round(sum(targets), 15) != 1 & !sum.1) {
+        stop("Input to `targets` must sum to 1. Check proportions used, or force them to sum to 1 by setting sum.1 = TRUE.")
+    }
+    
     # adjust if specified
     if (sum.1) {
         targets <- targets / sum(targets)
     }
     
-    # the rounding is here in case of odd rounding issues...
-    # there were instances where sum(targets) seemed to equal 1, but was coming up as TRUE when 
-    # used in sum(targets) != 1 testing - rounding to 15 digits for some reason made it happy again...
-    if (round(sum(targets), 15) != 1) {
-        stop("`targets` must sum to 1. Review target proportions or force them to sum to 1 by setting `sum.1` = TRUE.")
-    }
-    
-    # create nested tibble structure
-    out <- 
-        tibble(
-            category = name,
-            data = list(
-                tibble(buckets = buckets,
-                       targ_prop = targets)
-            )
-        )
+    # list structure
+    out <- list(
+        category = name,
+        buckets = buckets,
+        targ_prop = targets
+    )
     
     # assign class
     class(out) <- c(class(out), "category")

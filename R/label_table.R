@@ -23,9 +23,9 @@
 #' variable and its labels, as well as frequencies.
 #'
 #' @examples
-#' data(weight_me)
+#' data(demo_data)
 #' 
-#' label_table(data = weight_me, var = seeds)
+#' label_table(data = demo_data, var = EyeColor)
 #'
 #' @export
 label_table <- function(data, var, freq = FALSE, weight) {

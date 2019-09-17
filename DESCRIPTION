@@ -1,6 +1,6 @@
 Package: iterake
 Title: Tools for iterative raking
-Version: 0.0.0.9000
+Version: 0.0.9
 Authors@R: c(
     person("Tony", "Rodriguez", email = "ttrodrigz@gmail.com", role = c("aut")), 
     person("Devon", "Witherell", email = "dwitherell@gmail.com", role = c("aut", "cre"))
@@ -23,7 +23,8 @@ Imports:
     data.table,
     scales,
     Hmisc,
-    labelled
+    labelled,
+    glue
 Suggests:
     rmarkdown
 RoxygenNote: 6.1.1

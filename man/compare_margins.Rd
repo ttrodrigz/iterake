@@ -16,7 +16,7 @@ compare_margins(df, weight, universe, plot = FALSE)
 \item{plot}{Display plot, default = FALSE.}
 }
 \value{
-A tibble of unweighted counts and proportions, difference between 
+A data frame of unweighted counts and proportions, difference between 
 unweighted and target proportions. If \code{`weight`} is given, it also includes
 weighted counts and proportions, difference between weighted and target proportions.
 Optionally, a plot of this information.
@@ -26,31 +26,47 @@ Inspect by what degree the unweighted or weighted sample proportions deviate fro
 target proportions.
 }
 \examples{
-data(weight_me)
+data(demo_data)
 
 mod <- universe(
+        data = demo_data,
+        
+        category(
+            name = "Sex",
+            buckets = factor(
+                x = levels(demo_data[["Sex"]]),
+                levels = levels(demo_data[["Sex"]])
+            ),
+            targets = c(0.4, 0.5),
+            sum.1 = TRUE
+        ),
 
-    df = weight_me,
-
-    category(
-        name = "costume",
-        buckets = c("Bat Man", "Cactus"),
-        targets = c(0.5, 0.5)),
-
-    category(
-        name = "seeds",
-        buckets = c("Tornado", "Bird", "Earthquake"),
-        targets = c(0.3, 0.3, 0.4))
-)
+        category(
+            name = "BirthYear",
+            buckets = c(1986:1990),
+            targets = rep(0.2, times = 5)
+        ),
+    
+        category(
+            name = "EyeColor",
+            buckets = c("brown", "green", "blue"),
+            targets = c(0.8, 0.1, 0.1)
+        ),
+    
+        category(
+            name = "HomeOwner",
+            buckets = c(TRUE, FALSE),
+            targets = c(3/4, 1/4)
+        )
+    )
 
 compare_margins(
-    df = weight_me,
+    df = demo_data,
     universe = mod,
     plot = TRUE
 )
 
 wgts <- iterake(
-    df = weight_me,
     universe = mod
 )
 
@@ -58,6 +74,7 @@ compare_margins(
     df = wgts,
     universe = mod,
     weight = weight,
-    plot = FALSE)
+    plot = FALSE
+)
 
 }

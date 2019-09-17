@@ -4,10 +4,10 @@
 \alias{universe}
 \title{Create universe}
 \usage{
-universe(df, ..., N)
+universe(data, ..., N)
 }
 \arguments{
-\item{df}{Data frame containing data where weights are desired.}
+\item{data}{Data frame containing data where weights are desired.}
 
 \item{...}{One or more output objects from \code{category()}.}
 
@@ -15,7 +15,7 @@ universe(df, ..., N)
 to weights after convergence.}
 }
 \value{
-A nested \code{tibble} with special class \code{universe}.
+A \code{list} with special class \code{universe}.
 }
 \description{
 Along with the data to be weighted, this combines one or more objects of 
@@ -23,20 +23,38 @@ class \code{category} to build the universe with known marginal proportions.
 It also checks and adjusts the proportions to account for missing values in the data.
 }
 \examples{
-data(weight_me)
+data(demo_data)
 
 universe(
-    df = weight_me,
+    data = demo_data,
+    
+    category(
+        name = "Sex",
+        buckets = factor(
+            x = levels(demo_data[["Sex"]]),
+            levels = levels(demo_data[["Sex"]])
+        ),
+        targets = c(0.4, 0.5),
+        sum.1 = TRUE
+    ),
 
     category(
-        name = "costume",
-        buckets = c("Bat Man", "Cactus"),
-        targets = c(0.5, 0.5)),
-
+        name = "BirthYear",
+        buckets = c(1986:1990),
+        targets = rep(0.2, times = 5)
+    ),
+    
     category(
-        name = "seeds",
-        buckets = c("Tornado", "Bird", "Earthquake"),
-        targets = c(0.4, 0.3, 0.3))
+        name = "EyeColor",
+        buckets = c("brown", "green", "blue"),
+        targets = c(0.8, 0.1, 0.1)
+    ),
+    
+    category(
+        name = "HomeOwner",
+        buckets = c(TRUE, FALSE),
+        targets = c(3/4, 1/4)
+    )
 )
 
 }

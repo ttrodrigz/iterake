@@ -10,7 +10,7 @@
 #' existing data from where targets are being pulled.
 #' @param from Existing data frame from where targets will be pulled.
 #' @param weight Optionally provide an existing weight variable to calculate 
-#' weighted target proportions. Omit of unweighted target proportions are desired.
+#' weighted target proportions. Omit if unweighted target proportions are desired.
 #' 
 #' @importFrom dplyr mutate select enquo group_by summarise ungroup %>%
 #' @importFrom rlang !!
@@ -20,16 +20,16 @@
 #' @return A nested \code{tibble} with special class \code{category}.
 #' 
 #' @examples 
-#' data(weight_me)
+#' data(demo_data)
 #' 
 #' inherit_category(
-#'   name = "costume",
-#'   from = dplyr::filter(weight_me, satisfied == "No")
+#'   name = "EyeColor",
+#'   from = demo_data
 #' )
 #' 
 #' inherit_category(
-#'   name = "transport",
-#'   from = dplyr::filter(weight_me, satisfied == "No"),
+#'   name = "BirthYear",
+#'   from = demo_data,
 #'   weight = prev_weight
 #' )
 #' 

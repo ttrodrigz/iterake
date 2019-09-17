@@ -4,227 +4,293 @@
 #' class \code{category} to build the universe with known marginal proportions. 
 #' It also checks and adjusts the proportions to account for missing values in the data.
 #' 
-#' @param df Data frame containing data where weights are desired.
+#' @param data Data frame containing data where weights are desired.
 #' @param ... One or more output objects from \code{category()}.
 #' @param N Size of universe. If supplied, expansion factor will be applied
 #' to weights after convergence.
 #' 
-#' @importFrom data.table data.table melt
-#' @importFrom purrr map_lgl pmap 
-#' @importFrom dplyr anti_join bind_rows pull group_by_ summarise mutate select %>%
-#' @importFrom crayon %+%
-#' @importFrom tibble tibble
+#' @importFrom glue glue glue_collapse
+#' @importFrom purrr map map_lgl map_chr pluck
+#' @importFrom dplyr sym pull mutate select filter count full_join case_when rename %>%
+#' @importFrom scales percent
+#' @importFrom tibble tibble add_column
 #' 
-#' @return A nested \code{tibble} with special class \code{universe}.
+#' @return A \code{list} with special class \code{universe}.
 #' 
 #' @examples 
-#' data(weight_me)
+#' data(demo_data)
 #' 
 #' universe(
-#'     df = weight_me,
+#'     data = demo_data,
+#'     
+#'     category(
+#'         name = "Sex",
+#'         buckets = factor(
+#'             x = levels(demo_data[["Sex"]]),
+#'             levels = levels(demo_data[["Sex"]])
+#'         ),
+#'         targets = c(0.4, 0.5),
+#'         sum.1 = TRUE
+#'     ),
 #' 
 #'     category(
-#'         name = "costume",
-#'         buckets = c("Bat Man", "Cactus"),
-#'         targets = c(0.5, 0.5)),
-#' 
+#'         name = "BirthYear",
+#'         buckets = c(1986:1990),
+#'         targets = rep(0.2, times = 5)
+#'     ),
+#'     
 #'     category(
-#'         name = "seeds",
-#'         buckets = c("Tornado", "Bird", "Earthquake"),
-#'         targets = c(0.4, 0.3, 0.3))
+#'         name = "EyeColor",
+#'         buckets = c("brown", "green", "blue"),
+#'         targets = c(0.8, 0.1, 0.1)
+#'     ),
+#'     
+#'     category(
+#'         name = "HomeOwner",
+#'         buckets = c(TRUE, FALSE),
+#'         targets = c(3/4, 1/4)
+#'     )
 #' )
 #' 
 #' @export
-universe <- function(df, ..., N) {
+universe <- function(data, ..., N) {
     
-    # make sure dataframe is supplied
-    if (!is.data.frame(df)) {
-        stop("Input to `df` must be a data frame.")
+    # up front error checks ---------------------------------------------------
+    
+    # make sure data frame is supplied
+    if (!is.data.frame(data)) {
+        stop("Input to `data` must be a data frame.")
     }
     
     # list object of all unspecified arguments passed to function
-    category <- list(...)
+    categories <- list(...)
     
     # make sure at least one category was provided
-    if (length(category) < 1) {
+    if (length(categories) < 1) {
         stop("Provide at least one weighting category, use `category()` to construct this.")
     }
     
     # are all inputs to this function category class?
-    if (!(all(map_lgl(category, function(x) "category" %in% class(x))))) {
-        stop("Each input to `universe()` must be of the class 'category'. Use `category()` to construct this input.")
+    if (!(all(map_lgl(categories, function(x) "category" %in% class(x))))) {
+        stop("Each input to `...` must be of the class 'category'. Use `category()` to construct this input.")
     } 
     
     # make sure N is good
     if (!missing(N)) {
-        if (any(
-            N <=0,
-            !is.numeric(N),
-            N <= nrow(df) 
-        )) {
-            stop(paste0("Input to `N` must be a single numeric value larger than the size of your sample (",
-                        nrow(df),
-                        ")."))
+        if (N <= nrow(data)) {
+            stop(glue(
+                "
+                Input to `N` must be a single numeric value larger than the size of your sample ({nrow(data)}).
+                "
+            ))
         }
+    } else {
+        # would this work best for doing the expansion factor calculation?
+        N <- 1
     }
-        
-    # smush 'em together into final form
-    out <- bind_rows(category)
+
+    # verify categories specified exist in the data ---------------------------
     
-    # make sure each category in universe has a matching column in df
-    df.names  <- names(df)
+    # Simply check to make sure that the user is not creating categories which
+    # don't exist in the data to be weighted.
     
-    # category here refers to the variable created in category that identifies a target weighting variable
-    wgt.cats <- pull(out, category)
+    df.names <- names(data)
+    wgt.cats <- map_chr(categories, pluck, "category")
     bad.cats <- wgt.cats[!wgt.cats %in% df.names]
     
     if (length(bad.cats) > 0) {
-        stop(
-            paste(
-                "Each name given to a weighting category in `universe` must have a matching column name in `df`. The following weighting categories have no match:",
-                paste(bad.cats, collapse = ", "),
-                sep = "\n"
-            )
+        
+        stop.message <- glue(
+            "
+            Each name given to a weighting category in `universe()` must have a matching column name in `data`. The following weighting categories have no match:
+            ",
+            glue_collapse(bad.cats, sep = ", "),
+            .sep = "\n"
         )
+        
+        stop(stop.message)
+        
     }
     
-    # create function for matching category attributes to data source
-    inherit_chr_fct <- function(to, from) {
+    
+    # check that all buckets exist in the data --------------------------------
+    
+    # This will check to make sure that the buckets provided are also in the
+    # data. One thing to consider here is that there may be missing data in
+    # `data`, so when running the checks, we need to drop missing values before
+    # the comparison takes place. The model will be ajusted for NA's in a
+    # later step.
+    
+    # this may come in handy later...
+    drop_na_vec <- function(x) x[!is.na(x)]
+    
+    num.cats    <- length(wgt.cats)
+    df.unique   <- map(data[wgt.cats], unique)
+    wgt.buckets <- map(categories, pluck, "buckets")
+    
+    for (i in 1:num.cats) {
         
-        # to = character, from = factor
-        if ((is.character(to) | is.factor(to)) & is.factor(from)) {
-            
-            to <- factor(x = to, 
-                         levels = levels(from))
-            
-            if (is.ordered(from)) {
-                
-                to <- factor(to, ordered = TRUE)
-                
-            }
+        # vector class compatibility
+        df.class  <- class(df.unique[[i]])
+        wgt.class <- class(wgt.buckets[[i]])
+        
+        classes.match <- df.class == wgt.class
+        
+        if (!classes.match) {
+            stop(glue(
+                "
+                Mismatch in variable classes for '{wgt.cats[[i]]}' weighting category.
+                ---------------------------------------------------------------------------
+                Class in data: {df.class}
+                Class in `category()`: {wgt.class}
+                ---------------------------------------------------------------------------
+                Please reconcile this difference before proceeding.
+                "
+            ))
         }
         
-        # to = factor, from = character
-        if (is.factor(to) & is.character(from)) {
-            
-            to <- as.character(to)
+        # do not allow NA's in bucket
+        if (any(is.na(wgt.buckets[[i]]))) {
+            stop(glue("
+                      `NA` is not a valid bucket, please review input to `category()` for '{wgt.cats[[i]]}' weighting category.
+                      "
+            ))
         }
         
-        to
         
-    }
-
-    # check that all buckets exist in data
-    missing_buckets <-
-        anti_join(
+        # opted for `all.equal()` over `identical()` because `identical()`
+        # got hung up on mismatches between numeric/integer
+        
+        buckets.match <- isTRUE(all.equal(
             
-            out %>% 
-                unnest(data) %>%
-                select(-targ_prop),
+            # note that sort() drops NA's by default
+            target  = df.unique[[i]] %>% sort(),
+            current = wgt.buckets[[i]] %>% sort()
             
-            # using data.table-friendly approaches for speed in case df is large
-            unique(
-                melt(
-                    data.table(df, keep.rownames = TRUE), 
-                    id.vars = "rn", 
-                    variable.name = "category",
-                    variable.factor = FALSE,
-                    value.name = "buckets", 
-                    measure.vars = c(out$category))[, rn := NULL]),
+        ))
+        
+        
+        if (!buckets.match) {
             
-            # the dplyr way
-            # weight_me %>%
-            #     select(seeds, costume) %>%
-            #     gather(category, buckets) %>%
-            #     group_by(category, buckets) %>%
-            #     filter(row_number() == 1),
-            
-            by = c("category", "buckets")
-            
-    )
-    
-    # check if any rows exist - if so, stop as it means buckets in universe don't
-    # exist in the data - and that's bad... mmmkay
-    if (nrow(missing_buckets) > 0) {
-        stop(
-            paste0(
-                "Not all buckets in `universe` categories are found in `df`. Edit `category()` calls to remove the following:",
-                "\n\n",
-                paste(missing_buckets$buckets, "not found in", missing_buckets$category, collapse = "\n")
+            stop.message <- glue(
+                "
+                There are mismatches between the buckets provided, and the unique values of `data` for the '{wgt.cats[[i]]}' weighting category. 
+                ---------------------------------------------------------------------------
+                Unique in data: {glue_collapse(sort(df.unique[[i]]), sep = ', ')}
+                Unique in `category()`: {glue_collapse(sort(wgt.buckets[[i]]), sep = ', ')}
+                ---------------------------------------------------------------------------
+                Please reconcile this difference before proceeding.
+                *Note: Missing values (NA) in the data are acceptable.
+                "
             )
-        )
-    }
+            
+            stop(stop.message)
+        }
+        
+        }
     
-    # adjust targets for any NA in category and adjust attributes as needed
-    adjusted_model <- pmap(out, function(..., main_data = df) {
+    
+    # adjust the population model ---------------------------------------------
+    
+    # This works by doing the following steps:
+    # 1. Find the actual proportions in the data.
+    # 2. Create a data frame of the target proportions.
+    # 3. Join actual proportions to target full_join(), this ensures that 
+    #    correct ordering is maintained, and identifies proportions of NA's 
+    #    in the data.
+    # 4. Check to see if NA's exist in the data, if so, find proportion.
+    # 5. If NA's exist, adjust the targets by target * (1 - prop NA)
+    
+    # Output from this process will be stored in a new list
+    universe <- list()
+    
+    # This is used to print out the weighting categories which were adjusted
+    # for missing values
+    wgt.cats.adj <- character(0)
+    
+    for (i in 1:num.cats) {
         
-        ## create list object out of all unspecified arguments passed from pmap
-        ## - this is basically the row being evaluated
-        inputList <- list(...)
+        # 1. Find actual proportions in the data
+        wc <- sym(wgt.cats[[i]])
         
-        # get actual proportions to determine existance of NA
-        act_props <- 
-            main_data %>% 
-            group_by_(inputList$category) %>%
-            summarise(n = n()) %>%
+        act.prop <-
+            data %>%
+            count({{ wc }}) %>%
             mutate(act_prop = n / sum(n)) %>%
             select(-n)
         
-        # figure out what row of above has NA if any
-        na_val_a <- which(is.na(act_props[1]))
-        # determine if targets already have NA bin
-        na_val_t <- which(is.na(inputList$data[1]))
+        # 2. Data frame of targets proportions
+        targ.prop <- tibble(
+            {{ wc }} := categories[[i]][["buckets"]],
+            targ_prop = categories[[i]][["targ_prop"]]
+        )
         
-        # if NA exists in actuals but not in targets - do stuff
-        if (length(na_val_a) == 1 & length(na_val_t) == 0) {
+        # 3. Join target to actual
+        all.prop <- full_join(
+            targ.prop,
+            act.prop,
+            by = wgt.cats[[i]]
+        )
+        
+        # 4. Find proportion missing
+        if (any(is.na(all.prop))) {
             
-            # an attempt at notifying when a change happens due to NAs...
-            cat('NAs found in ' %+% paste0(inputList$category) %+% '; adjusting targets...\n')
+            p.na <- 
+                all.prop %>%
+                filter(is.na({{ wc }})) %>%
+                pull(act_prop)
             
-            # determine proportion of NAs
-            na_prop <- act_props[na_val_a, ]$act_prop
+            # collect category name for printing
+            wgt.cats.adj <- c(
+                wgt.cats.adj, 
+                glue("{wgt.cats[[i]]} ({scales::percent(p.na, accuracy = 0.1)})")
+            )
             
-            # adjust current targets by a factor of 1 - na_prop
-            new_targets <- 
-                inputList$data %>%
-                mutate(targ_prop = targ_prop * (1 - na_prop))
             
-            # insert a new row with the NA info
-            new_targets[na_val_a, ] <- c(NA, na_prop)
-            # replace existing target model
-            inputList$data <- new_targets
+            # 5. Adjust target proportions to account for p NA
+            all.prop <-
+                all.prop %>%
+                mutate(targ_prop = case_when(
+                    is.na(targ_prop) ~ p.na,
+                    TRUE ~ targ_prop * (1 - p.na)
+                ))
+            
         }
         
-        # reassign attribute types to match supplied data
-        inputList$data$buckets <- inherit_chr_fct(inputList$data$buckets, act_props[[inputList$category]])
+        # Add finalized data frame to the output list
+        universe[[i]] <-
+            all.prop %>%
+            rename("bucket" = 1) %>%
+            add_column(category = wgt.cats[[i]], .before = 1)
         
-        # recreate tibble similar to how it's put together in category()
-        tibble(
-            category = inputList$category,
-            data = list(
-                tibble(
-                    buckets = inputList$data$buckets,
-                    targ_prop = inputList$data$targ_prop)))
-        
-    }) %>%
-        
-        # bind it all together
-        bind_rows()
-    
-    if (!missing(N)) {
-        
-        # calc target N's, used later to do expansion factor calcs
-        adjusted_model <-
-            adjusted_model %>%
-            mutate(data = map(data, function(x)
-                x %>% mutate(targ_n = targ_prop * N)))
     }
-    # assign class
-    class(adjusted_model) <- c(class(adjusted_model), "universe")
     
-    return(adjusted_model)
+    warning(glue(
+        "
+        Missing data was found in the following categories:
+        ---------------------------------------------------------------------------
+        {glue_collapse(wgt.cats.adj, sep = '\n')}
+        ---------------------------------------------------------------------------
+        Target proportions have been reproportioned to account for missing data.
+        "
+    ))
+    
+    
+    # final return ------------------------------------------------------------
+    
+    names(universe) <- wgt.cats
+    
+    out <- list(
+        data = data,
+        universe = universe,
+        N = N
+    )
+    
+    class(out) <- c(class(universe), "universe")
+    
+    return(out)
     
 }
 
 
-utils::globalVariables(c("category"))    
+utils::globalVariables(c("category", "n"))    

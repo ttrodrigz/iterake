@@ -14,7 +14,7 @@ existing data from where targets are being pulled.}
 \item{from}{Existing data frame from where targets will be pulled.}
 
 \item{weight}{Optionally provide an existing weight variable to calculate 
-weighted target proportions. Omit of unweighted target proportions are desired.}
+weighted target proportions. Omit if unweighted target proportions are desired.}
 }
 \value{
 A nested \code{tibble} with special class \code{category}.
@@ -26,16 +26,16 @@ creates them from existing data instead of being directly assigned. One or more
 of these are built and fed into \code{universe()}.
 }
 \examples{
-data(weight_me)
+data(demo_data)
 
 inherit_category(
-  name = "costume",
-  from = dplyr::filter(weight_me, satisfied == "No")
+  name = "EyeColor",
+  from = demo_data
 )
 
 inherit_category(
-  name = "transport",
-  from = dplyr::filter(weight_me, satisfied == "No"),
+  name = "BirthYear",
+  from = demo_data,
   weight = prev_weight
 )
 

@@ -4,13 +4,11 @@
 \alias{iterake}
 \title{Iterative raking procedure}
 \usage{
-iterake(df, universe, wgt.name = "weight", max.wgt = 3,
+iterake(universe, wgt.name = "weight", max.wgt = 3,
   threshold = 1e-10, max.iter = 50, stuck.limit = 5,
   summary = TRUE)
 }
 \arguments{
-\item{df}{Data frame containing data where weights are desired.}
-
 \item{universe}{Output object created with \code{universe()} function.}
 
 \item{wgt.name}{Name given to column of weights to be added to data, optional.}
@@ -40,28 +38,39 @@ set in \code{universe()}. Summary statistics of the weighting procedure are
 presented by default.
 }
 \examples{
-data(weight_me)
+data(demo_data)
 
 iterake(
-    df = weight_me,
     universe = universe(
-        df = weight_me,
+        data = demo_data,
+        
+        category(
+            name = "Sex",
+            buckets = factor(
+                x = levels(demo_data[["Sex"]]),
+                levels = levels(demo_data[["Sex"]])
+            ),
+            targets = c(0.4, 0.5),
+            sum.1 = TRUE
+        ),
 
         category(
-            name = "seeds",
-            buckets = c("Tornado", "Bird", "Earthquake"),
-            targets = c(0.300, 0.360, 0.340)),
-
+            name = "BirthYear",
+            buckets = c(1986:1990),
+            targets = rep(0.2, times = 5)
+        ),
+    
         category(
-            name = "costume",
-            buckets = c("Bat Man", "Cactus"),
-            targets = c(0.500, 0.500)),
-
+            name = "EyeColor",
+            buckets = c("brown", "green", "blue"),
+            targets = c(0.8, 0.1, 0.1)
+        ),
+    
         category(
-            name = "transport",
-            buckets = c("Rocket Cart", "Jet Propelled Skis", "Jet Propelled Unicycle"),
-            targets = c(0.400, 0.450, 0.150))
-
+            name = "HomeOwner",
+            buckets = c(TRUE, FALSE),
+            targets = c(3/4, 1/4)
+        )
     )
 )
 

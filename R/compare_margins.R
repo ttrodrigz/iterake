@@ -8,44 +8,58 @@
 #' @param weight Name of weight variable, optional.
 #' @param plot Display plot, default = FALSE.
 #' 
-#' @importFrom dplyr select group_by summarise mutate mutate_at vars funs ungroup n bind_rows left_join rename one_of
-#' @importFrom purrr map map2 set_names
+#' @importFrom dplyr select group_by mutate mutate_at vars funs bind_rows rename one_of
+#' @importFrom data.table data.table setnames
 #' @importFrom rlang !! :=
-#' @importFrom tibble as_tibble
-#' @importFrom tidyr nest unnest
 #' @importFrom ggplot2 ggplot aes geom_errorbar geom_point scale_y_continuous facet_wrap labs element_rect ggtitle coord_flip theme_bw theme scale_color_manual
 #' 
-#' @return A tibble of unweighted counts and proportions, difference between 
+#' @return A data frame of unweighted counts and proportions, difference between 
 #' unweighted and target proportions. If \code{`weight`} is given, it also includes
 #' weighted counts and proportions, difference between weighted and target proportions.
 #' Optionally, a plot of this information.
 #' 
 #' @examples 
-#' data(weight_me)
+#' data(demo_data)
 #' 
 #' mod <- universe(
+#'         data = demo_data,
+#'         
+#'         category(
+#'             name = "Sex",
+#'             buckets = factor(
+#'                 x = levels(demo_data[["Sex"]]),
+#'                 levels = levels(demo_data[["Sex"]])
+#'             ),
+#'             targets = c(0.4, 0.5),
+#'             sum.1 = TRUE
+#'         ),
 #' 
-#'     df = weight_me,
-#' 
-#'     category(
-#'         name = "costume",
-#'         buckets = c("Bat Man", "Cactus"),
-#'         targets = c(0.5, 0.5)),
-#' 
-#'     category(
-#'         name = "seeds",
-#'         buckets = c("Tornado", "Bird", "Earthquake"),
-#'         targets = c(0.3, 0.3, 0.4))
-#' )
+#'         category(
+#'             name = "BirthYear",
+#'             buckets = c(1986:1990),
+#'             targets = rep(0.2, times = 5)
+#'         ),
+#'     
+#'         category(
+#'             name = "EyeColor",
+#'             buckets = c("brown", "green", "blue"),
+#'             targets = c(0.8, 0.1, 0.1)
+#'         ),
+#'     
+#'         category(
+#'             name = "HomeOwner",
+#'             buckets = c(TRUE, FALSE),
+#'             targets = c(3/4, 1/4)
+#'         )
+#'     )
 #' 
 #' compare_margins(
-#'     df = weight_me,
+#'     df = demo_data,
 #'     universe = mod,
 #'     plot = TRUE
 #' )
 #' 
 #' wgts <- iterake(
-#'     df = weight_me,
 #'     universe = mod
 #' )
 #' 
@@ -53,7 +67,8 @@
 #'     df = wgts,
 #'     universe = mod,
 #'     weight = weight,
-#'     plot = FALSE)
+#'     plot = FALSE
+#' )
 #'
 #' @export
 compare_margins <- function(df, weight, universe, plot = FALSE) {
@@ -67,29 +82,28 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
         stop("'universe' must be of class 'universe', rerun universe()")
     }
     
-    # check to see if an `N` was supplied to universe
-    if ("targ_n" %in% names(universe$data[[1]])) {
-        uni_n <- TRUE
-    } else {
-        uni_n <- FALSE
-    }
-    
     df.names <- names(df)
     
-    # category here refers to the variable created in category() that identifies a target weighting variable
-    mod.names <- universe$category
+    mod.names <- names(universe[["universe"]])
+    
+    # this can all likely be eliminated once compare_margins only
+    # looks to universe for data, as this check will already have happened
     bad.names <- mod.names[!mod.names %in% df.names]
     
     if (length(bad.names) > 0) {
-        stop(
-            paste(
-                "Each weighting category in `universe` must have a matching column name in `df`. The following weighting cagegories have no match:",
-                paste(bad.names, collapse = ", "),
-                sep = "\n"
-            )
+        
+        stop.message <- glue(
+            "
+            Each name given to a weighting category in `universe()` must have a matching column name in `df`. The following weighting categories have no match:
+            ",
+            glue_collapse(bad.names, sep = ", "),
+            .sep = "\n"
         )
+        
+        stop(stop.message)
+        
     }
-    
+
     # deal with weights possibly being/not being provided
     if (missing(weight)) {
         wgt <- 1
@@ -97,70 +111,53 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
             df %>%
             mutate(weight_var = 1) %>%
             select(weight_var,
-                   one_of(universe$category))
+                   one_of(mod.names))
     } else {
         if (!deparse(substitute(weight)) %in% names(df)) {
-            stop(paste0("Weight variable '", deparse(substitute(weight)), "' not found in data."))
+            stop(glue("Weight variable '{deparse(substitute(weight))}' not found in data."))
         }
         
         wgt <- enquo(weight)
         tmp <-
             df %>%
             select(!! wgt,
-                   one_of(universe$category)) %>%
+                   one_of(mod.names)) %>%
             rename(weight_var := !! wgt)
         
     }
     
-    # prepare data by nesting
-    nested <- 
-        tmp %>%
-        mutate_at(vars(-weight_var), funs(as.character)) %>%
-        gather(category, buckets, -weight_var) %>%
-        group_by(category) %>%
-        nest()
-    
-    prop.calcs <- function(x) {
+    calcd <- NA
+
+    for (i in seq_along(mod.names)) {
+
+        DT_data <- 
+            data.table(
+                tmp %>% 
+                    mutate_at(vars(one_of(mod.names[i])), funs(as.character)) %>% 
+                    select(weight_var, one_of(mod.names[i])), 
+                key = mod.names[i])
         
-        x %>%
-            # DID THIS SO ANY VARIABLE TYPE WILL UNNEST (AKA JOIN) TOGETHER
-            mutate(buckets = as.character(buckets)) %>%
-            group_by(buckets) %>%
-            summarise(uwgt_n = n(),
-                      wgt_n = sum(weight_var)) %>%
-            ungroup() %>%
-            mutate(uwgt_prop = uwgt_n / sum(uwgt_n),
-                   wgt_prop  = wgt_n  / sum(wgt_n))
+        # exclude the first column, not needed
+        DT_design <- data.table(universe[["universe"]][[i]])[, c(-1, -4)] %>% mutate(bucket = as.character(bucket))
         
+        DT_out <- 
+            DT_data[, .(uwgt_n = .N, wgt_n = sum(weight_var)), by = c(mod.names[i])] %>%
+                .[, uwgt_prop := uwgt_n / sum(uwgt_n)] %>%
+                .[, wgt_prop := wgt_n / sum(wgt_n)] %>%
+                .[DT_design] %>%
+                .[, uwgt_diff := uwgt_prop - targ_prop] %>%
+                .[, wgt_diff := wgt_prop - targ_prop] %>%
+                .[, category := mod.names[i]]
+        
+        setnames(DT_out, mod.names[i], "bucket")
+
+        if (all(is.na(calcd))) {
+            calcd <- DT_out
+        } else {
+            calcd <- bind_rows(calcd, DT_out)
+        }
+
     }
-    
-    # calculate all data
-    calcd <-
-        
-        nested %>%
-        
-        # calculate props and unnest
-        mutate(props = map(data, prop.calcs)) %>%
-        unnest(props) %>%
-        
-        # join in targets from universe
-        left_join(
-            y = unnest(universe %>% 
-                           mutate(data = map(data, function(x) {
-                               x$buckets <- as.character(x$buckets)
-                               x}))
-            ), 
-            by = c("category", "buckets")
-        ) %>%
-        
-        # calculate differences
-        mutate(uwgt_diff = uwgt_prop - targ_prop,
-               wgt_diff  = wgt_prop - targ_prop) %>%
-        
-        # better names
-        rename(
-            bucket   = buckets
-        )
     
     # modify output based on whether or not weights are provided
     if (missing(weight)) {
@@ -170,15 +167,7 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
             select(-wgt_n, -wgt_prop, -wgt_diff)
         
     }
-    
-    # drop `targ_n` if it exists
-    if (uni_n) {
-        
-        calcd <-
-            calcd %>%
-            select(-targ_n)
-    }
-    
+
     if (isTRUE(plot)) {
         
         # prepare chart_data based on weight being given
@@ -188,7 +177,7 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
             chart_data <-
                 calcd %>%
                 group_by(category) %>%
-                gather(wgt_type, wgt_val, -c(category:wgt_n, targ_prop, uwgt_diff, wgt_diff)) %>%
+                gather(wgt_type, wgt_val, -c(bucket:wgt_n, targ_prop, uwgt_diff, wgt_diff, category)) %>%
                 mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
                        wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
         }
@@ -297,4 +286,4 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
     return(calcd)
 }
 
-utils::globalVariables(c("buckets", "data", "uwgt_n", "uwgt_prop", "targ_prop", "weight_var", "props", "wgt_prop", "wgt_diff", "wgt_type", "wgt_val", "uwgt_diff", "category", "bucket", "targ_n"))    
+utils::globalVariables(c("buckets", "data", "uwgt_n", "uwgt_prop", "targ_prop", "weight_var", "props", "wgt_prop", "wgt_diff", "wgt_type", "wgt_val", "uwgt_diff", "category", "bucket", ".N"))    

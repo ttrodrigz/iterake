@@ -17,7 +17,7 @@ Must have exact match in the column names of data to be weighted.}
 \item{sum.1}{Whether or not to force inputs to \code{`targets`} to sum to one.}
 }
 \value{
-A nested \code{tibble} with special class \code{category}.
+A \code{list} with special class \code{category}.
 }
 \description{
 This function creates an individual weighting category with known marginal 

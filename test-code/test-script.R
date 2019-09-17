@@ -13,7 +13,7 @@ dd2 <- mutate(dealer_data, Age2 = inject_value(Age, p = 0.1))
 dd2 <- mutate(dd2, Type2 = factor(Type, c("Car", "SUV", "Truck")))
 
 
-univ <- universe2(
+univ <- universe(
     
     data = demo_data,
     # category2(
@@ -23,7 +23,7 @@ univ <- universe2(
     #     sum.1 = TRUE
     # ),
     
-    category2(
+    category(
         name = "Sex",
         buckets = factor(
             x = levels(demo_data[["Sex"]]), 
@@ -33,25 +33,40 @@ univ <- universe2(
         sum.1 = TRUE
     ),
     
-    category2(
+    category(
         name = "BirthYear",
         buckets = c(1986:1990),
         targets = rep(0.2, times = 5)
     ),
     
-    category2(
+    category(
         name = "EyeColor",
         buckets = c("brown", "green", "blue"),
         targets = c(0.8, 0.1, 0.1)
     ),
     
-    category2(
+    category(
         name = "HomeOwner",
         buckets = c(T, F),
         targets = c(3/4, 1/4)
     )
 )
 
+compare_margins(
+    df = demo_data,
+    universe = univ,
+    plot = TRUE
+)
+
+wgts <- demo_data
+wgts$weight <- 1
+
+stuff <- compare_margins(
+    df = wgts,
+    weight = weight,
+    universe = univ,
+    plot = TRUE
+)
 
 a <- iterak2(univ, wgt.name = "turd", max.wgt = 10, max.iter = 10, threshold = 1e-10)
 a
