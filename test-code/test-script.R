@@ -15,7 +15,7 @@ dd2 <- mutate(dd2, Type2 = factor(Type, c("Car", "SUV", "Truck")))
 
 univ <- universe2(
     
-    data = demo_data, N = 400,
+    data = demo_data,
     # category2(
     #     name = "Sex",
     #     buckets = c("Male", "Female"),
@@ -48,8 +48,13 @@ univ <- universe2(
     category2(
         name = "HomeOwner",
         buckets = c(T, F),
-        targets = c(1/3, 2/3)
+        targets = c(3/4, 1/4)
     )
 )
 
-iterak2(univ)
+
+a <- iterak2(univ, wgt.name = "turd", max.wgt = 10, max.iter = 10, threshold = 1e-10)
+a
+
+plot(a$turd)
+

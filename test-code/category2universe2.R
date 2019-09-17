@@ -48,12 +48,6 @@ universe2 <- function(data, ..., N) {
         stop("Each input to `...` must be of the class 'category'. Use `category()` to construct this input.")
     } 
 
-    
-    # would this work best for doing the expansion factor calculation?
-    if (missing(N)) {
-        N <- 1
-    }
-    
     # make sure N is good
     if (!missing(N)) {
         if (N <= nrow(data)) {
@@ -63,6 +57,11 @@ Input to `N` must be a single numeric value larger than the size of your sample 
                 "
             ))
         }
+    }
+    
+    # would this work best for doing the expansion factor calculation?
+    if (missing(N)) {
+        N <- 1
     }
     
     # verify categories specified exist in the data ---------------------------

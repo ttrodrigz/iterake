@@ -2,33 +2,27 @@ iterak2 <- function(universe, wgt.name = "weight",
                     max.wgt = 3, threshold = 1e-10, max.iter = 50, 
                     stuck.limit = 5, summary = TRUE) {
     
-    # step 1) setup + error checking ----
+    # preliminary setup + checks ----------------------------------------------
+    
     if (!("universe" %in% class(universe))) {
         stop("Input to `universe` must be output created by `universe()`.")
     }
     
-    # set up useful objects off the bat
-    
     # do stuff to to_weight - make data.table and use rn as index
-    to_weight <- data.table(universe$data, keep.rownames = TRUE)[, rn := as.numeric(rn)]
+    to_weight <- data.table(
+        universe[["data"]], 
+        keep.rownames = TRUE
+    )[, rn := as.numeric(rn)]
+    
     N <- nrow(to_weight)
-    wgt_cats <- names(universe$universe)
+    wgt_cats <- names(universe[["universe"]])
 
     # expansion factor calc    
     x.factor <- ifelse(
-        universe$N == 1, 
+        universe[["N"]] == 1, 
         1, 
-        universe$N / nrow(universe$data)
+        universe[["N"]] / nrow(to_weight)
     )
-    
-    # make sure all wgt_cats are found in data
-    wgt_cats_not_in_data <- wgt_cats[!wgt_cats %in% names(universe$data)]
-    
-    if (length(wgt_cats_not_in_data) > 0) {
-        stop(paste("The following weight category names are not found in your data:",
-                   paste(wgt_cats_not_in_data, collapse = ", ")),
-             sep = "\n")
-    }
     
     # wgt.name
     if (any(
@@ -100,10 +94,9 @@ iterak2 <- function(universe, wgt.name = "weight",
         # should there be some sort of duplicate "wgt" name detection here?
         .[, wgt := 1]
     
-    # data is now ready for weighting !!
-    
-    # step 2) do the raking ----
-    
+
+    # raking ------------------------------------------------------------------
+
     # initialize some things
     check <- 1
     count <- 0
@@ -134,7 +127,7 @@ iterak2 <- function(universe, wgt.name = "weight",
             DT_data   <- data.table(to_weight, key = wgt_cats[i])
             
             # exclude the first column, not needed
-            DT_design <- data.table(universe$universe[[i]])[, -1]
+            DT_design <- data.table(universe[["universe"]][[i]])[, -1]
             
             # start with original data.table-ized object
             DT_merge <- 
@@ -169,7 +162,7 @@ iterak2 <- function(universe, wgt.name = "weight",
             DT_data   <- data.table(to_weight, key = wgt_cats[i])
             
             # exclude the first and fourth column, not needed
-            DT_design <- data.table(universe$universe[[i]])[, c(-1, -4)]
+            DT_design <- data.table(universe[["universe"]][[i]])[, c(-1, -4)]
             
             sum_diffs <- 
                 # calcs the "haves" by the i'th weighting category
@@ -204,7 +197,9 @@ iterak2 <- function(universe, wgt.name = "weight",
         count <- count + 1
     }
     
-    # step 3) what to return ----
+
+    # return ------------------------------------------------------------------
+    
     if (is.null(to_weight)) {
         
         out_bad <- red $ bold
