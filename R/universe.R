@@ -79,9 +79,9 @@ universe <- function(data, ..., N) {
     if (!missing(N)) {
         if (N <= nrow(data)) {
             stop(glue(
-                "
-                Input to `N` must be a single numeric value larger than the size of your sample ({nrow(data)}).
-                "
+"
+Input to `N` must be a single numeric value larger than the size of your sample ({nrow(data)}).
+"
             ))
         }
     } else {
@@ -101,9 +101,9 @@ universe <- function(data, ..., N) {
     if (length(bad.cats) > 0) {
         
         stop.message <- glue(
-            "
-            Each name given to a weighting category in `universe()` must have a matching column name in `data`. The following weighting categories have no match:
-            ",
+"
+Each name given to a weighting category in `universe()` must have a matching column name in `data`. The following weighting categories have no match:
+",
             glue_collapse(bad.cats, sep = ", "),
             .sep = "\n"
         )
@@ -138,22 +138,23 @@ universe <- function(data, ..., N) {
         
         if (!classes.match) {
             stop(glue(
-                "
-                Mismatch in variable classes for '{wgt.cats[[i]]}' weighting category.
-                ---------------------------------------------------------------------------
-                Class in data: {df.class}
-                Class in `category()`: {wgt.class}
-                ---------------------------------------------------------------------------
-                Please reconcile this difference before proceeding.
-                "
+"
+Mismatch in variable classes for '{wgt.cats[[i]]}' weighting category.
+---------------------------------------------------------------------------
+Class in data: {df.class}
+Class in `category()`: {wgt.class}
+---------------------------------------------------------------------------
+Please reconcile this difference before proceeding.
+"
             ))
         }
         
         # do not allow NA's in bucket
         if (any(is.na(wgt.buckets[[i]]))) {
-            stop(glue("
-                      `NA` is not a valid bucket, please review input to `category()` for '{wgt.cats[[i]]}' weighting category.
-                      "
+            stop(glue(
+"
+`NA` is not a valid bucket, please review input to `category()` for '{wgt.cats[[i]]}' weighting category.
+"
             ))
         }
         
@@ -173,15 +174,15 @@ universe <- function(data, ..., N) {
         if (!buckets.match) {
             
             stop.message <- glue(
-                "
-                There are mismatches between the buckets provided, and the unique values of `data` for the '{wgt.cats[[i]]}' weighting category. 
-                ---------------------------------------------------------------------------
-                Unique in data: {glue_collapse(sort(df.unique[[i]]), sep = ', ')}
-                Unique in `category()`: {glue_collapse(sort(wgt.buckets[[i]]), sep = ', ')}
-                ---------------------------------------------------------------------------
-                Please reconcile this difference before proceeding.
-                *Note: Missing values (NA) in the data are acceptable.
-                "
+"
+There are mismatches between the buckets provided, and the unique values of `data` for the '{wgt.cats[[i]]}' weighting category. 
+---------------------------------------------------------------------------
+Unique in data: {glue_collapse(sort(df.unique[[i]]), sep = ', ')}
+Unique in `category()`: {glue_collapse(sort(wgt.buckets[[i]]), sep = ', ')}
+---------------------------------------------------------------------------
+Please reconcile this difference before proceeding.
+*Note: Missing values (NA) in the data are acceptable.
+"
             )
             
             stop(stop.message)
@@ -265,15 +266,17 @@ universe <- function(data, ..., N) {
         
     }
     
-    warning(glue(
-        "
-        Missing data was found in the following categories:
-        ---------------------------------------------------------------------------
-        {glue_collapse(wgt.cats.adj, sep = '\n')}
-        ---------------------------------------------------------------------------
-        Target proportions have been reproportioned to account for missing data.
-        "
-    ))
+    if (length(wgt.cats.adj) > 0) {
+        warning(glue(
+"
+Missing data was found in the following categories:
+---------------------------------------------------------------------------
+{glue_collapse(wgt.cats.adj, sep = '\n')}
+---------------------------------------------------------------------------
+Target proportions have been reproportioned to account for missing data.
+"
+        ))
+    }
     
     
     # final return ------------------------------------------------------------
