@@ -102,7 +102,7 @@ uni <- universe(
 This is the time to inspect the differences in proportions between the sample and the population. A large discrepancy will require extreme weights, and in some cases the algorithm may not even converge. Before you decide to weight, keep in mind that weighting the data decreases accuracy. In some cases it is best to deal with the fact your sample doesn't perfectly match the population.
 
 ```{r}
-compare_margins(df = df, universe = uni)
+compare_margins(universe = uni)
 ```
 
 #### **Step 3:** Weight the data
@@ -117,13 +117,11 @@ df_wgt
 
 #### **Step 4:** Compare marginal proportions after weighting 
 ````{r, message=FALSE, fig.width = 10, fig.height = 4}
-library(dplyr)
-# re-inspect proportions with plot
 compare_margins(
-    df = df_wgt, 
-    weight = weight, 
-    universe = uni,
-    plot = TRUE
+  universe = uni, 
+  data = df_wgt, 
+  weight = weight, 
+  plot = TRUE
 )
 ```
 
