@@ -34,104 +34,104 @@ The weighting process with `iterake` is fairly straightforward, we suggest:
 ## Installation
 ``` {r, eval = FALSE}
 # Install the development version from GitHub
-install.packages("devtools")
-devtools::install_github("ttrodrigz/iterake")
+install.packages("remotes")
+remotes::install_github("ttrodrigz/iterake")
 ```
 
 ## Motivating Example
-Suppose a car dealership is interested in surveying the opinions of people who purchased a new vehicle from their lot. This dealership has been around since 2015 and has kept accurate records of its sales since its inception. The dealership randomly samples 400 individuals from its sales database to complete a customer satisfaction survey.  
+Say you have conducted a study by randomly sampling 400 individuals from a population. You were dilligent in monitoring the responses to make sure the makeup of the sample adequately reflected the population. But, due to chance, slightly too many males and individuals under 50 years of age entered the sample.
 
-The dealership wants to make sure their sample is representative of the population, so they calculate the marginal proportions of a few key categories:
+You know from experts in your field that 60% of the population from which you sampled are female, and 20% of the population are less than 50 years old. Let's build a data set to use as an example:
 
-```{r, echo=FALSE, results='asis'}
-age <- data.frame(
-    Age    = c("18-34", "35-54", "55+"),
-    Pop.   = c("12%", "58%", "30%"),
-    Sample = c("16%", "55.5%", "28.5%")
-)
-year <- data.frame(
-    Year   = c(2015, 2016, 2017, 2018),
-    Pop.   = c("22%", "25%", "32%", "21%"),
-    Sample = c("19%", "21%", "36%", "24%")
-)
-vehicle <- data.frame(
-    Type   = c("Car", "SUV", "Truck"),
-    Pop.   = c("38%", "47%", "15%"),
-    Sample = c("36%", "52%", "12%")
+
+```{r}
+library(tibble)
+
+N <- 400
+
+set.seed(101)
+
+df <- tibble(
+  id = 1:N,
+  Sex = sample(
+    x = c("Male", "Female"),
+    size = N,
+    replace = TRUE,
+    prob = c(0.42, 0.58)
+  ),
+  Under50 = sample(
+    x = c(T, F),
+    size = N,
+    replace = TRUE,
+    prob = c(0.22, 0.78)
+  )
+  
 )
 
-knitr::kable(list(age, year, vehicle), format = "html", align = "c")
+df
+
 ```
 
-There are slight deviations between what was collected in the sample and the known population. These deviations are small enough where weighting can be performed to correct for these differences between the marginal proportions.
+#### **Step 1:** Build the universe
+Simply supply the data you intend on weighting, and build weighting categories by using the `category()` function.
 
-#### **Step 1**: Build the universe with known marginal proportions based on categories of interest.
-```{r, include=TRUE, cache=TRUE, eval=TRUE}
-# data comes pre-packaged with iterake
+```{r}
 library(iterake)
-data("dealer_data")
 
-# build the 'universe'
-dealer_uni <- universe(
-    
-    df = dealer_data,
-    
-    category(
-        name = "Age",
-        buckets = c("18-34", "35-54", "55+"),
-        targets = c(.12, .58, .30)
-    ),
-    
-    category(
-        name = "Year",
-        buckets = c(2015, 2016, 2017, 2018),
-        targets = c(.22, .25, .32, .21)
-    ),
-    
-    category(
-        name = "Type",
-        buckets = c("Car", "SUV", "Truck"),
-        targets = c(.38, .47, .15)
-    )
-    
+uni <- universe(
+  
+  data = df,
+  
+  category(
+    name = "Sex",
+    buckets = c("Male", "Female"),
+    targets = c(0.4, 0.6)
+  ),
+  
+  category(
+    name = "Under50",
+    buckets = c(TRUE, FALSE),
+    targets = c(0.2, 0.8)
+  )
+  
 )
-```  
 
-#### **Step 2**: Compare *unweighted* sample proportions to the universe.  
-```{r}
-compare_margins(dealer_data, universe = dealer_uni)
 ```
 
-#### **Step 3**: Weight the data.
-```{r}
-dealer_weighted <- iterake(dealer_data, dealer_uni)
+#### **Step 2:** Compare marginal proportions prior to weighting
+This is the time to inspect the differences in proportions between the sample and the population. A large discrepancy will require extreme weights, and in some cases the algorithm may not even converge. Before you decide to weight, keep in mind that weighting the data decreases accuracy. In some cases it is best to deal with the fact your sample doesn't perfectly match the population.
 
-dealer_weighted
+```{r}
+compare_margins(df = df, universe = uni)
 ```
 
-#### **Step 4**: Compare *weighted* sample proportions to the universe.  
+#### **Step 3:** Weight the data
+If weighting is necessary, pass the universe object to `iterake()`.
+
+```{r}
+df_wgt <- iterake(universe = uni)
+
+df_wgt
+
+```
+
+#### **Step 4:** Compare marginal proportions after weighting 
 ````{r, message=FALSE, fig.width = 10, fig.height = 4}
 library(dplyr)
-
 # re-inspect proportions with plot
 compare_margins(
-    df = dealer_weighted, 
+    df = df_wgt, 
     weight = weight, 
-    universe = dealer_uni,
+    universe = uni,
     plot = TRUE
-) %>%
-    select(-contains("uwgt"))
+)
 ```
 
-#### **Step 5**: Inspect performance of weighting model.
+#### **Step 5:** Inspect weights
+Again, weights much higher or lower than 1 are undesirable, check the output with
+`weight_stats()` to inspect the quality of the weights. Details about what each of the statistics mean can be found in the documentation.
+
 ```{r}
-# want to make sure weighting model is efficient 
-# and there aren't any extreme weights
+weight_stats(df_wgt[["weight"]])
+```
 
-weight_stats(dealer_weighted$weight)
-````
-
-## Final Notes
-* A big **THANK YOU** goes out to our friend James Bouchey for designing the `iterake` hex logo. Please check out his [portfolio](https://jamesbouchey.myportfolio.com/) as his talents extend far past making super clever package logos.  
-* We are currently preparing to submit iterake to CRAN, so any feedback is well-received.  
-* Stay tuned for a [pkgdown](https://github.com/r-lib/pkgdown) site for this package with more details on how, why, and when to use iterake.
