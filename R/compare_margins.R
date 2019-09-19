@@ -3,18 +3,20 @@
 #' Inspect by what degree the unweighted or weighted sample proportions deviate from the
 #' target proportions.
 #' 
-#' @param df Data frame of the data you intend on weighting.
 #' @param universe Full weighting design created by \code{universe()}.
-#' @param weight Name of weight variable, optional.
+#' @param data Data frame that includes weight from \code{iterake()}, optional.
+#' @param weight Name of weight variable in optional \code{`data`} object, optional.
 #' @param plot Display plot, default = FALSE.
 #' 
-#' @importFrom dplyr select group_by mutate mutate_at vars funs bind_rows rename one_of
+#' @importFrom dplyr select group_by mutate mutate_at vars funs bind_rows rename one_of everything
 #' @importFrom data.table data.table setnames
 #' @importFrom rlang !! :=
 #' @importFrom ggplot2 ggplot aes geom_errorbar geom_point scale_y_continuous facet_wrap labs element_rect ggtitle coord_flip theme_bw theme scale_color_manual
+#' @importFrom tidyr pivot_longer
+#' @importFrom tibble as_tibble
 #' 
-#' @return A data frame of unweighted counts and proportions, difference between 
-#' unweighted and target proportions. If \code{`weight`} is given, it also includes
+#' @return A tibble of unweighted counts and proportions, difference between 
+#' unweighted and target proportions. If \code{`data`} and \code{`weight`} is given, it also includes
 #' weighted counts and proportions, difference between weighted and target proportions.
 #' Optionally, a plot of this information.
 #' 
@@ -54,7 +56,6 @@
 #'     )
 #' 
 #' compare_margins(
-#'     df = demo_data,
 #'     universe = mod,
 #'     plot = TRUE
 #' )
@@ -64,24 +65,31 @@
 #' )
 #' 
 #' compare_margins(
-#'     df = wgts,
 #'     universe = mod,
+#'     data = wgts,
 #'     weight = weight,
 #'     plot = FALSE
 #' )
 #'
 #' @export
-compare_margins <- function(df, weight, universe, plot = FALSE) {
-    
-    # make sure you've got a df
-    if (!is.data.frame(df)) {
-        stop("`df` must be a dataframe.")
-    }
+compare_margins <- function(universe, data, weight, plot = FALSE) {
     
     if (!"universe" %in% class(universe)) {
         stop("'universe' must be of class 'universe', rerun universe()")
     }
     
+    # grab relevant data frame
+    if (!missing(weight) & !missing(data)) {
+        if (!is.data.frame(data)) {
+            stop("`data` must be a dataframe.")
+        }
+        
+        df <- data
+    } else {
+        
+        df <- universe[["data"]]
+    }
+
     df.names <- names(df)
     
     mod.names <- names(universe[["universe"]])
@@ -169,7 +177,7 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
     }
 
     if (isTRUE(plot)) {
-        
+
         # prepare chart_data based on weight being given
         if (missing(weight)) {
             chart_data <- calcd
@@ -177,7 +185,11 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
             chart_data <-
                 calcd %>%
                 group_by(category) %>%
-                gather(wgt_type, wgt_val, -c(bucket:wgt_n, targ_prop, uwgt_diff, wgt_diff, category)) %>%
+                pivot_longer(
+                    -c(bucket:wgt_n, targ_prop, uwgt_diff, wgt_diff, category), 
+                    names_to = "wgt_type", 
+                    values_to = "wgt_val"
+                ) %>%
                 mutate(wgt_type = gsub("uwgt_prop", "Unweighted", wgt_type),
                        wgt_type = gsub("wgt_prop", "Weighted", wgt_type))
         }
@@ -282,6 +294,11 @@ compare_margins <- function(df, weight, universe, plot = FALSE) {
         
         print(chart)
     }
+    
+    calcd <- 
+        calcd %>%
+        select(category, everything()) %>%
+        as_tibble()
     
     return(calcd)
 }

@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^resources$
 ^old$
+^old-d$
 ^logo$
 ^data-for-testing$
 ^README\.Rmd$

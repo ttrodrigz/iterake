@@ -4,20 +4,20 @@
 \alias{compare_margins}
 \title{Compare unweighted or weighted data to targets}
 \usage{
-compare_margins(df, weight, universe, plot = FALSE)
+compare_margins(universe, data, weight, plot = FALSE)
 }
 \arguments{
-\item{df}{Data frame of the data you intend on weighting.}
-
-\item{weight}{Name of weight variable, optional.}
-
 \item{universe}{Full weighting design created by \code{universe()}.}
+
+\item{data}{Data frame that includes weight from \code{iterake()}, optional.}
+
+\item{weight}{Name of weight variable in optional \code{`data`} object, optional.}
 
 \item{plot}{Display plot, default = FALSE.}
 }
 \value{
-A data frame of unweighted counts and proportions, difference between 
-unweighted and target proportions. If \code{`weight`} is given, it also includes
+A tibble of unweighted counts and proportions, difference between 
+unweighted and target proportions. If \code{`data`} and \code{`weight`} is given, it also includes
 weighted counts and proportions, difference between weighted and target proportions.
 Optionally, a plot of this information.
 }
@@ -61,7 +61,6 @@ mod <- universe(
     )
 
 compare_margins(
-    df = demo_data,
     universe = mod,
     plot = TRUE
 )
@@ -71,8 +70,8 @@ wgts <- iterake(
 )
 
 compare_margins(
-    df = wgts,
     universe = mod,
+    data = wgts,
     weight = weight,
     plot = FALSE
 )

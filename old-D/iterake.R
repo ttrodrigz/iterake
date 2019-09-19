@@ -7,6 +7,7 @@
 #' set in \code{universe()}. Summary statistics of the weighting procedure are 
 #' presented by default.
 #' 
+#' @param df Data frame containing data where weights are desired.
 #' @param universe Output object created with \code{universe()} function.
 #' @param wgt.name Name given to column of weights to be added to data, optional.
 #' @param max.wgt Maximum value weights can take on, optional. The capping 
@@ -18,80 +19,82 @@
 #' sample and universe can oscillate between increasing and decreasing, optional.
 #' @param summary Whether or not to display summary output of the procedure, optional.
 #' 
-#' @importFrom dplyr %>%
+#' @importFrom dplyr pull enquo mutate select %>%
+#' @importFrom rlang !!
 #' @importFrom data.table data.table setkey
-#' @importFrom crayon red green bold %+%
-#' @importFrom glue glue
+#' @importFrom crayon red yellow green bold %+%
 #' @importFrom tibble as_tibble
 #' @importFrom scales percent
 #' 
 #' @return Data frame with the resulting weight variable appended to it.
 #' 
-#' @examples
-#' data(demo_data)
+#' @examples 
+#' data(weight_me)
 #' 
 #' iterake(
+#'     df = weight_me,
 #'     universe = universe(
-#'         data = demo_data,
-#'         
-#'         category(
-#'             name = "Sex",
-#'             buckets = factor(
-#'                 x = levels(demo_data[["Sex"]]),
-#'                 levels = levels(demo_data[["Sex"]])
-#'             ),
-#'             targets = c(0.4, 0.5),
-#'             sum.1 = TRUE
-#'         ),
+#'         df = weight_me,
 #' 
 #'         category(
-#'             name = "BirthYear",
-#'             buckets = c(1986:1990),
-#'             targets = rep(0.2, times = 5)
-#'         ),
-#'     
+#'             name = "seeds",
+#'             buckets = c("Tornado", "Bird", "Earthquake"),
+#'             targets = c(0.300, 0.360, 0.340)),
+#' 
 #'         category(
-#'             name = "EyeColor",
-#'             buckets = c("brown", "green", "blue"),
-#'             targets = c(0.8, 0.1, 0.1)
-#'         ),
-#'     
+#'             name = "costume",
+#'             buckets = c("Bat Man", "Cactus"),
+#'             targets = c(0.500, 0.500)),
+#' 
 #'         category(
-#'             name = "HomeOwner",
-#'             buckets = c(TRUE, FALSE),
-#'             targets = c(3/4, 1/4)
-#'         )
+#'             name = "transport",
+#'             buckets = c("Rocket Cart", "Jet Propelled Skis", "Jet Propelled Unicycle"),
+#'             targets = c(0.400, 0.450, 0.150))
+#' 
 #'     )
 #' )
 #' 
 #' @export
-iterake <- function(universe, wgt.name = "weight", 
+iterake <- function(df, universe, wgt.name = "weight", 
                     max.wgt = 3, threshold = 1e-10, max.iter = 50, 
                     stuck.limit = 5, summary = TRUE) {
     
-    # preliminary setup + checks ----------------------------------------------
-    
+    # step 1) setup + error checking ----
     if (!("universe" %in% class(universe))) {
         stop("Input to `universe` must be output created by `universe()`.")
     }
     
+    # set up useful objects off the bat
+    
     # do stuff to to_weight - make data.table and use rn as index
-    to_weight <- 
-        data.table(
-            universe[["data"]], 
-            keep.rownames = TRUE
-        ) %>%
-        .[, rn := as.numeric(rn)]
-    
+    to_weight <- data.table(df, keep.rownames = TRUE)[, rn := as.numeric(rn)]
     N <- nrow(to_weight)
-    wgt_cats <- names(universe[["universe"]])
+    wgt_cats <- universe[["category"]]
     
-    # expansion factor calc    
-    x.factor <- ifelse(
-        universe[["N"]] == 1, 
-        1, 
-        universe[["N"]] / nrow(to_weight)
-    )
+    # expansion factor calc
+    if ("targ_n" %in% names(universe$data[[1]])) {
+        
+        big_N <- universe[["data"]][[1]] %>% pull(targ_n) %>% sum()
+        
+        x.factor <- big_N / nrow(df)
+        
+    } else {
+        x.factor <- 1
+    }
+    
+    # make sure data frame is supplied
+    if (!is.data.frame(df)) {
+        stop("Input to `df` must be a data frame.")
+    }
+    
+    # make sure all wgt_cats are found in data
+    wgt_cats_not_in_data <- wgt_cats[!wgt_cats %in% names(df)]
+    
+    if (length(wgt_cats_not_in_data) > 0) {
+        stop(paste("The following weight category names are not found in your data:",
+                   paste(wgt_cats_not_in_data, collapse = ", ")),
+             sep = "\n")
+    }
     
     # wgt.name
     if (any(
@@ -102,8 +105,8 @@ iterake <- function(universe, wgt.name = "weight",
         stop("Input to `wgt.name` must be a single character string.")
     }
     
-    if (wgt.name %in% names(universe[["data"]])) {
-        stop(glue("Column name '{wgt.name}' already exists in the data. Please supply a different name to `wgt.name`."))
+    if (wgt.name %in% names(df)) {
+        stop(paste0("Column name '", wgt.name, "' already exists in the data. Please supply a different name to `wgt.name`."))
     }
     
     # max.wgt
@@ -155,16 +158,20 @@ iterake <- function(universe, wgt.name = "weight",
     }
     
     
+    
     # trim things and initialize wgt = 1
-    to_weight <- 
-        # grab rn and wgt_cats
-        to_weight[, c("rn", wgt_cats), with = FALSE] %>%
-        # start with initial wgt of 1
-        # should there be some sort of duplicate "wgt" name detection here?
-        .[, wgt := 1]
+    to_weight <- to_weight[, 
+                           
+                           # grab rn and wgt_cats
+                           c("rn", wgt_cats), with = FALSE][
+                               
+                               # start with initial wgt of 1
+                               # should there be some sort of duplicate "wgt" name detection here?
+                               , wgt := 1]
     
+    # data is now ready for weighting !!
     
-    # raking ------------------------------------------------------------------
+    # step 2) do the raking ----
     
     # initialize some things
     check <- 1
@@ -187,16 +194,14 @@ iterake <- function(universe, wgt.name = "weight",
         # reset/initialize check value
         check <- 0
         
-        # loop through each variable in universe[["universe"]] list to generate weight
+        # loop through each variable in universe$category to generate weight
         for (i in seq_along(wgt_cats)) {
             
             # data.table versions of:
             # - data being weighted, i'th weighting column as key
-            DT_data   <- data.table(to_weight, key = wgt_cats[i])
-            
             # - i'th dataset (targets) of universe
-            # exclude the first column, not needed
-            DT_design <- data.table(universe[["universe"]][[i]])[, -1]
+            DT_data   <- data.table(to_weight, key = wgt_cats[i])
+            DT_design <- data.table(universe[["data"]][[i]])
             
             # start with original data.table-ized object
             DT_merge <- 
@@ -206,46 +211,50 @@ iterake <- function(universe, wgt.name = "weight",
                     
                     # DT object to be merged with the original
                     # ideal becuase it uses the same key for merging
-                    # calcs the "haves" by the i'th weighting category
-                    DT_data[, .(act_prop = sum(wgt) / N), by = c(wgt_cats[i])] %>%
-                        
-                        # merge haves with wants
-                        .[DT_design] %>%
-                        
-                        # calculate wants over haves by the i'th weighting category
-                        .[, .(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)), 
-                          by = c(wgt_cats[i])]
+                    DT_data[, 
+                            # calcs the "haves" by the i'th weighting category
+                            .(act_prop = sum(wgt) / N),
+                            by = c(wgt_cats[i])
+                            
+                            # merge haves with wants
+                            ][DT_design
+                              
+                              ][, 
+                                # calculate wants over haves by the i'th weighting category
+                                .(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)), 
+                                by = c(wgt_cats[i])
+                                ]
                     ]
             
             # creates the weight factor, max out at the weight limit
-            to_weight <- 
-                DT_merge[, wgt := ifelse(wgt * wgt_temp > max.wgt, max.wgt, wgt * wgt_temp)] %>%
-                
+            to_weight <- DT_merge[, wgt := ifelse(wgt * wgt_temp > max.wgt, max.wgt, wgt * wgt_temp)][
                 # temporary weight no longer needed
-                .[, wgt_temp := NULL]
+                , wgt_temp := NULL]
             
         }
         
         # loop through each to calculate discrepencies
         for (i in seq_along(wgt_cats)) {
             
+            DT_design <- data.table(universe[["data"]][[i]])
             DT_data   <- data.table(to_weight, key = wgt_cats[i])
             
-            # exclude the first and fourth column, not needed
-            DT_design <- data.table(universe[["universe"]][[i]])[, c(-1, -4)]
-            
-            sum_diffs <- 
-                # calcs the "haves" by the i'th weighting category
-                DT_data[, .(act_prop = sum(wgt) / N), by = c(wgt_cats[i])] %>%
-                
-                # merge haves with wants
-                .[DT_design] %>%
-                
-                # calculate sum of abs(prop diffs)
-                .[, .(sum = sum(abs(targ_prop - act_prop)))] %>%
-                
-                # just return this sum
-                .[, sum]
+            sum_diffs <- DT_data[, 
+                                 # calcs the "haves" by the i'th weighting category
+                                 .(act_prop = sum(wgt) / N),
+                                 by = c(wgt_cats[i])
+                                 
+                                 # merge haves with wants
+                                 ][DT_design
+                                   
+                                   ][,
+                                     # calculate sum of abs(prop diffs)
+                                     .(sum = sum(abs(targ_prop - act_prop)))
+                                     
+                                     ][,
+                                       
+                                       # just return this sum
+                                       sum]
             
             # check is the sum of whatever check already is + sum_diffs
             check <- check + sum_diffs
@@ -267,9 +276,7 @@ iterake <- function(universe, wgt.name = "weight",
         count <- count + 1
     }
     
-    
-    # return ------------------------------------------------------------------
-    
+    # step 3) what to return ----
     if (is.null(to_weight)) {
         
         out_bad <- red $ bold
@@ -299,43 +306,38 @@ iterake <- function(universe, wgt.name = "weight",
             # first merge orig and new data...
             
             # get orig dataframe, make it a data.table with rn key/sorted as.numeric
-            setkey(
-                data.table(universe$data, keep.rownames = TRUE) %>%
-                    .[, rn := as.numeric(rn)]
-                , "rn"
-            ) %>%
-            
-            # just grab rn and wgt from to_weight, keyed and sorted
-            .[setkey(
-                to_weight[, c("rn", "wgt")], 
-                "rn"
-            )] %>%
-            
-            # combine x.factor
-            .[, wgt := wgt * x.factor] %>%
-            
-            # scrap no-longer-needed rn
-            .[, rn := NULL] %>%
+            setkey(data.table(df, keep.rownames = TRUE)[, rn := as.numeric(rn)], "rn")[
+                
+                # just grab rn and wgt from to_weight, keyed and sorted
+                setkey(to_weight[, c("rn", "wgt")], "rn")][
+                    
+                    # combine x.factor
+                    , wgt := wgt * x.factor][
+                        
+                        # scrap no-longer-needed rn
+                        , rn := NULL] %>%
             
             as_tibble()
         
+        # calculate stats
+        wgt <- out$wgt
+        uwgt_n <- nrow(out)
+        wgt_n <- sum(wgt)
+        eff_n <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
+        loss <- round((uwgt_n / eff_n) - 1, 3)
+        efficiency <- (eff_n / uwgt_n)
+        
+        # apply new weight name
+        names(out)[names(out) == 'wgt'] <- wgt.name
+        
+        # output message
+        out_good <- green $ bold
+        title1 <- 'iterake summary'
+        num_dashes <- nchar(title1) + 4
+        rem_dashes <- 80 - num_dashes
+        
         # return output message?
         if (summary) {
-            
-            # calculate stats
-            wgt <- out$wgt
-            uwgt_n <- nrow(out)
-            wgt_n <- sum(wgt)
-            eff_n <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
-            loss <- round((uwgt_n / eff_n) - 1, 3)
-            efficiency <- (eff_n / uwgt_n)
-            
-            
-            # output message
-            out_good <- green $ bold
-            title1 <- 'iterake summary'
-            num_dashes <- nchar(title1) + 4
-            rem_dashes <- 80 - num_dashes
             
             cat('\n-- ' %+% 
                     bold(title1) %+% 
@@ -365,12 +367,10 @@ iterake <- function(universe, wgt.name = "weight",
             }
         }
         
-        # apply new weight name
-        names(out)[names(out) == 'wgt'] <- wgt.name
-
         return(out)
         
-    }    
+    }
+    
 }
 
-utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff", "rn"))
+utils::globalVariables(c(".", "act_prop", "wgt_temp", "prop_diff", "rn", "targ_n"))

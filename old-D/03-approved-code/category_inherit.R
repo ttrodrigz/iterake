@@ -2,39 +2,37 @@
 #' 
 #' This function creates an individual weighting category with known marginal 
 #' probabilities (E.g., age group, eye color.), but unlike \code{category()} it 
-#' creates them from existing data instead of being directly assigned. One or more 
+#' creates them from a dataframe instead of being directly assigned. One or more 
 #' of these are built and fed into \code{universe()}.
 #' 
 #' @param name Name given to weighting category, character. 
-#' Must have exact match in the column names of data you intend to weight as well as the
-#' existing data from where targets are being pulled.
-#' @param from Existing data frame from where targets will be pulled.
-#' @param weight Optionally provide an existing weight variable to calculate 
-#' weighted target proportions. Omit if unweighted target proportions are desired.
+#' Must have exact match in the column names of data you intend to weight.
+#' @param df Data frame containing data you intend to weight.
+#' @param prev.wgt Variable name of weight used to calculate bucket proportions in \code{`df`}. Optional.
 #' 
 #' @importFrom dplyr mutate select enquo group_by summarise ungroup %>%
 #' @importFrom rlang !!
-#' @importFrom tidyr pivot_longer
+#' @importFrom tidyr gather
 #' @importFrom tibble tibble
 #' 
 #' @return A nested \code{tibble} with special class \code{category}.
 #' 
 #' @examples 
-#' data(demo_data)
+#' data(weight_me)
 #' 
-#' inherit_category(
-#'   name = "EyeColor",
-#'   from = demo_data
+#' category_inherit(
+#'   name = "costume",
+#'   df = dplyr::filter(weight_me, satisfied == "No")
 #' )
 #' 
-#' inherit_category(
-#'   name = "BirthYear",
-#'   from = demo_data,
-#'   weight = prev_weight
+#' category_inherit(
+#'   name = "transport",
+#'   df = dplyr::filter(weight_me, satisfied == "No"),
+#'   prev.wgt = prev_weight
 #' )
 #' 
 #' @export
-inherit_category <- function(name, from, weight) {
+category_inherit <- function(name, df, prev.wgt) {
     
     # verify parameters
     if (!is.character(name) || length(name) != 1) {
@@ -45,35 +43,31 @@ inherit_category <- function(name, from, weight) {
         stop("String length of `name` must be greater than zero.")
     }
     
-    if (!is.data.frame(from)) {
-        stop("'from' must be an object of class 'data.frame'")
+    if (!is.data.frame(df)) {
+        stop("'df' must be an object of class 'data.frame'")
     }
     
-    # assign prevWeight value of 1 or weight if specified 
-    if (missing(weight) || !deparse(substitute(weight)) %in% names(from)) {
+    # assign prevWeight value of 1 or prev.wgt if specified 
+    if (missing(prev.wgt) || !deparse(substitute(prev.wgt)) %in% names(df)) {
         
-        from <- 
-            from %>%
+        df <- 
+            df %>%
             mutate(prevWeight = 1) %>%
             select(prevWeight, name)
         
     } else {
         
-        weight <- enquo(weight)
-        from <- 
-            from %>%
-            mutate(prevWeight = !! weight) %>%
+        prev.wgt <- enquo(prev.wgt)
+        df <- 
+            df %>%
+            mutate(prevWeight = !! prev.wgt) %>%
             select(prevWeight, name)
     }
     
     # create weighted proportions from data
     targs <- 
-        from %>%
-        pivot_longer(
-            -1,
-            names_to = "name",
-            values_to = "value"
-        ) %>%
+        df %>%
+        gather(name, value, -1) %>%
         group_by(value) %>%
         summarise(wgt_n = sum(prevWeight)) %>%
         mutate(wgt_prop = wgt_n / sum(wgt_n)) %>%
