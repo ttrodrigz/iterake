@@ -1,6 +1,6 @@
 Package: iterake
 Title: Tools for iterative raking
-Version: 0.0.9
+Version: 0.0.91
 Authors@R: c(
     person("Tony", "Rodriguez", email = "ttrodrigz@gmail.com", role = c("aut")), 
     person("Devon", "Witherell", email = "dwitherell@gmail.com", role = c("aut", "cre"))

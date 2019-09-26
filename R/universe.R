@@ -112,7 +112,6 @@ Each name given to a weighting category in `universe()` must have a matching col
         
     }
     
-    
     # check that all buckets exist in the data --------------------------------
     
     # This will check to make sure that the buckets provided are also in the
@@ -127,7 +126,7 @@ Each name given to a weighting category in `universe()` must have a matching col
     num.cats    <- length(wgt.cats)
     df.unique   <- map(data[wgt.cats], unique)
     wgt.buckets <- map(categories, pluck, "buckets")
-    
+
     for (i in 1:num.cats) {
         
         # vector class compatibility
@@ -135,6 +134,20 @@ Each name given to a weighting category in `universe()` must have a matching col
         wgt.class <- class(wgt.buckets[[i]])
         
         classes.match <- df.class == wgt.class
+        
+        # there will be some coercion happening further down the line
+        # these are scenarios that should skip the stop bit here
+        if (!classes.match) {
+
+            if (df.class %in% c("numeric", "integer") & wgt.class %in% c("numeric", "integer")) {
+                classes.match <- TRUE
+            }
+            
+            if (df.class %in% c("factor", "character") & wgt.class %in% c("factor", "character")) {
+                classes.match <- TRUE
+            }
+            
+        }
         
         if (!classes.match) {
             stop(glue(
@@ -158,18 +171,17 @@ Please reconcile this difference before proceeding.
             ))
         }
         
-        
         # opted for `all.equal()` over `identical()` because `identical()`
         # got hung up on mismatches between numeric/integer
-        
+
         buckets.match <- isTRUE(all.equal(
             
             # note that sort() drops NA's by default
-            target  = df.unique[[i]] %>% sort(),
-            current = wgt.buckets[[i]] %>% sort()
+            # as.character eliminates factor level/character sort issues 
+            target  = as.character(df.unique[[i]]) %>% sort(),
+            current = as.character(wgt.buckets[[i]]) %>% sort()
             
         ))
-        
         
         if (!buckets.match) {
             
@@ -190,17 +202,17 @@ Please reconcile this difference before proceeding.
         
         }
     
-    
     # adjust the population model ---------------------------------------------
     
     # This works by doing the following steps:
     # 1. Find the actual proportions in the data.
     # 2. Create a data frame of the target proportions.
-    # 3. Join actual proportions to target full_join(), this ensures that 
+    # 3. Variable coercion for numeric/integer and factor/character
+    # 4. Join actual proportions to target full_join(), this ensures that 
     #    correct ordering is maintained, and identifies proportions of NA's 
     #    in the data.
-    # 4. Check to see if NA's exist in the data, if so, find proportion.
-    # 5. If NA's exist, adjust the targets by target * (1 - prop NA)
+    # 5. Check to see if NA's exist in the data, if so, find proportion.
+    # 6. If NA's exist, adjust the targets by target * (1 - prop NA)
     
     # Output from this process will be stored in a new list
     universe <- list()
@@ -214,11 +226,13 @@ Please reconcile this difference before proceeding.
         # 1. Find actual proportions in the data
         wc <- sym(wgt.cats[[i]])
         
+        # remove_labels helps classes match for the full_join
         act.prop <-
             data %>%
             count({{ wc }}) %>%
             mutate(act_prop = n / sum(n)) %>%
-            select(-n)
+            select(-n) %>%
+            remove_labels()
         
         # 2. Data frame of targets proportions
         targ.prop <- tibble(
@@ -226,14 +240,52 @@ Please reconcile this difference before proceeding.
             targ_prop = categories[[i]][["targ_prop"]]
         )
         
-        # 3. Join target to actual
+        # 3. Check for differing classes - coerce some scenarios if needed for later full_join
+        class.act <- class(act.prop[[wgt.cats[i]]])
+        class.tar <- class(targ.prop[[wgt.cats[i]]])
+        
+        if (class.act != class.tar) {
+            
+            # force target class to match actual/data class - numeric/integer
+            if (class.act %in% c("numeric", "integer") & class.tar %in% c("numeric", "integer")) {
+            
+                if (class.act == "numeric") {
+                    
+                    targ.prop[[wgt.cats[i]]] <- as.numeric(targ.prop[[wgt.cats[i]]])
+                    
+                } else if (class.act == "integer") {
+                    
+                    targ.prop[[wgt.cats[i]]] <- as.integer(targ.prop[[wgt.cats[i]]])
+                }
+
+            # force target class to match actual/data class - factor/character
+            } else if (class.act %in% c("factor", "character") & class.tar %in% c("factor", "character")) {
+             
+                if (class.act == "factor") {
+                    
+                    targ.prop[[wgt.cats[i]]] <- factor(
+                        x = targ.prop[[wgt.cats[i]]], 
+                        levels = levels(act.prop[[wgt.cats[i]]])
+                    )
+                    
+                } else if (class.act == "character") {
+                    
+                    targ.prop[[wgt.cats[i]]] <- as.character(targ.prop[[wgt.cats[i]]])
+                    
+                }
+                
+            }
+            
+        }
+
+        # 4. Join target to actual
         all.prop <- full_join(
             targ.prop,
             act.prop,
             by = wgt.cats[[i]]
         )
         
-        # 4. Find proportion missing
+        # 5. Find proportion missing
         if (any(is.na(all.prop))) {
             
             p.na <- 
@@ -247,8 +299,7 @@ Please reconcile this difference before proceeding.
                 glue("{wgt.cats[[i]]} ({scales::percent(p.na, accuracy = 0.1)})")
             )
             
-            
-            # 5. Adjust target proportions to account for p NA
+            # 6. Adjust target proportions to account for p NA
             all.prop <-
                 all.prop %>%
                 mutate(targ_prop = case_when(
@@ -277,7 +328,6 @@ Target proportions have been reproportioned to account for missing data.
 "
         ))
     }
-    
     
     # final return ------------------------------------------------------------
     
