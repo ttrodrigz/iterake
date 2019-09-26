@@ -3,23 +3,18 @@
 
 ## Overview
 
-iterake’s main utility is creating row-level weights using a process
-called iterative raking. Iterative raking (also known as rim weighting),
-is one of several methods used to correct the deviation between the
-*marginal* proportions in a sample and a known population, or, universe
-as it was first referred to (Deming & Stephan 1940) for a given set of
-variables.
+iterake’s main utility is creating row weights using a process called
+iterative raking. Iterative raking (also known as rim weighting), is one
+of several methods used to correct the deviation between the *marginal*
+proportions in a sample and a known population, or, universe as it was
+first referred to (Deming & Stephan 1940) for a given set of variables.
 
 iterake is designed with speed and simplicity in mind. The weighting
 algorithm is powered by
 [data.table](https://github.com/Rdatatable/data.table/wiki) and takes
 advantage of its fast
 [grouping](https://github.com/Rdatatable/data.table/wiki/Benchmarks-:-Grouping)
-and joining; it tends to scale well even with larger data sets. The
-functions of this package are designed to play nicely users of the
-[tidyverse](https://github.com/tidyverse/tidyverse). Columns in the data
-can be accessed without quotation, and every function returns a
-[tibble](https://github.com/tidyverse/tibble).
+and joining.
 
 ## Workflow
 
@@ -140,12 +135,14 @@ accuracy. In some cases it is best to deal with the fact your sample
 doesn’t perfectly match the population.
 
 ``` r
-compare_margins(df = df, universe = uni)
-#>    bucket uwgt_n uwgt_prop targ_prop uwgt_diff category
-#> 1:   Male    174     0.435       0.4     0.035      Sex
-#> 2: Female    226     0.565       0.6    -0.035      Sex
-#> 3:   TRUE     86     0.215       0.2     0.015  Under50
-#> 4:  FALSE    314     0.785       0.8    -0.015  Under50
+compare_margins(universe = uni)
+#> # A tibble: 4 x 6
+#>   category bucket uwgt_n uwgt_prop targ_prop uwgt_diff
+#>   <chr>    <chr>   <int>     <dbl>     <dbl>     <dbl>
+#> 1 Sex      Male      174     0.435       0.4    0.0350
+#> 2 Sex      Female    226     0.565       0.6   -0.035 
+#> 3 Under50  TRUE       86     0.215       0.2    0.0150
+#> 4 Under50  FALSE     314     0.785       0.8   -0.015
 ```
 
 #### **Step 3:** Weight the data
@@ -185,28 +182,24 @@ df_wgt
 #### **Step 4:** Compare marginal proportions after weighting
 
 ``` r
-library(dplyr)
-# re-inspect proportions with plot
 compare_margins(
-    df = df_wgt, 
-    weight = weight, 
-    universe = uni,
-    plot = TRUE
+  universe = uni, 
+  data = df_wgt, 
+  weight = weight, 
+  plot = TRUE
 )
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
-    #>    bucket uwgt_n wgt_n uwgt_prop wgt_prop targ_prop uwgt_diff
-    #> 1:   Male    174   160     0.435      0.4       0.4     0.035
-    #> 2: Female    226   240     0.565      0.6       0.6    -0.035
-    #> 3:   TRUE     86    80     0.215      0.2       0.2     0.015
-    #> 4:  FALSE    314   320     0.785      0.8       0.8    -0.015
-    #>         wgt_diff category
-    #> 1: -4.279743e-12      Sex
-    #> 2:  4.279688e-12      Sex
-    #> 3:  2.775558e-16  Under50
-    #> 4: -3.330669e-16  Under50
+    #> # A tibble: 4 x 9
+    #>   category bucket uwgt_n wgt_n uwgt_prop wgt_prop targ_prop uwgt_diff
+    #>   <chr>    <chr>   <int> <dbl>     <dbl>    <dbl>     <dbl>     <dbl>
+    #> 1 Sex      Male      174  160.     0.435    0.400       0.4    0.0350
+    #> 2 Sex      Female    226  240.     0.565    0.6         0.6   -0.035 
+    #> 3 Under50  TRUE       86   80      0.215    0.2         0.2    0.0150
+    #> 4 Under50  FALSE     314  320.     0.785    0.800       0.8   -0.015 
+    #> # ... with 1 more variable: wgt_diff <dbl>
 
 #### **Step 5:** Inspect weights
 
