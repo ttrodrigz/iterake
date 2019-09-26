@@ -14,6 +14,7 @@
 #' @importFrom dplyr sym pull mutate select filter count full_join case_when rename %>%
 #' @importFrom scales percent
 #' @importFrom tibble tibble add_column
+#' @importFrom labelled remove_labels
 #' 
 #' @return A \code{list} with special class \code{universe}.
 #' 
