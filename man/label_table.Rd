@@ -2,33 +2,49 @@
 % Please edit documentation in R/label_table.R
 \name{label_table}
 \alias{label_table}
-\title{Create table of variable or value labels}
+\title{Create Data Frame of Variable or Value Labels.}
 \usage{
-label_table(data, var, freq = FALSE, weight)
+label_table(data, var, freq = TRUE, weight)
 }
 \arguments{
-\item{data}{Data frame.}
+\item{data}{A data frame where variable or value labels are requested.}
 
-\item{var}{A variable in the dataset where labels are desired.}
+\item{var}{If value labels are requested, provide corresponding column (unquoted) in the data frame.}
 
-\item{freq}{Boolean, indicates whether frequencies should be included, optional.}
+\item{freq}{Logical, whether or not to tabulate frequencies for the value labels.}
 
-\item{weight}{A variable in the dataset representing weights to be used 
-for optional frequency calculation, optional.}
+\item{weight}{An unquoted column of weights.}
 }
 \value{
-By default, will return a dataset of variables and labels of every
-variable in the dataset. If specified, returns a table of values in a
-variable and its labels, as well as frequencies.
+A data frame of variable or value labels.
 }
 \description{
-It is often useful to inspect variable or value labels attached to datasets
-(like with SAV files from SPSS). This function will return a tibble of variables and
-their associated labels, or, if requested, a variable and its value labels.
+This enables you to inspect labels at the variable or value label.
+If requesting value labels for a \code{var}, the default is to also
+tabulate the frequencies and percents. Can provide an optional column
+of weights to calculated weighted frequencies and percentages.
 }
 \examples{
-data(demo_data)
+library(dplyr)
+library(labelled)
+library(iterake)
 
-label_table(data = demo_data, var = EyeColor)
+df <-
+  data.frame(
+    x = sample(c(1, 2), 100, replace = TRUE),
+    w = rnorm(100, 1, 0.1)
+  ) \%>\%
+  set_variable_labels(
+    x = "Gender",
+    w = "Weight"
+  ) \%>\%
+  set_value_labels(
+    x = c("Male" = 1, "Female" = 2)
+  )
+
+label_table(df)
+label_table(df, x, freq = FALSE)
+label_table(df, x)
+label_table(df, x, weight = w)
 
 }
