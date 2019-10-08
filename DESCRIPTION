@@ -18,13 +18,14 @@ Imports:
     tidyr (>= 1.0.0),
     purrr,
     ggplot2,
-    rlang,
+    rlang (>= 0.4.0),
     crayon,
     data.table,
     scales,
     Hmisc,
     labelled,
-    glue
+    glue,
+    arrangements
 Suggests:
     rmarkdown
 RoxygenNote: 6.1.1
