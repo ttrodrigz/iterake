@@ -6,25 +6,30 @@
 \usage{
 iterake(universe, wgt.name = "weight", max.wgt = 3,
   threshold = 1e-10, max.iter = 50, stuck.limit = 5,
-  summary = TRUE)
+  permute = FALSE, summary = TRUE)
 }
 \arguments{
 \item{universe}{Output object created with \code{universe()} function.}
 
-\item{wgt.name}{Name given to column of weights to be added to data, optional.}
+\item{wgt.name}{Name given to column of weights to be added to data, default is "weight", optional.}
 
-\item{max.wgt}{Maximum value weights can take on, optional. The capping 
+\item{max.wgt}{Maximum value weights can take on, default is 3, optional. The capping 
 takes place prior to applying expansion factor (if \code{N} is set in \code{universe()}.}
 
-\item{threshold}{Value specifying minimum summed difference between weighted 
-marginal proportions of sample and universe before algorithm quits, optional.}
+\item{threshold}{Value specifying minimum summed difference between weighted marginal 
+proportions of sample and universe before algorithm quits, default is 1e-10, optional.}
 
-\item{max.iter}{Value capping number of iterations for the procedure, optional.}
+\item{max.iter}{Value capping number of iterations for the procedure, default is 50, optional.}
 
-\item{stuck.limit}{Value capping the number of times summed differences between 
-sample and universe can oscillate between increasing and decreasing, optional.}
+\item{stuck.limit}{Value capping the number of times summed differences between sample 
+and universe can oscillate between increasing and decreasing, default is 5, optional.}
 
-\item{summary}{Whether or not to display summary output of the procedure, optional.}
+\item{permute}{Boolean indicating whether to test all possible orders of categories in \code{universe} 
+and keep the most efficient (\code{TRUE}) or to test categories in the order listed in \code{universe} 
+only (default, \code{FALSE}), optional. Note that when \code{TRUE} this will increase runtime by a 
+factor of \code{(number of categories)!}.}
+
+\item{summary}{Whether or not to display summary output of the procedure, default is \code{TRUE}, optional.}
 }
 \value{
 Data frame with the resulting weight variable appended to it.

@@ -8,22 +8,27 @@
 #' presented by default.
 #' 
 #' @param universe Output object created with \code{universe()} function.
-#' @param wgt.name Name given to column of weights to be added to data, optional.
-#' @param max.wgt Maximum value weights can take on, optional. The capping 
+#' @param wgt.name Name given to column of weights to be added to data, default is "weight", optional.
+#' @param max.wgt Maximum value weights can take on, default is 3, optional. The capping 
 #' takes place prior to applying expansion factor (if \code{N} is set in \code{universe()}.
-#' @param threshold Value specifying minimum summed difference between weighted 
-#' marginal proportions of sample and universe before algorithm quits, optional.
-#' @param max.iter Value capping number of iterations for the procedure, optional.
-#' @param stuck.limit Value capping the number of times summed differences between 
-#' sample and universe can oscillate between increasing and decreasing, optional.
-#' @param summary Whether or not to display summary output of the procedure, optional.
+#' @param threshold Value specifying minimum summed difference between weighted marginal 
+#' proportions of sample and universe before algorithm quits, default is 1e-10, optional.
+#' @param max.iter Value capping number of iterations for the procedure, default is 50, optional.
+#' @param stuck.limit Value capping the number of times summed differences between sample 
+#' and universe can oscillate between increasing and decreasing, default is 5, optional.
+#' @param permute Boolean indicating whether to test all possible orders of categories in \code{universe} 
+#' and keep the most efficient (\code{TRUE}) or to test categories in the order listed in \code{universe} 
+#' only (default, \code{FALSE}), optional. Note that when \code{TRUE} this will increase runtime by a 
+#' factor of \code{(number of categories)!}.
+#' @param summary Whether or not to display summary output of the procedure, default is \code{TRUE}, optional.
 #' 
-#' @importFrom dplyr %>%
+#' @importFrom dplyr %>% slice
 #' @importFrom data.table data.table setkey
 #' @importFrom crayon red green bold %+%
 #' @importFrom glue glue
 #' @importFrom tibble as_tibble
 #' @importFrom scales percent
+#' @importFrom arrangements permutations
 #' 
 #' @return Data frame with the resulting weight variable appended to it.
 #' 
@@ -65,16 +70,16 @@
 #' )
 #' 
 #' @export
-iterake <- function(universe, wgt.name = "weight", 
-                    max.wgt = 3, threshold = 1e-10, max.iter = 50, 
-                    stuck.limit = 5, summary = TRUE) {
+iterake <- function(universe, wgt.name = "weight", max.wgt = 3, 
+                    threshold = 1e-10, max.iter = 50, stuck.limit = 5, 
+                    permute = FALSE, summary = TRUE) {
     
     # preliminary setup + checks ----------------------------------------------
     
     if (!("universe" %in% class(universe))) {
         stop("Input to `universe` must be output created by `universe()`.")
     }
-    
+
     # do stuff to to_weight - make data.table and use rn as index
     to_weight <- 
         data.table(
@@ -148,127 +153,215 @@ iterake <- function(universe, wgt.name = "weight",
         stop("Input to `stuck.limit` must be a single numeric value greater than or equal to 1.")
         
     }
-    
+
+    # permute
+    if (!is.logical(permute)) {
+        stop("Input to `permute` requires TRUE/FALSE.")
+    }
+
     # summary
     if (!is.logical(summary)) {
         stop("Input to `summary` requires TRUE/FALSE.")
     }
     
-    
     # trim things and initialize wgt = 1
-    to_weight <- 
+    to_weight_base <- 
         # grab rn and wgt_cats
         to_weight[, c("rn", wgt_cats), with = FALSE] %>%
         # start with initial wgt of 1
         # should there be some sort of duplicate "wgt" name detection here?
         .[, wgt := 1]
     
+    to_weight_keep <- NULL
+    count_keep <- 0
+    winner <- NULL
     
     # raking ------------------------------------------------------------------
     
-    # initialize some things
-    check <- 1
-    count <- 0
-    stuck_count <- 0
-    stuck_check <- 0
+    # get permutations for categories in universe
+    # thoughts on using gtools for this?
+    # below is from arrangements
+    order_list <-
+        permutations(length(wgt_cats)) %>% 
+        as_tibble(.name_repair = "minimal") %>%
+        set_names(paste0("X", 1:length(wgt_cats))) 
     
-    # do the loops until the threshold is reached
-    while (check > threshold) {
-        
-        # iteration limit check
-        if (count >= max.iter) {
-            uwgt_n <- nrow(to_weight)
-            to_weight <- NULL
-            break
-        }
-        
-        # store previous summed difference between targets and actuals
-        prev_check <- check
-        # reset/initialize check value
-        check <- 0
-        
-        # loop through each variable in universe[["universe"]] list to generate weight
-        for (i in seq_along(wgt_cats)) {
-            
-            # data.table versions of:
-            # - data being weighted, i'th weighting column as key
-            DT_data   <- data.table(to_weight, key = wgt_cats[i])
-            
-            # - i'th dataset (targets) of universe
-            # exclude the first column, not needed
-            DT_design <- data.table(universe[["universe"]][[i]])[, -1]
-            
-            # start with original data.table-ized object
-            DT_merge <- 
-                
-                # original everything is getting merged to
-                DT_data[
-                    
-                    # DT object to be merged with the original
-                    # ideal becuase it uses the same key for merging
-                    # calcs the "haves" by the i'th weighting category
-                    DT_data[, .(act_prop = sum(wgt) / N), by = c(wgt_cats[i])] %>%
-                        
-                        # merge haves with wants
-                        .[DT_design] %>%
-                        
-                        # calculate wants over haves by the i'th weighting category
-                        .[, .(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)), 
-                          by = c(wgt_cats[i])]
-                    ]
-            
-            # creates the weight factor, max out at the weight limit
-            to_weight <- 
-                DT_merge[, wgt := ifelse(wgt * wgt_temp > max.wgt, max.wgt, wgt * wgt_temp)] %>%
-                
-                # temporary weight no longer needed
-                .[, wgt_temp := NULL]
-            
-        }
-        
-        # loop through each to calculate discrepencies
-        for (i in seq_along(wgt_cats)) {
-            
-            DT_data   <- data.table(to_weight, key = wgt_cats[i])
-            
-            # exclude the first and fourth column, not needed
-            DT_design <- data.table(universe[["universe"]][[i]])[, c(-1, -4)]
-            
-            sum_diffs <- 
-                # calcs the "haves" by the i'th weighting category
-                DT_data[, .(act_prop = sum(wgt) / N), by = c(wgt_cats[i])] %>%
-                
-                # merge haves with wants
-                .[DT_design] %>%
-                
-                # calculate sum of abs(prop diffs)
-                .[, .(sum = sum(abs(targ_prop - act_prop)))] %>%
-                
-                # just return this sum
-                .[, sum]
-            
-            # check is the sum of whatever check already is + sum_diffs
-            check <- check + sum_diffs
-        }
-        
-        # check to see if summed difference increased from last iteration
-        if (prev_check < check) {
-            # if so, increment stuck counter
-            stuck_count <- stuck_count + 1
-            
-            # ...and if stuck counter hits a threshold, force check to equal threshold to stop while loop
-            if (stuck_count > stuck.limit) {
-                stuck_check <- check
-                check <- threshold
-            }
-        }
-        
-        # increment loop count
-        count <- count + 1
+    if (!permute) {
+        # only keep first row (original order)
+        order_list <-
+            order_list %>% slice(1)
     }
     
+    # now loop through things here
+    for (j in seq_along(order_list[[1]])) {
+        
+        # maybe have something print out here...?
+        if (permute) {
+            cat('Iteration ' %+% paste0(j) %+% ' of ' %+% paste0(nrow(order_list)) %+% '.....\n')    
+        }
+        
+        # set up for new outer outer loop
+        order_index <- order_list %>% slice(j)
+        
+        # initialize some things
+        check <- 1
+        count <- 0
+        stuck_count <- 0
+        stuck_check <- 0
+        to_weight <- to_weight_base
+        
+        # do the loops until the threshold is reached
+        while (check > threshold) {
+            
+            # iteration limit check
+            if (count >= max.iter) {
+                uwgt_n <- nrow(to_weight)
+                to_weight <- NULL
+                break
+            }
+            
+            # store previous summed difference between targets and actuals
+            prev_check <- check
+            # reset/initialize check value
+            check <- 0
+            
+            # loop through each variable in universe[["universe"]] list to generate weight
+            for (i in seq_along(wgt_cats)) {
+                
+                # data.table versions of:
+                # - data being weighted, i'th weighting column as key
+                DT_data   <- data.table(to_weight, key = wgt_cats[ order_index[[i]] ])
+                
+                # - i'th dataset (targets) of universe
+                # exclude the first column, not needed
+                DT_design <- data.table(universe[["universe"]][[ order_index[[i]] ]])[, -1]
+                
+                # start with original data.table-ized object
+                DT_merge <- 
+                    
+                    # original everything is getting merged to
+                    DT_data[
+                        
+                        # DT object to be merged with the original
+                        # ideal becuase it uses the same key for merging
+                        # calcs the "haves" by the i'th weighting category
+                        DT_data[, .(act_prop = sum(wgt) / N), by = c(wgt_cats[ order_index[[i]] ])] %>%
+                            
+                            # merge haves with wants
+                            .[DT_design] %>%
+                            
+                            # calculate wants over haves by the i'th weighting category
+                            .[, .(wgt_temp = ifelse(act_prop == 0, 0, targ_prop / act_prop)), 
+                              by = c(wgt_cats[ order_index[[i]] ])]
+                        ]
+                
+                # creates the weight factor, max out at the weight limit
+                to_weight <- 
+                    DT_merge[, wgt := ifelse(wgt * wgt_temp > max.wgt, max.wgt, wgt * wgt_temp)] %>%
+                    
+                    # temporary weight no longer needed
+                    .[, wgt_temp := NULL]
+                
+            }
+            
+            # loop through each to calculate discrepencies
+            for (i in seq_along(wgt_cats)) {
+                
+                DT_data   <- data.table(to_weight, key = wgt_cats[ order_index[[i]] ])
+                
+                # exclude the first and fourth column, not needed
+                DT_design <- data.table(universe[["universe"]][[ order_index[[i]] ]])[, c(-1, -4)]
+                
+                sum_diffs <- 
+                    # calcs the "haves" by the i'th weighting category
+                    DT_data[, .(act_prop = sum(wgt) / N), by = c(wgt_cats[ order_index[[i]] ])] %>%
+                    
+                    # merge haves with wants
+                    .[DT_design] %>%
+                    
+                    # calculate sum of abs(prop diffs)
+                    .[, .(sum = sum(abs(targ_prop - act_prop)))] %>%
+                    
+                    # just return this sum
+                    .[, sum]
+                
+                # check is the sum of whatever check already is + sum_diffs
+                check <- check + sum_diffs
+            }
+            
+            # check to see if summed difference increased from last iteration
+            if (prev_check < check) {
+                # if so, increment stuck counter
+                stuck_count <- stuck_count + 1
+                
+                # ...and if stuck counter hits a threshold, force check to equal threshold to stop while loop
+                if (stuck_count > stuck.limit) {
+                    stuck_check <- check
+                    check <- threshold
+                }
+            }
+            
+            # increment loop count
+            count <- count + 1
+        }
+        
+        # now that a run is complete, need to compare (if permute)
+        # then set up what to keep and move on
+        # how to decide what to keep? Perhaps effN?
+
+        # only do something if to_weight isn't null
+        if (!is.null(to_weight)) {
+            
+            # if _keep is null, this auto-wins and should be kept
+            if (is.null(to_weight_keep)) {
+                
+                # data
+                to_weight_keep <- to_weight
+                
+                # items for summary output
+                count_keep <- count
+                winner <- order_index
+                
+            } else {
+                
+                # grab the before and after weights
+                wgt_old <- to_weight_keep$wgt
+                wgt_new <- to_weight$wgt
+                
+                # calculate before and after effN
+                effN_old <- (sum(wgt_old) ^ 2) / sum(wgt_old ^ 2)
+                effN_new <- (sum(wgt_new) ^ 2) / sum(wgt_new ^ 2)
+                
+                # make comparison on somewhat rounded values... based on threshold?
+                # dig_base <- match(TRUE, round(threshold, 1:50) == threshold)
+                
+                # or just decide - this is N, how much of a fractional person
+                # should count as "better"? A hundredth? A thousandth?
+                # going with ten-thousandth for now...
+                effN_old <- round(effN_old, 4)
+                effN_new <- round(effN_new, 4)
+                
+                # if new is better, keep it
+                if (effN_new > effN_old) {
+                    
+                    # data
+                    to_weight_keep <- to_weight
+                    
+                    # items for summary output
+                    count_keep <- count
+                    winner <- order_index
+                }
+            }
+            
+        }
+
+    }
     
     # return ------------------------------------------------------------------
+    
+    # rename the _keep items first
+    to_weight <- to_weight_keep
+    count <- count_keep
     
     if (is.null(to_weight)) {
         
@@ -321,7 +414,7 @@ iterake <- function(universe, wgt.name = "weight",
         
         # return output message?
         if (summary) {
-            
+
             # calculate stats
             wgt <- out$wgt
             uwgt_n <- nrow(out)
@@ -352,7 +445,13 @@ iterake <- function(universe, wgt.name = "weight",
             cat(' Effective N: ' %+% paste0(round(eff_n,  2)) %+% '\n')
             cat('  Weighted N: ' %+% paste0(sprintf("%.2f", wgt_n)) %+% '\n')
             cat('  Efficiency: ' %+% paste0(percent(round(efficiency, 4))) %+% '\n')
-            cat('        Loss: ' %+% paste0(loss) %+% '\n\n')
+            cat('        Loss: ' %+% paste0(loss) %+% '\n')
+            
+            if (permute) {
+                cat('       Order: ' %+% paste(winner, collapse = " ") %+% '\n\n')    
+            } else {
+                cat('\n')
+            }
             
             if (stuck_check > 0) {
                 cat(' NOTE: ' %+% 
