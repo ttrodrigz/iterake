@@ -10,3 +10,4 @@
 ^testdata$
 ^test-code$
 ^data-raw$
+^README_cache$

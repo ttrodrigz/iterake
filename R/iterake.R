@@ -22,7 +22,7 @@
 #' factor of \code{(number of categories)!}.
 #' @param summary Whether or not to display summary output of the procedure, default is \code{TRUE}, optional.
 #' 
-#' @importFrom dplyr %>% slice
+#' @importFrom dplyr %>% slice progress_estimated
 #' @importFrom data.table data.table setkey
 #' @importFrom crayon red green bold %+%
 #' @importFrom glue glue
@@ -186,22 +186,31 @@ iterake <- function(universe, wgt.name = "weight", max.wgt = 3,
         as_tibble(.name_repair = "minimal") %>%
         set_names(paste0("X", 1:length(wgt_cats))) 
     
+    # This is used in the progress bar
+    n_permutes <- nrow(order_list)
+    
     if (!permute) {
         # only keep first row (original order)
-        order_list <-
-            order_list %>% slice(1)
+        order_list <- slice(order_list, 1)
+    }
+    
+    # Build output message and initialize progress bar
+    if (permute) {
+        
+        cat("\nTesting a total of", n_permutes, "orderings.\n")
+        progbar <- progress_estimated(n_permutes)
+        
     }
     
     # now loop through things here
     for (j in seq_along(order_list[[1]])) {
         
-        # maybe have something print out here...?
         if (permute) {
-            cat('Iteration ' %+% paste0(j) %+% ' of ' %+% paste0(nrow(order_list)) %+% '.....\n')    
+            progbar$pause(0.1)$tick()$print()
         }
         
         # set up for new outer outer loop
-        order_index <- order_list %>% slice(j)
+        order_index <- slice(order_list, j)
         
         # initialize some things
         check <- 1
@@ -320,7 +329,7 @@ iterake <- function(universe, wgt.name = "weight", max.wgt = 3,
                 
                 # items for summary output
                 count_keep <- count
-                winner <- order_index
+                winner     <- order_index
                 
             } else {
                 
@@ -416,11 +425,11 @@ iterake <- function(universe, wgt.name = "weight", max.wgt = 3,
         if (summary) {
 
             # calculate stats
-            wgt <- out$wgt
+            wgt    <- out$wgt
             uwgt_n <- nrow(out)
-            wgt_n <- sum(wgt)
-            eff_n <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
-            loss <- round((uwgt_n / eff_n) - 1, 3)
+            wgt_n  <- sum(wgt)
+            eff_n  <- (sum(wgt) ^ 2) / sum(wgt ^ 2)
+            loss   <- round((uwgt_n / eff_n) - 1, 3)
             efficiency <- (eff_n / uwgt_n)
             
             
