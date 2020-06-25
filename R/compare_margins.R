@@ -141,7 +141,7 @@ compare_margins <- function(universe, data, weight, plot = FALSE) {
         DT_data <- 
             data.table(
                 tmp %>% 
-                    mutate_at(vars(one_of(mod.names[i])), funs(as.character)) %>% 
+                    mutate_at(vars(one_of(mod.names[i])), list(~ as.character(.))) %>% 
                     select(weight_var, one_of(mod.names[i])), 
                 key = mod.names[i])
         
