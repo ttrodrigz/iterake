@@ -1,6 +1,6 @@
 Package: iterake
 Title: Tools for iterative raking
-Version: 0.0.93
+Version: 0.0.94
 Authors@R: c(
     person("Tony", "Rodriguez", email = "ttrodrigz@gmail.com", role = c("aut")), 
     person("Devon", "Witherell", email = "dwitherell@gmail.com", role = c("aut", "cre"))
@@ -13,19 +13,20 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
-    tibble,
-    dplyr (>= 0.7.0),
-    tidyr (>= 1.0.0),
-    purrr,
-    ggplot2,
-    rlang (>= 0.4.0),
+    arrangements,
     crayon,
     data.table,
-    scales,
+    dplyr (>= 0.7.0),
+    ggplot2,
+    glue,
     Hmisc,
     labelled,
-    glue,
-    arrangements
+    progress,
+    purrr,
+    rlang (>= 0.4.0),
+    scales,
+    tibble,
+    tidyr (>= 1.0.0)
 Suggests:
     rmarkdown
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3

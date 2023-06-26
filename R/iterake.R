@@ -22,10 +22,11 @@
 #' factor of \code{(number of categories)!}.
 #' @param summary Whether or not to display summary output of the procedure, default is \code{TRUE}, optional.
 #' 
-#' @importFrom dplyr %>% slice progress_estimated
+#' @importFrom dplyr %>% slice
 #' @importFrom data.table data.table setkey
 #' @importFrom crayon red green bold %+%
 #' @importFrom glue glue
+#' @importFrom progress progress_bar
 #' @importFrom tibble as_tibble
 #' @importFrom scales percent
 #' @importFrom arrangements permutations
@@ -198,15 +199,20 @@ iterake <- function(universe, wgt.name = "weight", max.wgt = 3,
     if (permute) {
         
         cat("\nTesting a total of", n_permutes, "orderings.\n")
-        progbar <- progress_estimated(n_permutes)
-        
+
+        progbar <- progress_bar$new(
+            format = "[:bar] :percent eta: :eta",
+            clear = FALSE,
+            total = n_permutes
+        )
     }
     
     # now loop through things here
     for (j in seq_along(order_list[[1]])) {
         
         if (permute) {
-            progbar$pause(0.1)$tick()$print()
+
+            progbar$tick()
         }
         
         # set up for new outer outer loop

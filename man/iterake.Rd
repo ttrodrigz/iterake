@@ -4,9 +4,16 @@
 \alias{iterake}
 \title{Iterative raking procedure}
 \usage{
-iterake(universe, wgt.name = "weight", max.wgt = 3,
-  threshold = 1e-10, max.iter = 50, stuck.limit = 5,
-  permute = FALSE, summary = TRUE)
+iterake(
+  universe,
+  wgt.name = "weight",
+  max.wgt = 3,
+  threshold = 1e-10,
+  max.iter = 50,
+  stuck.limit = 5,
+  permute = FALSE,
+  summary = TRUE
+)
 }
 \arguments{
 \item{universe}{Output object created with \code{universe()} function.}
