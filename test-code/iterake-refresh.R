@@ -16,7 +16,7 @@ library(cli)
 
 # Create some data --------------------------------------------------------
 
-ss <- 20000
+ss <- 100
 
 set.seed(101)
 tst <- tibble(
@@ -63,9 +63,13 @@ control_iterake <- function(
 
 # Do stuff ----------------------------------------------------------------
 
+#' TODO DEVON: permute, missing value handling, make sure new code does the same
+#' thing as the old code.
+
 iterake <- function(
         x,
         targets,
+        permute = FALSE,
         control = control_iterake()
 ) {
     
@@ -79,7 +83,7 @@ iterake <- function(
     # Stuff from the control
     threshold  <- control$threshold
     max.weight <- control$max_weight
-    max.iter   <- control$max.iter
+    max.iter   <- control$max_iter
     max.stuck  <- control$max_stuck
     
     # Unpack the wants for faster calculation of the deltas
@@ -98,7 +102,6 @@ iterake <- function(
         .y = have,
         .f = \(w, h) sum(abs(w - h))
     ))
-    
     
     while (delta >= threshold) {
         
@@ -127,7 +130,8 @@ iterake <- function(
                 join(
                     y = want.now,
                     on = cat.now,
-                    verbose = FALSE
+                    verbose = FALSE,
+                    how = "left"
                 ) |> 
                 
                 # weight factor is the "wants" / "haves"
@@ -172,7 +176,7 @@ iterake <- function(
                 
                 stuck.counter <- stuck.counter + 1
                 
-                if (stuck.counter == control$max_stuck) {
+                if (stuck.counter == max.stuck) {
                     break
                 }
             }
@@ -182,8 +186,7 @@ iterake <- function(
         # Keep a log of the deltas.
         delta.log <- c(delta.log, delta)
         
-        
-        if (rep.counter == control$max_iter) {
+        if (rep.counter == max.iter) {
             break
         }
         
@@ -208,13 +211,13 @@ iterake <- function(
     cat_line("Weights")
     print(res)
 
-    list(
-        "delta" = delta.log,
-        "counter" = rep.counter,
-        "stuck_counter" = stuck.counter,
-        "results" = res
-    )
-} 
+    # list(
+    #     "delta" = delta.log,
+    #     "counter" = rep.counter,
+    #     "stuck_counter" = stuck.counter,
+    #     "results" = res
+    # )
+}
 
 iterake(
     x = tst,
@@ -240,6 +243,7 @@ iterake(
 #'    - Weighted base
 #'    - Effective base
 #'    - Quantiles, mean, standard deviation of the weights
+#'    - Efficiency
 #' 4. iterake_stats(x): creates a 1-row tibble of the statistics of the
 #'    algorithm such as number of iterations, final convergence, number of
 #'    time stuck, time it took, etc.
@@ -253,3 +257,8 @@ iterake(
 #'    for "compare". Note: there can/should also be an autoplot() function
 #'    for the output of universe() that will plot the actual vs targets but
 #'    it will just be unweighted.
+#' 8. Exported functions on vectors:
+#'    - unweighted_base()
+#'    - weighted_base()
+#'    - effective_base()
+#'    - weighting_efficiency()

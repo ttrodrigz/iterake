@@ -91,7 +91,7 @@ print.category <- function(x, digits = 3) {
     buckets <- str_pad(buckets, width = max.chr, side = "right", pad = ' ')
     
     if (was.reprop) {
-        cli::cat_line(cli::style_italic("Targets were re-proportioned to sum to 1"))
+        cli::cat_line(cli::style_italic("Targets were re-proportioned to sum to 1."))
         values <- scales::number(targets_sum1, accuracy = 1/10^digits, trim = FALSE)
     } else {
         values <- scales::number(targets, accuracy = 1/10^digits, trim = FALSE)
@@ -102,4 +102,3 @@ print.category <- function(x, digits = 3) {
 }
 
 print(aa, digits = 4)
-›
