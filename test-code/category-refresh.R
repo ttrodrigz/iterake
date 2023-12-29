@@ -76,7 +76,7 @@ print.category <- function(x, digits = 3) {
     targets_sum1 <- x[[1]][["targets_sum1"]]
     
     # Header line
-    cli::cat_rule(glue("Category: {wgt.cat}"))
+    cli::cat_rule(glue("Weighting Category: {wgt.cat}"))
     
     # Build the bullet point strings
     is.labelled <- labelled::is.labelled(buckets)
