@@ -5,7 +5,7 @@ Authors@R: c(
     person("Tony", "Rodriguez", email = "ttrodrigz@gmail.com", role = c("aut")), 
     person("Devon", "Witherell", email = "dwitherell@gmail.com", role = c("aut", "cre"))
     )
-Description: An easy to use set of tools for generating row-level weights via iterative raking. 
+Description: An easy to use set of tools for generating case weights weights with iterative raking. 
 URL: https://github.com/ttrodrigz/iterake
 BugReports: https://github.com/ttrodrigz/iterake/issues
 Depends: R (>= 3.1.0)
@@ -13,20 +13,15 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
-    arrangements,
-    crayon,
-    data.table,
-    dplyr (>= 0.7.0),
-    ggplot2,
     glue,
-    Hmisc,
+    rlang (>= 1.1.0),
+    cli,
     labelled,
-    progress,
-    purrr,
-    rlang (>= 0.4.0),
     scales,
-    tibble,
-    tidyr (>= 1.0.0)
+    stringr
 Suggests:
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
+Config/testthat/edition: 3

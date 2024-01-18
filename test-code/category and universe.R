@@ -1,25 +1,30 @@
 
 # Ideas -------------------------------------------------------------------
 
-#' The universe() function will accept a data frame, dots for the weighting
-#' categories, and a population size parameter to rescale the weights to
-#' sum to the population size.
+#' Universe will stay pretty much as is, but there will be two new ways of
+#' adding categories (3 in total).
+#' 1. Pass a `category` object directly to `universe()`.
+#' 2. Add an existing `category` to a `universe` with `add_category()`.
+#' 3. Add a new `category` to a `universe` with `new_category()`.
 
-w <- c(0.75, 1, 1.25)
 
-neff <- function(x) {
-    (sum(x) ^ 2) / sum(x^2)
+
+#' Add a category object to a universe.
+add_category(universe, category) {
+    
+    
 }
 
-neff(w)
-
-5 / sum(w) * w
-
-rs <- function(x, sum_to) {
-    sum_to / sum(x) * x
+# Add a new category to a universe.
+new_category(universe, name, groups, targets) {
+    
+    
+    
 }
 
-neff(rs(w, -1))
-rs(w, -3)
+targets
+groups
 
+wgt_groups
+wgt_targets
 

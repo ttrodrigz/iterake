@@ -2,40 +2,31 @@
 % Please edit documentation in R/category.R
 \name{category}
 \alias{category}
-\title{Create weighting category}
+\title{Create a weighting category.}
 \usage{
-category(name, buckets, targets, sum.1 = FALSE)
+category(name, groups, targets)
 }
 \arguments{
-\item{name}{Name given to weighting category, character. 
-Must have exact match in the column names of data to be weighted.}
+\item{name}{The name of the weighting category matching the name of the
+corresponding variable in the data to be weighted.}
 
-\item{buckets}{Vector corresponding to the "buckets" in which your category can be classified.}
+\item{groups}{A vector of the groups in the weighting category.}
 
-\item{targets}{Numeric vector of the proportions each element of \code{`buckets`} represents in the population.}
-
-\item{sum.1}{Whether or not to force inputs to \code{`targets`} to sum to one.}
+\item{targets}{A vector of the desired proportions of the \code{groups}.
+These target will be automatically re-proportioned to sum to 1 if
+necessary.}
 }
 \value{
-A \code{list} with special class \code{category}.
+A list with the class of \code{"category"}.
 }
 \description{
-This function creates an individual weighting category with known marginal 
-probabilities. (E.g., age group, eye color.) One or more of these are built and
-fed into \code{universe()}.
+This function creates a new weighting category.
 }
 \examples{
 category(
-  name = "costume",
-  buckets = c("Bat Man", "Cactus"),
-  targets = c(0.645, 0.355)
-)
-
-category(
-  name = "seeds",
-  buckets = c("Tornado", "Bird", "Earthquake"),
-  targets = c(0.3333, 0.3333, 0.3333),
-  sum.1 = TRUE
+    name = "vs",
+    groups = c(0, 1),
+    targets = c(1/3, 2/3)
 )
 
 }

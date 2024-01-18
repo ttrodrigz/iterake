@@ -1,67 +1,118 @@
-#' Create weighting category
+#' Create a weighting category.
 #' 
-#' This function creates an individual weighting category with known marginal 
-#' probabilities. (E.g., age group, eye color.) One or more of these are built and
-#' fed into \code{universe()}.
+#' @description
+#' This function creates a new weighting category.
 #' 
-#' @param name Name given to weighting category, character. 
-#' Must have exact match in the column names of data to be weighted.
-#' @param buckets Vector corresponding to the "buckets" in which your category can be classified.
-#' @param targets Numeric vector of the proportions each element of \code{`buckets`} represents in the population.
-#' @param sum.1 Whether or not to force inputs to \code{`targets`} to sum to one.
+#' @param name The name of the weighting category matching the name of the
+#' corresponding variable in the data to be weighted.
+#' @param groups A vector of the groups in the weighting category.
+#' @param targets A vector of the desired proportions of the `groups`.
+#' These target will be automatically re-proportioned to sum to 1 if
+#' necessary.
 #' 
-#' @return A \code{list} with special class \code{category}.
+#' @importFrom labelled is.labelled val_labels
+#' @importFrom rlang warn abort
 #' 
-#' @examples 
+#' @return A list with the class of `"category"`.
+#' 
+#' @examples
 #' category(
-#'   name = "costume",
-#'   buckets = c("Bat Man", "Cactus"),
-#'   targets = c(0.645, 0.355)
-#' )
-#' 
-#' category(
-#'   name = "seeds",
-#'   buckets = c("Tornado", "Bird", "Earthquake"),
-#'   targets = c(0.3333, 0.3333, 0.3333),
-#'   sum.1 = TRUE
+#'     name = "vs",
+#'     groups = c(0, 1),
+#'     targets = c(1/3, 2/3)
 #' )
 #' 
 #' @export
-category <- function(name, buckets, targets, sum.1 = FALSE) {
+category <- function(name, groups, targets) {
     
-    # verify parameters
-    if (!is.character(name) || length(name) != 1) {
-        stop("`name` must be a character vector of length one.")
+    # Check to make sure groups and targets are the same length
+    if (length(groups) != length(targets)) {
+        abort("The number of groups must equal the number of targets.")
     }
     
-    if (length(buckets) != length(targets)) {
-        stop("Length of `buckets` must match length of `targets`.")
+    # Store as a list
+    out <- list(list(
+        groups = groups,
+        targets = targets
+    ))
+    
+    names(out) <- name
+    
+    # Check to make sure that the targets sum to 1
+    sum.targets <- sum(targets, na.rm = TRUE)
+    sum1 <- sum.targets == 1
+    
+    if (!sum1) {
+        warn(glue(
+            "Weighting targets for '{name}' will be re-proportioned to sum to 1."
+        ))
+        targets.sum1 <- targets / sum.targets
+        out[[1]]$targets_sum1 <- targets.sum1
     }
     
-    if (nchar(name) == 0) {
-        stop("String length of `name` must be greater than zero.")
+    # Are the groups labelled?
+    is.labelled <- is.labelled(groups)
+    
+    if (is.labelled) {
+        out[[1]]$labels <- names(val_labels(groups))
     }
     
-    # check to make sure targets sum to 1
-    if (round(sum(targets), 15) != 1 & !sum.1) {
-        stop("Input to `targets` must sum to 1. Check proportions used, or force them to sum to 1 by setting sum.1 = TRUE.")
-    }
-    
-    # adjust if specified
-    if (sum.1) {
-        targets <- targets / sum(targets)
-    }
-    
-    # list structure
-    out <- list(
-        category = name,
-        buckets = buckets,
-        targ_prop = targets
-    )
-    
-    # assign class
     class(out) <- c(class(out), "category")
     
-    return(out)
+    out
+    
+}
+
+#' Print method for category objects.
+#' 
+#' @method print category
+#' 
+#' @param x A `category` object.
+#' @param digits Number of digits for printing the target proportions, default is 3.
+#' @param ... Not currently used.
+#' 
+#' @importFrom glue glue
+#' @importFrom cli cat_rule cat_line style_italic
+#' @importFrom labelled is.labelled
+#' @importFrom stringr str_pad
+#' @importFrom scales number
+#' 
+#' @export
+print.category <- function(x, digits = 3, ...) {
+    
+    # Was this weight category re-proportioned?
+    was.reprop <- !is.null(x[[1]]$targets_sum1)
+    
+    # What's the weight category name?
+    wgt.cat <- names(x)
+    
+    # What are the groups and the targets?
+    groups       <- x[[1]][["groups"]]
+    targets      <- x[[1]][["targets"]]
+    targets_sum1 <- x[[1]][["targets_sum1"]]
+    
+    # Header line
+    cat_rule(glue("Weighting Category: {wgt.cat}"))
+    
+    # Build the bullet point strings
+    is.labelled <- is.labelled(groups)
+    if (is.labelled) {
+        labels <- x[[1]]$labels
+        groups <- glue("{groups} [{labels}]")
+    }
+    groups    <- paste0(groups, ":")
+    group.chr <- nchar(groups)
+    max.chr   <- max(group.chr)
+    
+    groups <- str_pad(groups, width = max.chr, side = "right", pad = ' ')
+    
+    if (was.reprop) {
+        cat_line(style_italic("Targets were re-proportioned to sum to 1."))
+        values <- number(targets_sum1, accuracy = 1/10^digits, trim = FALSE)
+    } else {
+        values <- number(targets, accuracy = 1/10^digits, trim = FALSE)
+    }
+    
+    cat_line(glue("{groups} {values}"))
     
 }

@@ -131,6 +131,8 @@ iterake2 <- function(
         permute = FALSE,
         control = control_iterake()
 ) {
+    
+    # browser()
 
     # Initialize things
     tmp.base        <- fmutate(x, ...wgt... = 1)
@@ -441,12 +443,12 @@ iterake2 <- function(
     cat_line("Weights")
     print(res)
 
-    # list(
-    #     "delta" = delta.log,
-    #     "counter" = rep.counter,
-    #     "stuck_counter" = stuck.counter,
-    #     "results" = res
-    # )
+    list(
+        "delta" = delta.log,
+        "counter" = rep.counter,
+        "stuck_counter" = stuck.counter,
+        "results" = res
+    )
 }
 
 # iterake(
@@ -462,9 +464,19 @@ bench::mark(
     check = FALSE
 )
 
+v1 <- iterake(mod, threshold = 1e-15, permute = TRUE)
+v2 <- iterake2(x = tst, targets = want.tibbles, permute = TRUE)
 
-
-
+v1 |> 
+    select(v1 = weight) |> 
+    mutate(v2 = v2$results) |> 
+    mutate(
+        across(
+            .cols = v1:v2,
+            .fns = \(x) round(x, 13)
+        )
+    ) |> 
+    filter(v1 != v2)
 
 # Ideas -------------------------------------------------------------------
 
