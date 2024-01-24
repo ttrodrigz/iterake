@@ -45,7 +45,7 @@ compatible_types <- function(x, y) {
 #' 
 #' @examples
 #' unweighted_ss(
-#'     x = runif(3),
+#'     x = runif(3)
 #' )
 #' 
 #' @export
@@ -61,6 +61,7 @@ unweighted_ss <- function(x) {
 #' @param w A vector of weights.
 #' 
 #' @importFrom collapse fsum
+#' @importFrom stats complete.cases
 #' 
 #' @examples
 #' weighted_ss(
@@ -83,6 +84,7 @@ weighted_ss <- function(x, w) {
 #' @param w A vector of weights.
 #' 
 #' @importFrom collapse fsum
+#' @importFrom stats complete.cases
 #' 
 #' @examples
 #' effective_ss(
@@ -97,7 +99,7 @@ effective_ss <- function(x, w) {
     
     w <- w[valid]
     
-    (sum(w) ^ 2) / sum(w ^ 2)
+    (fsum(w) ^ 2) / fsum(w ^ 2)
     
 }
 
@@ -114,4 +116,82 @@ effective_ss <- function(x, w) {
 #' @export
 weighting_efficiency <- function(w) {
     effective_ss(w, w) / unweighted_ss(w)
+}
+
+
+#' Parameter setting function for \code{iterake()}.
+#' 
+#' @param threshold Value specifying minimum summed difference between weighted marginal 
+#' proportions of sample and universe before algorithm quits, default is 1e-10.
+#' @param max_weight Maximum value weights can take on, default is 3. The capping 
+#' takes place prior to applying expansion factor (if \code{pop_size} is set in \code{universe()}.
+#' @param max_iter Value capping number of iterations for the procedure, default is 50.
+#' @param max_stuck Value capping the number of times summed differences between sample 
+#' and universe can oscillate between increasing and decreasing, default is 5.
+#' 
+#' @importFrom rlang abort
+#' 
+#' @return A \code{list} with special class \code{control}.
+#' 
+#' @export
+control_iterake <- function(
+        threshold = 1e-10,
+        max_weight = 3,
+        max_iter = 50,
+        max_stuck = 5
+) {
+    
+    # threshold
+    if (any(
+        length(threshold) > 1,
+        !is.numeric(threshold),
+        threshold < 0
+    )) {
+        
+        abort("Input to `threshold` must be a single positive numeric value.")
+    }
+    
+    # max_weight
+    if (any(
+        length(max_weight) > 1,
+        !is.numeric(max_weight),
+        max_weight <= 1
+    )) {
+        
+        abort("Input to `max_weight` must be a single numeric value greater than 1.")
+        
+    }
+    
+    # max_iter
+    if (any(
+        length(max_iter) > 1,
+        !is.numeric(max_iter),
+        max_iter <= 0
+    )) {
+        
+        abort("Input to `max_iter` must be a single numeric value greater than 0.")
+        
+    }
+    
+    # max_stuck
+    if (any(
+        length(max_stuck) > 1,
+        !is.numeric(max_stuck),
+        max_stuck < 1
+    )) {
+        
+        abort("Input to `max_stuck` must be a single numeric value greater than or equal to 1.")
+        
+    }
+    
+    out <- list(
+        threshold = threshold,
+        max_weight = max_weight,
+        max_iter = max_iter,
+        max_stuck = max_stuck
+    )
+    
+    class(out) <- c(class(out), "control")
+    
+    out
 }

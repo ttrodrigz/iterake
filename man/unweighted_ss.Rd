@@ -14,7 +14,7 @@ Unweighted sample size.
 }
 \examples{
 unweighted_ss(
-    x = runif(3),
+    x = runif(3)
 )
 
 }

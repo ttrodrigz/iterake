@@ -13,14 +13,17 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
+    arrangements,
     cli,
+    collapse,
     dplyr,
     glue,
     labelled,
     purrr,
     rlang (>= 1.1.0),
     scales,
-    stringr
+    stringr,
+    tibble
 Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
