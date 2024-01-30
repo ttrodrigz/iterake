@@ -7,7 +7,7 @@
 \method{print}{iterake}(x, digits = 3, ...)
 }
 \arguments{
-\item{x}{A \code{iterake} object.}
+\item{x}{An \code{iterake} object.}
 
 \item{digits}{Number of digits for printing proportions, default is 3.}
 

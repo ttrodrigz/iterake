@@ -67,9 +67,6 @@ iterake <- function(
     n.permutes <- nrow(order.list)
     
     # only look at the first row (original order) if not permuting
-    # all of the progress bar stuff related to permuting as well
-    # as the cat outputs can all be scrapped/replaced, just tossed
-    # it all in for now
     if (!permute) {
         
         # only keep first row (original order)
@@ -288,39 +285,16 @@ iterake <- function(
     }
     
     if (is.null(tmp.keep)) {
-        # need something to be passed that indicates success or failure
-        # so the print method knows which way to go
-        # how about make res a 0-length numeric vector? And a null summary?
+        # summary is null to indicate failure so the print method knows which way to go
         res <- numeric()
         summary <- NULL
-        
-        # FAIL METHOD
-        
-        # out.bad <- red $ bold
-        # 
-        # title1 <- 'iterake summary'
-        # num.dashes <- nchar(title1) + 4
-        # rem.dashes <- 80 - num.dashes
-        # 
-        # cat('\n-- ' %+% 
-        #         bold(title1) %+% 
-        #         ' ' %+%
-        #         paste(rep('-', times = rem.dashes), collapse = "") %+%
-        #         '\n')
-        # cat(' Convergence: ' %+% red('Failed') %+% '\n')
-        # cat('  Iterations: ' %+% paste0(max.iter) %+% '\n\n')
-        # cat('Unweighted N: ' %+% paste0(nrow(tmp.base)) %+% '\n')
-        # cat(' Effective N: ' %+% '--\n')
-        # cat('  Weighted N: ' %+% '--\n')
-        # cat('  Efficiency: ' %+% '--\n')
-        # cat('        Loss: ' %+% '--\n')
         
     } else {
         
         # calculate stats
         res     <- pull(tmp.keep, ...wgt...)
         summary <- tibble(
-            "ugt_n" = unweighted_ss(res),
+            "uwgt_n" = unweighted_ss(res),
             "wgt_n" = weighted_ss(1, res),
             "eff_n" = effective_ss(1, res),
             "loss" = (unweighted_ss(res) / effective_ss(1, res)) - 1,
@@ -329,45 +303,99 @@ iterake <- function(
             "max" = fmax(res)
         )
         
+    }
+
+    # remember downstream summary is null if it doesnt work
+    out <- list(
+        "universe" = universe,
+        "control" = control,
+        "delta_log" = delta.log.keep,
+        "counter" = rep.ct.keep,
+        "stuck_counter" = stk.ct.keep,
+        "stuck_delta" = stuck.delta,
+        "winner" = winner,
+        "delta" = delta.keep,
+        "permute" = permute,
+        "results" = res,
+        "summary" = summary
+    )
+    
+    class(out) <- c(class(out), "iterake")
+    
+    out
+}
+
+#' Print method for iterake objects.
+#' 
+#' @method print iterake
+#' 
+#' @param x An `iterake` object.
+#' @param digits Number of digits for printing proportions, default is 3.
+#' @param ... Not currently used.
+#' 
+#' @importFrom crayon red green bold %+%
+#' @importFrom scales percent
+#'
+#' @export
+print.iterake <- function(x, digits = 3, ...) {
+
+    success <- !is.null(x$summary)
+    
+    if (success) {
         # output message
-        # out.good <- green $ bold
-        # title1 <- 'iterake summary'
-        # num.dashes <- nchar(title1) + 4
-        # rem.dashes <- 80 - num.dashes
-        # 
-        # cat('\n-- ' %+% 
-        #         bold(title1) %+% 
-        #         ' ' %+%
-        #         paste(rep('-', times = rem.dashes), collapse = "") %+%
-        #         '\n')
-        # 
-        # cat(' Convergence: ' %+% green('Success') %+% '\n')
-        # cat('  Iterations: ' %+% paste0(rep.ct.keep) %+% '\n\n')
-        # cat('Unweighted N: ' %+% paste0(sprintf("%.2f", uwgt.n)) %+% '\n')
-        # cat(' Effective N: ' %+% paste0(round(eff.n,  2)) %+% '\n')
-        # cat('  Weighted N: ' %+% paste0(sprintf("%.2f", wgt.n)) %+% '\n')
-        # cat('  Efficiency: ' %+% paste0(percent(round(efficiency, 4))) %+% '\n')
-        # cat('        Loss: ' %+% paste0(loss) %+% '\n')
-        # 
-        # if (permute) {
-        #     cat('       Order: ' %+% paste(winner, collapse = " ") %+% '\n\n')    
-        # } else {
-        #     cat('\n')
-        # }
-        # 
-        # if (stuck.delta > 0) {
-        #     cat(' NOTE: ' %+% 
-        #             paste0('Threshold met, stopped at difference of ' %+% 
-        #                        paste0(
-        #                            formatC(stuck.delta, 
-        #                                    format = "e", 
-        #                                    digits = 3))) %+% 
-        #             ' between weighted sample and universe.\n\n')
-        # }
+        out.good <- green $ bold
+        title1 <- 'iterake summary'
+        num.dashes <- nchar(title1) + 4
+        rem.dashes <- 80 - num.dashes
+        
+        cat('\n-- ' %+%
+                bold(title1) %+%
+                ' ' %+%
+                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                '\n')
+        
+        cat(' Convergence: ' %+% green('Success') %+% '\n')
+        cat('  Iterations: ' %+% paste0(x$counter) %+% '\n\n')
+        cat('Unweighted N: ' %+% paste0(sprintf("%.2f", x$summary$uwgt_n)) %+% '\n')
+        cat(' Effective N: ' %+% paste0(round(x$summary$eff_n,  2)) %+% '\n')
+        cat('  Weighted N: ' %+% paste0(sprintf("%.2f", x$summary$wgt_n)) %+% '\n')
+        cat('  Efficiency: ' %+% paste0(percent(round(x$summary$efficiency, 4))) %+% '\n')
+        cat('        Loss: ' %+% paste0(round(x$summary$loss, digits)) %+% '\n')
+        cat('       Order: ' %+% paste(x$winner, collapse = " ") %+% '\n\n')
+        
+        if (x$stuck_delta > 0) {
+            cat(' NOTE: ' %+%
+                    paste0('Threshold met, stopped at difference of ' %+%
+                               paste0(
+                                   formatC(x$stuck_delta,
+                                           format = "e",
+                                           digits = 3))) %+%
+                    ' between weighted sample and universe.\n\n')
+        }
+        
+    } else {
+        # FAIL METHOD
+        out.bad <- red $ bold
+
+        title1 <- 'iterake summary'
+        num.dashes <- nchar(title1) + 4
+        rem.dashes <- 80 - num.dashes
+
+        cat('\n-- ' %+%
+                bold(title1) %+%
+                ' ' %+%
+                paste(rep('-', times = rem.dashes), collapse = "") %+%
+                '\n')
+        cat(' Convergence: ' %+% red('Failed') %+% '\n')
+        cat('  Iterations: ' %+% paste0(x$control$max_iter) %+% '\n\n')
+        cat('Unweighted N: ' %+% paste0(nrow(x$universe$data$data)) %+% '\n')
+        cat(' Effective N: ' %+% '--\n')
+        cat('  Weighted N: ' %+% '--\n')
+        cat('  Efficiency: ' %+% '--\n')
+        cat('        Loss: ' %+% '--\n')
     }
     
     # this area should be moved to a custom print function
-    
     # cat_line("Delta")
     # print(delta.keep)
     # 
@@ -382,41 +410,6 @@ iterake <- function(
     # 
     # cat_line("Weights")
     # print(res)
-
-    # remember downstream res is numeric(0) if it doesnt work
-    out <- list(
-        "universe" = universe,
-        "delta_log" = delta.log.keep,
-        "counter" = rep.ct.keep,
-        "stuck_counter" = stk.ct.keep,
-        "winner" = winner,
-        "delta" = delta.keep,
-        "results" = res,
-        "summary" = summary
-    )
-    
-    class(out) <- c(class(out), "iterake")
-    
-    out
-}
-
-#' Print method for iterake objects.
-#' 
-#' @method print iterake
-#' 
-#' @param x A `iterake` object.
-#' @param digits Number of digits for printing proportions, default is 3.
-#' @param ... Not currently used.
-#' 
-#' @importFrom cli cat_bullet cat_line rule
-#' @importFrom glue glue
-#' @importFrom scales comma
-#'
-#' @export
-print.iterake <- function(x, digits = 3, ...) {
-    
-    x
-    
 }
 
 utils::globalVariables(c("...wgt...", "wgt_fct"))

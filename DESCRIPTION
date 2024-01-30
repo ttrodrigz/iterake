@@ -16,6 +16,7 @@ Imports:
     arrangements,
     cli,
     collapse,
+    crayon,
     dplyr,
     glue,
     labelled,
