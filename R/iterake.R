@@ -357,9 +357,9 @@ print.iterake <- function(x, digits = 3, ...) {
         cat(' Convergence: ' %+% green('Success') %+% '\n')
         cat('  Iterations: ' %+% paste0(x$counter) %+% '\n\n')
         cat('Unweighted N: ' %+% paste0(sprintf("%.2f", x$summary$uwgt_n)) %+% '\n')
-        cat(' Effective N: ' %+% paste0(round(x$summary$eff_n,  2)) %+% '\n')
+        cat(' Effective N: ' %+% paste0(sprintf("%.2f", x$summary$eff_n)) %+% '\n')
         cat('  Weighted N: ' %+% paste0(sprintf("%.2f", x$summary$wgt_n)) %+% '\n')
-        cat('  Efficiency: ' %+% paste0(percent(round(x$summary$efficiency, 4))) %+% '\n')
+        cat('  Efficiency: ' %+% paste0(percent(round(x$summary$efficiency, digits))) %+% '\n')
         cat('        Loss: ' %+% paste0(round(x$summary$loss, digits)) %+% '\n')
         cat('       Order: ' %+% paste(x$winner, collapse = " ") %+% '\n\n')
         
@@ -369,7 +369,7 @@ print.iterake <- function(x, digits = 3, ...) {
                                paste0(
                                    formatC(x$stuck_delta,
                                            format = "e",
-                                           digits = 3))) %+%
+                                           digits = digits))) %+%
                     ' between weighted sample and universe.\n\n')
         }
         
