@@ -4,15 +4,12 @@
 \alias{universe}
 \title{Create universe}
 \usage{
-universe(data, ..., pop_size = NULL)
+universe(data, ...)
 }
 \arguments{
 \item{data}{Data frame containing data where weights are desired.}
 
 \item{...}{One or more output objects from \code{category()}.}
-
-\item{pop_size}{Size of universe. If supplied, expansion factor will be applied
-to weights after convergence.}
 }
 \value{
 A \code{list} with special class \code{universe}.
@@ -25,7 +22,6 @@ It also checks and adjusts the proportions to account for missing values in the 
 \examples{
 universe(
     data = mtcars,
-
     category(
         name = "vs",
         groups = c(0, 1),

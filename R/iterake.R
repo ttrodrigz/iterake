@@ -7,12 +7,6 @@
 #' set in \code{universe()}. Summary statistics of the weighting procedure are 
 #' presented by default.
 #' 
-#' Notes:
-#' Check the 3 outcomes:
-#' 1. met the iteration limit
-#' 2. met the stuck limit
-#' 3. pass, success
-#' 
 #' @param universe Output object created with \code{universe()} function.
 #' @param permute Boolean indicating whether to test all possible orders of categories in \code{universe} 
 #' and keep the most efficient (\code{TRUE}) or to test categories in the order listed in \code{universe} 
@@ -59,7 +53,7 @@ iterake <- function(
     winner          <- NULL
     rep.ct.keep     <- 0
     stk.ct.keep     <- 0
-    stuck.delta     <- 0
+    stk.delta.keep  <- 0
     delta.keep      <- 0
     delta.log.keep  <- numeric()
     
@@ -112,6 +106,7 @@ iterake <- function(
         # Initialize some more things
         rep.counter   <- 0
         stuck.counter <- 0
+        stuck.delta   <- 0
         delta.log     <- numeric()
         tmp           <- tmp.base
         
@@ -217,9 +212,7 @@ iterake <- function(
                     stuck.counter <- stuck.counter + 1
                     
                     if (stuck.counter == max.stuck) {
-                        # break may cause issues w/in outer permute loop
-                        # unless does it only break one level out? meaning
-                        # it breaks the do while and not the outer for loop?
+                        
                         stuck.delta <- delta
                         
                         break
@@ -230,10 +223,7 @@ iterake <- function(
             # Keep a log of the deltas.
             delta.log <- c(delta.log, delta)
             
-            if (rep.counter == max.iter) {
-                # same issue/thoughts as above
-                break
-            }
+            if (rep.counter == max.iter) {break}
             
         }
         
@@ -247,9 +237,12 @@ iterake <- function(
             # items for summary output
             rep.ct.keep    <- rep.counter
             stk.ct.keep    <- stuck.counter
+            stk.delta.keep <- stuck.delta
+            hit.max.iters  <- rep.counter == max.iter
             winner         <- wt.cats.tmp
             delta.keep     <- delta
             delta.log.keep <- delta.log
+            
             
         } else {
             
@@ -276,6 +269,8 @@ iterake <- function(
                 # items for summary output
                 rep.ct.keep    <- rep.counter
                 stk.ct.keep    <- stuck.counter
+                stk.delta.keep <- stuck.delta
+                hit.max.iters  <- rep.counter == max.iter
                 winner         <- wt.cats.tmp
                 delta.keep     <- delta
                 delta.log.keep <- delta.log
@@ -290,32 +285,33 @@ iterake <- function(
         cli_progress_done()
     }
     
-    if (is.null(tmp.keep)) {
-        # summary is null to indicate failure so the print method knows which way to go
-        res <- numeric()
-        summary <- NULL
-        
+    # max iteration
+    if (hit.max.iters) {
+        status <- 1
+    # max stuck
+    } else if (stk.delta.keep > 0) {
+        status <- 2
+    # should be good
     } else {
-        
-        # calculate stats
-        res     <- pull(tmp.keep, ...wgt...)
-        summary <- tibble(
-            "uwgt_n" = sample_size(res, res, type = "u"),
-            "wgt_n"  = sample_size(res, res, type = "w"),
-            "eff_n"  = sample_size(res, res, type = "e"),
-            "loss"   = uwgt_n / eff_n - 1,
-            "efficiency" = weighting_efficiency(res),
-            "min" = fmin(res),
-            "max" = fmax(res)
-        )
-        
+        status <- 3
     }
+    
+    res     <- pull(tmp.keep, ...wgt...)
+    summary <- tibble(
+        "uwgt_n" = sample_size(res, res, type = "u"),
+        "wgt_n"  = sample_size(res, res, type = "w"),
+        "eff_n"  = sample_size(res, res, type = "e"),
+        "loss"   = uwgt_n / eff_n - 1,
+        "efficiency" = weighting_efficiency(res),
+        "min" = fmin(res),
+        "max" = fmax(res)
+    )
 
-    # remember downstream summary is null if it doesn't work
+    # remember downstream to check status
     out <- list(
         "universe" = universe,
         "control" = control,
-        # "status" = status, # 1, 2, or 3.
+        "status" = status, # 1, 2, or 3.
         "delta_log" = delta.log.keep,
         "counter" = rep.ct.keep,
         "stuck_counter" = stk.ct.keep,
@@ -345,8 +341,13 @@ iterake <- function(
 #'
 #' @export
 print.iterake <- function(x, digits = 3, ...) {
-
-    success <- !is.null(x$summary)
+    # Notes:
+    # Check the 3 outcomes:
+    # 1. met the iteration limit
+    # 2. met the stuck limit
+    # 3. pass, success
+    
+    success <- x$status == 3
     
     if (success) {
         # output message
@@ -370,16 +371,6 @@ print.iterake <- function(x, digits = 3, ...) {
         cat('        Loss: ' %+% paste0(round(x$summary$loss, digits)) %+% '\n')
         cat('       Order: ' %+% paste(x$winner, collapse = " ") %+% '\n\n')
         
-        if (x$stuck_delta > 0) {
-            cat(' NOTE: ' %+%
-                    paste0('Threshold met, stopped at difference of ' %+%
-                               paste0(
-                                   formatC(x$stuck_delta,
-                                           format = "e",
-                                           digits = digits))) %+%
-                    ' between weighted sample and universe.\n\n')
-        }
-        
     } else {
         # FAIL METHOD
         out.bad <- red $ bold
@@ -394,12 +385,32 @@ print.iterake <- function(x, digits = 3, ...) {
                 paste(rep('-', times = rem.dashes), collapse = "") %+%
                 '\n')
         cat(' Convergence: ' %+% red('Failed') %+% '\n')
-        cat('  Iterations: ' %+% paste0(x$control$max_iter) %+% '\n\n')
-        cat('Unweighted N: ' %+% paste0(nrow(x$universe$data$data)) %+% '\n')
+        cat('  Iterations: ' %+% paste0(x$counter) %+% '\n\n')
+        cat('Unweighted N: ' %+% paste0(sprintf("%.2f", x$summary$uwgt_n)) %+% '\n')
         cat(' Effective N: ' %+% '--\n')
         cat('  Weighted N: ' %+% '--\n')
         cat('  Efficiency: ' %+% '--\n')
         cat('        Loss: ' %+% '--\n')
+        
+        if (x$status == 1) {
+            cat(' NOTE: ' %+%
+                    paste0('Max iterations met before converging, stopped at difference of ' %+%
+                               paste0(
+                                   formatC(x$delta,
+                                           format = "e",
+                                           digits = digits))) %+%
+                    ' between weighted sample and universe.\n\n')
+        }
+        
+        if (x$status == 2) {
+            cat(' NOTE: ' %+%
+                    paste0('Stuck threshold met, not consistantly improving, stopped at difference of ' %+%
+                               paste0(
+                                   formatC(x$stuck_delta,
+                                           format = "e",
+                                           digits = digits))) %+%
+                    ' between weighted sample and universe.\n\n')
+        }
     }
     
     # this area should be moved to a custom print function
@@ -419,4 +430,4 @@ print.iterake <- function(x, digits = 3, ...) {
     # print(res)
 }
 
-utils::globalVariables(c("...wgt...", "wgt_fct"))
+utils::globalVariables(c("...wgt...", "eff_n", "uwgt_n", "wgt_fct"))

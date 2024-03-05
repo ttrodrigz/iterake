@@ -45,6 +45,7 @@ compatible_types <- function(x, y) {
 #' 
 #' @importFrom collapse fsum 
 #' @importFrom rlang abort
+#' @importFrom stats complete.cases
 #' 
 #' @examples
 #' x <- 1:3

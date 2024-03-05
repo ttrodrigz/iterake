@@ -147,8 +147,3 @@ print.universe <- function(x, digits = 3, ...) {
         cat_bullet(cat.names, bullet = "bullet", bullet_col = "green")
     }
 }
-
-
-www <- rnorm(20, 1, 0.15)
-
-www2 <- utilitybelt::transform_vec_sum_to(www, target = 100)
