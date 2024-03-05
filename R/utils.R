@@ -36,73 +36,63 @@ compatible_types <- function(x, y) {
     
 }
 
-
-#' Unweighted sample size.
+#' Sample size calculations.
 #' 
-#' @param x A vector.
+#' @details
+#' The unweighed sample size is the number of non-missing elements in `x`. The
+#' weighted sample size is the sum of the weights for the complete cases in `x` 
+#' and `w`. The effective sample size is \eqn{(sum(w)^2) / sum(w^2)}.
 #' 
-#' @importFrom collapse fsum
+#' @importFrom collapse fsum 
+#' @importFrom rlang abort
 #' 
 #' @examples
-#' unweighted_ss(
-#'     x = runif(3)
-#' )
+#' x <- 1:3
+#' w <- c(0.75, 1.00, 1.25)
 #' 
-#' @export
-unweighted_ss <- function(x) {
-    
-    fsum(!is.na(x))
-    
-}
-
-#' Weighted sample size.
+#' sample_size(x, w, type = "u")
+#' sample_size(x, w, type = "w")
+#' sample_size(x, w, type = "e")
+#' sample_size(x, w, type = "all")
 #' 
 #' @param x A vector.
 #' @param w A vector of weights.
+#' @param type One of `"u"` for unweighted, `"w"` for weighted, `"e"` effective, 
+#' or `"all"` for all three.
 #' 
-#' @importFrom collapse fsum
-#' @importFrom stats complete.cases
-#' 
-#' @examples
-#' weighted_ss(
-#'     x = runif(3),
-#'     w = c(0.75, 1.00, 1.25)
-#' )
+#' @return Either a single numeric value, or a named vector if `type = "all"`.
 #' 
 #' @export
-weighted_ss <- function(x, w) {
+sample_size <- function(x, w, type = "u") {
     
-    valid <- complete.cases(cbind(x, w))
+    if (type != "u" & missing(w)) {
+        abort("Must provide an input to `w` if weighted or effective sample size is desired.")
+    }
     
-    fsum(w[valid])
     
-}
-
-#' Effective sample size.
-#' 
-#' @param x A vector.
-#' @param w A vector of weights.
-#' 
-#' @importFrom collapse fsum
-#' @importFrom stats complete.cases
-#' 
-#' @examples
-#' effective_ss(
-#'     x = runif(3),
-#'     w = c(0.75, 1.00, 1.25)
-#' )
-#' 
-#' @export
-effective_ss <- function(x, w) {
+    if (type != "u") {
+        valid <- complete.cases(cbind(x, w))
+        w.valid <- w[valid]
+        wss <- fsum(w.valid)
+        ess <- (fsum(w.valid) ^ 2) / fsum(w.valid ^ 2)
+        
+    }
     
-    valid <- complete.cases(cbind(x, w))
+    uss <- fsum(!is.na(x))    
     
-    w <- w[valid]
-    
-    (fsum(w) ^ 2) / fsum(w ^ 2)
+    if (type == "u") {
+        return(uss)
+    } else if (type == "w") {
+        return(wss)
+    } else if (type == "e") {
+        return(ess)
+    } else if (type == "all") {
+        return(
+            c("unweighted" = uss, "weighted" = wss, "effective" = ess)
+        )
+    }
     
 }
-
 
 #' Weighting efficiency.
 #' 
@@ -115,7 +105,7 @@ effective_ss <- function(x, w) {
 #' 
 #' @export
 weighting_efficiency <- function(w) {
-    effective_ss(w, w) / unweighted_ss(w)
+    sample_size(w, w, type = "e") / sample_size(w, type = "u")
 }
 
 

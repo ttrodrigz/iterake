@@ -6,8 +6,6 @@
 #' 
 #' @param data Data frame containing data where weights are desired.
 #' @param ... One or more output objects from \code{category()}.
-#' @param pop_size Size of universe. If supplied, expansion factor will be applied
-#' to weights after convergence.
 #' 
 #' @importFrom dplyr setdiff
 #' @importFrom glue glue
@@ -19,7 +17,6 @@
 #' @examples 
 #' universe(
 #'     data = mtcars,
-#' 
 #'     category(
 #'         name = "vs",
 #'         groups = c(0, 1),
@@ -28,7 +25,7 @@
 #' )
 #' 
 #' @export
-universe <- function(data, ..., pop_size = NULL) {
+universe <- function(data, ...) {
     
     # Get stuff related to the data
     data.name <- deparse(substitute(data))
@@ -103,8 +100,7 @@ universe <- function(data, ..., pop_size = NULL) {
             data_name = data.name,
             ss = ss
         ),
-        categories = cats,
-        pop_size = pop_size
+        categories = cats
     )
     
     class(out) <- c(class(out), "universe")
@@ -141,9 +137,18 @@ print.universe <- function(x, digits = 3, ...) {
         line = 2
     ))
     
-    cat_line(glue("A weighting universe with ({ncat}) weighting categories."))
+    if (ncat == 1) {
+        cat_line(glue("A weighting universe with {ncat} weighting category."))
+    } else {
+        cat_line(glue("A weighting universe with {ncat} weighting categories."))
+    }
     
     if (ncat > 0) {
-        cat_bullet(cat.names)
+        cat_bullet(cat.names, bullet = "bullet", bullet_col = "green")
     }
 }
+
+
+www <- rnorm(20, 1, 0.15)
+
+www2 <- utilitybelt::transform_vec_sum_to(www, target = 100)

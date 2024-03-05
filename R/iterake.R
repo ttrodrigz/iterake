@@ -7,6 +7,12 @@
 #' set in \code{universe()}. Summary statistics of the weighting procedure are 
 #' presented by default.
 #' 
+#' Notes:
+#' Check the 3 outcomes:
+#' 1. met the iteration limit
+#' 2. met the stuck limit
+#' 3. pass, success
+#' 
 #' @param universe Output object created with \code{universe()} function.
 #' @param permute Boolean indicating whether to test all possible orders of categories in \code{universe} 
 #' and keep the most efficient (\code{TRUE}) or to test categories in the order listed in \code{universe} 
@@ -252,8 +258,8 @@ iterake <- function(
             wgt.new <- pull(tmp, ...wgt...)
             
             # calculate before and after effN
-            effN.old <- effective_ss(1, wgt.old)
-            effN.new <- effective_ss(1, wgt.new)
+            effN.old <- sample_size(1, wgt.old, type = "e")
+            effN.new <- sample_size(1, wgt.new, type = "e")
             
             # This is N, how much of a fractional person
             # should count as "better"? A hundredth? A thousandth?
@@ -294,21 +300,22 @@ iterake <- function(
         # calculate stats
         res     <- pull(tmp.keep, ...wgt...)
         summary <- tibble(
-            "uwgt_n" = unweighted_ss(res),
-            "wgt_n" = weighted_ss(1, res),
-            "eff_n" = effective_ss(1, res),
-            "loss" = (unweighted_ss(res) / effective_ss(1, res)) - 1,
-            "efficiency" = (effective_ss(1, res) / unweighted_ss(res)),
+            "uwgt_n" = sample_size(res, res, type = "u"),
+            "wgt_n"  = sample_size(res, res, type = "w"),
+            "eff_n"  = sample_size(res, res, type = "e"),
+            "loss"   = uwgt_n / eff_n - 1,
+            "efficiency" = weighting_efficiency(res),
             "min" = fmin(res),
             "max" = fmax(res)
         )
         
     }
 
-    # remember downstream summary is null if it doesnt work
+    # remember downstream summary is null if it doesn't work
     out <- list(
         "universe" = universe,
         "control" = control,
+        # "status" = status, # 1, 2, or 3.
         "delta_log" = delta.log.keep,
         "counter" = rep.ct.keep,
         "stuck_counter" = stk.ct.keep,
