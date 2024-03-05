@@ -4,14 +4,14 @@
 \alias{print.iterake}
 \title{Print method for iterake objects.}
 \usage{
-\method{print}{iterake}(x, digits = 3, ...)
+\method{print}{iterake}(x, ...)
 }
 \arguments{
 \item{x}{An \code{iterake} object.}
 
-\item{digits}{Number of digits for printing proportions, default is 3.}
-
 \item{...}{Not currently used.}
+
+\item{digits}{Number of digits for printing proportions, default is 3.}
 }
 \description{
 Print method for iterake objects.
