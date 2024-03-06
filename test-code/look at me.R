@@ -13,18 +13,20 @@ u <-
         targets = c(1, 1, 1)
     )
 
-got_stuck <- iterake(
-    universe = u,
-    control = control_iterake(threshold = 0, max_iter = 100000)
-)
-
-met_iter <- iterake(
-    universe = u,
-    control = control_iterake(threshold = 0, max_iter = 10)
-)
-
-
 good <- iterake(
     universe = u,
     control = control_iterake()
 )
+
+good |> 
+    append_weights() |> 
+    count(cyl, gear, weight)
+
+
+aa <- c("cyl", "gear")
+aa <- syms(aa)
+
+good |> 
+    append_weights() |> 
+    count(!!!aa, weight) |> 
+    summarise(sum(weight * n))

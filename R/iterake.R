@@ -381,6 +381,7 @@ print.iterake <- function(x, ...) {
     
 
     cat_rule("iterake")
+    cat_line()
     cat_line("      Status: ", converged_text)
     cat_line("  Iterations: ", comma(iter, accuracy = 1))
     cat_line("Unweighted N: ", comma(uss, accuracy = 0.1))
