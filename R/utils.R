@@ -1,12 +1,13 @@
 #' Type compatibility check
 #' 
+#' @description
 #' Internal function to verify match between category group vector type and 
 #' data vector type.
 #' 
 #' @param x First vector of data to be typed and compared.
 #' @param y Second vector of data to be typed and compared.
 #' 
-#' @return A \code{boolean} indicating whether the types match.
+#' @return A `boolean` indicating whether the types match.
 #' 
 #' @examples 
 #' compatible_types(
@@ -38,7 +39,7 @@ compatible_types <- function(x, y) {
 
 #' Sample size calculations.
 #' 
-#' @details
+#' @description
 #' The unweighed sample size is the number of non-missing elements in `x`. The
 #' weighted sample size is the sum of the weights for the complete cases in `x` 
 #' and `w`. The effective sample size is \eqn{(sum(w)^2) / sum(w^2)}.
@@ -114,8 +115,7 @@ weighting_efficiency <- function(w) {
 #' 
 #' @param threshold Value specifying minimum summed difference between weighted marginal 
 #' proportions of sample and universe before algorithm quits, default is 1e-10.
-#' @param max_weight Maximum value weights can take on, default is 3. The capping 
-#' takes place prior to applying expansion factor (if \code{pop_size} is set in \code{universe()}.
+#' @param max_weight Maximum value weights can take on, default is 3.
 #' @param max_iter Value capping number of iterations for the procedure, default is 50.
 #' @param max_stuck Value capping the number of times summed differences between sample 
 #' and universe can oscillate between increasing and decreasing, default is 5.

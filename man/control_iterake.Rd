@@ -15,8 +15,7 @@ control_iterake(
 \item{threshold}{Value specifying minimum summed difference between weighted marginal
 proportions of sample and universe before algorithm quits, default is 1e-10.}
 
-\item{max_weight}{Maximum value weights can take on, default is 3. The capping
-takes place prior to applying expansion factor (if \code{pop_size} is set in \code{universe()}.}
+\item{max_weight}{Maximum value weights can take on, default is 3.}
 
 \item{max_iter}{Value capping number of iterations for the procedure, default is 50.}
 

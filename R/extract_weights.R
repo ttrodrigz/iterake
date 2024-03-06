@@ -19,7 +19,7 @@
 #' @export
 extract_weights <- function(x, name = "weight", append = TRUE) {
     
-    if (!inherits(x, iterake)) {
+    if (!inherits(x, "iterake")) {
         abort("Input to `x` must be the output of `iterake()`.")
     }
     

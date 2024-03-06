@@ -16,7 +16,6 @@ Imports:
     arrangements,
     cli,
     collapse,
-    crayon,
     dplyr,
     glue,
     labelled,
@@ -24,7 +23,8 @@ Imports:
     rlang (>= 1.1.0),
     scales,
     stringr,
-    tibble
+    tibble,
+    tidyselect
 Suggests:
     rmarkdown,
     testthat (>= 3.0.0)

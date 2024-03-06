@@ -15,7 +15,7 @@ corresponding variable in the data to be weighted.}
 \item{groups}{A vector of the groups in the weighting category.}
 
 \item{targets}{A vector of the desired proportions of the \code{groups}.
-These target will be automatically re-proportioned to sum to 1 if
+These targets will be automatically re-proportioned to sum to 1 if
 necessary.}
 }
 \value{

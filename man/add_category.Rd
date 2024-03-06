@@ -15,8 +15,8 @@ add_category(universe, category)
 A \code{list} with special class \code{universe}.
 }
 \description{
-This appends an existing \code{universe} object with an existing \code{category} object.
-This does the same checks done in \code{universe()} but just on what is passed to \code{category}.
+This appends an existing \code{universe()} object with an existing \code{category()} object.
+This does the same checks done in \code{universe()} but just on what is passed to \code{category()}.
 }
 \examples{
 uni <- universe(
