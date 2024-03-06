@@ -1,5 +1,6 @@
 #' Summary weight statistics
 #' 
+#' @description
 #' This function creates a `tibble` containing information pertaining to a set of weights. It includes
 #' sample size, weighted sample size, effective sample size, as well as loss and efficiency values.
 #' 

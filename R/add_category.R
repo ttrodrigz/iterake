@@ -1,17 +1,17 @@
 #' Append universe with existing category
 #' 
-#' This appends an existing \code{universe} object with an existing \code{category} object.
-#' This does the same checks done in \code{universe()} but just on what is passed to `category`.
+#' This appends an existing `universe()` object with an existing `category()` object.
+#' This does the same checks done in `universe()` but just on what is passed to `category()`.
 #' 
-#' @param universe Output object from \code{universe()}.
-#' @param category Output object from \code{category()}.
+#' @param universe Output object from `universe()`.
+#' @param category Output object from `category()`.
 #' 
 #' @importFrom dplyr setdiff
 #' @importFrom glue glue
 #' @importFrom purrr list_c map map_lgl
 #' @importFrom rlang abort dots_list
 #' 
-#' @return A \code{list} with special class \code{universe}.
+#' @return A `list` with special class `universe`.
 #' 
 #' @examples 
 #' uni <- universe(
@@ -35,15 +35,11 @@
 #' @export
 add_category <- function(universe, category) {
     
-    its.a.uni <- inherits(universe, "universe")
-    
-    if (!its.a.uni) {
+    if (!inherits(universe, "universe")) {
         abort("Input to `universe` must be the output of `universe()`.")
     }
     
-    its.a.cat <- inherits(category, "category")
-    
-    if (!its.a.cat) {
+    if (!inherits(category, "category")) {
         abort("Input to `category` must be the output of `category()`.")
     }
     
@@ -74,9 +70,7 @@ add_category <- function(universe, category) {
     groups.now <- cats[[1]][["groups"]]
     
     # Check for type compatibility
-    is.compatible <- compatible_types(vec.now, groups.now)
-    
-    if (!is.compatible) {
+    if (!compatible_types(vec.now, groups.now)) {
         abort(glue(
             "Weighting category `{cat.now}` is a {class(groups.now)} vector in the category specification but is a {class(vec.now)} vector in the data; they need to be the same class."
         ))

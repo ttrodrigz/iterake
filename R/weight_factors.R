@@ -1,5 +1,6 @@
 #' Generate information on weight factors
 #' 
+#' @description
 #' This function creates a `tibble` containing every combination of weighting categories
 #' used by `iterake()`, along with the size of each combination and its weight.
 #' 

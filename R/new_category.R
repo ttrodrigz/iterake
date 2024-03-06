@@ -1,16 +1,17 @@
 #' Append universe with new category
 #' 
-#' This appends an existing \code{universe} object with a new weighting category.
+#' @description
+#' This appends an existing `universe` object with a new weighting category.
 #' 
-#' @param universe Output object from \code{universe()}.
+#' @param universe Output object from `universe()`.
 #' @param name The name of the weighting category matching the name of the
 #' corresponding variable in the data to be weighted.
 #' @param groups A vector of the groups in the weighting category.
 #' @param targets A vector of the desired proportions of the `groups`.
-#' These target will be automatically re-proportioned to sum to 1 if
+#' These targets will be automatically re-proportioned to sum to 1 if
 #' necessary.
 #' 
-#' @return A \code{list} with special class \code{universe}.
+#' @return A `list` with special class `universe`.
 #' 
 #' @examples 
 #' uni <- universe(

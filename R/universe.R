@@ -1,5 +1,6 @@
 #' Create universe
 #' 
+#' @description
 #' Along with the data to be weighted, this combines one or more objects of 
 #' class \code{category} to build the universe with known marginal proportions. 
 #' It also checks and adjusts the proportions to account for missing values in the data.
