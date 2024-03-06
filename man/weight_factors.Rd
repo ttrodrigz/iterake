@@ -2,18 +2,18 @@
 % Please edit documentation in R/weight_factors.R
 \name{weight_factors}
 \alias{weight_factors}
-\title{Generate information on the weight factors used by iterake.}
+\title{Generate information on weight factors}
 \usage{
-weight_factors(iterake)
+weight_factors(x)
 }
 \arguments{
-\item{iterake}{Output object created with \code{iterake()} function.}
+\item{x}{Output of \code{iterake()}.}
 }
 \value{
-A tibble containing every weighting category combination used by iterake along with
+A \code{tibble} containing every weighting category combination used by \code{iterake()} along with
 the weight assigned to it and the number in each combination.
 }
 \description{
-This function creates a tibble containing every combination of weighting categories
-used by iterake, along with the size of each combination and its weight.
+This function creates a \code{tibble} containing every combination of weighting categories
+used by \code{iterake()}, along with the size of each combination and its weight.
 }

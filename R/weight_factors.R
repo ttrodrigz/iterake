@@ -1,30 +1,28 @@
-#' Generate information on the weight factors used by iterake.
+#' Generate information on weight factors
 #' 
-#' This function creates a tibble containing every combination of weighting categories
-#' used by iterake, along with the size of each combination and its weight.
+#' This function creates a `tibble` containing every combination of weighting categories
+#' used by `iterake()`, along with the size of each combination and its weight.
 #' 
-#' @param iterake Output object created with \code{iterake()} function.
+#' @param x Output of `iterake()`.
 #' 
 #' @importFrom dplyr across count group_by select ungroup
 #' @importFrom rlang abort
 #' @importFrom tidyselect all_of
 #' 
-#' @return A tibble containing every weighting category combination used by iterake along with 
+#' @return A `tibble` containing every weighting category combination used by `iterake()` along with 
 #' the weight assigned to it and the number in each combination.
 #' 
 #' @export
-weight_factors <- function(iterake) {
+weight_factors <- function(x) {
     
-    its.a.rake <- inherits(iterake, "iterake")
-    
-    if (!its.a.rake) {
-        abort("Input to `iterake` must be the output of `iterake()`.")
+    if (!inherits(iterake, "iterake")) {
+        abort("Input to `x` must be the output of `iterake()`.")
     }
     
-    iterake$universe$data$data |>
-        select(names(iterake$universe$categories)) |>
-        mutate(weight = iterake$results) |>
-        group_by(across(all_of(names(iterake$universe$categories)))) |>
+    x$universe$data$data |>
+        select(names(x$universe$categories)) |>
+        mutate(weight = x$results) |>
+        group_by(across(all_of(names(x$universe$categories)))) |>
         count(weight) |>
         ungroup()
     
