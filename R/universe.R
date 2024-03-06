@@ -18,6 +18,11 @@
 #' universe(
 #'     data = mtcars,
 #'     category(
+#'         name = "cyl",
+#'         groups = c(4, 6, 8),
+#'         targets = c(0.3, 0.3, 0.4)
+#'     ),
+#'     category(
 #'         name = "vs",
 #'         groups = c(0, 1),
 #'         targets = c(1/2, 1/2)
