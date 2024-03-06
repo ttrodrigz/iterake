@@ -96,9 +96,9 @@ iterake <- function(
     # Unpack the wants for faster calculation of the deltas
     want.tibbles <- universe$categories
     
-    # Replace the targets with the targets_sum1 when necessary
     for (i in seq_along(want.tibbles)) {
         
+        # Replace the targets with the targets_sum1 when necessary
         sum1 <- !is.null(want.tibbles[[i]]$targets_sum1)
         
         if (sum1) {
@@ -106,7 +106,16 @@ iterake <- function(
             want.tibbles[[i]]$targets_sum1 <- NULL
         }
         
+        want.tibbles[[i]] <- enframe(
+            x = setNames(want.tibbles[[i]]$targets, want.tibbles[[i]]$groups),
+            name = names(want.tibbles[i]),
+            value = "want"
+        )
+        
     }
+    
+    # get this prepped since itll be the same regardless of order
+    want <- map(want.tibbles, \(x) pull(x, want, name = 1))
     
     for (j in seq_along(order.list[[1]])) {
         
@@ -124,18 +133,6 @@ iterake <- function(
         stuck.delta   <- 0
         delta.log     <- numeric()
         tmp           <- tmp.base
-        
-        for (i in seq_along(want.tibbles)) {
-            
-            want.tibbles[[i]] <- enframe(
-                x = setNames(want.tibbles[[i]]$targets, want.tibbles[[i]]$groups),
-                name = names(want.tibbles[i]),
-                value = "want"
-            )
-            
-        }
-        
-        want <- map(want.tibbles, \(x) pull(x, want, name = 1))
         
         # Calculate the initial "haves"
         have <- 
@@ -340,6 +337,7 @@ iterake <- function(
     out
 }
 
+
 #' Print method for iterake objects.
 #' 
 #' @method print iterake
@@ -410,95 +408,5 @@ print.iterake <- function(x, ...) {
 
 }
 
-
-# print.iterake <- function(x, digits = 3, ...) {
-#     # Notes:
-#     # Check the 3 outcomes:
-#     # 1. met the iteration limit
-#     # 2. met the stuck limit
-#     # 3. pass, success
-#     
-#     success <- x$status == 3
-#     
-#     if (success) {
-#         # output message
-#         out.good <- green $ bold
-#         title1 <- 'iterake summary'
-#         num.dashes <- nchar(title1) + 4
-#         rem.dashes <- 80 - num.dashes
-#         
-#         cat('\n-- ' %+%
-#                 bold(title1) %+%
-#                 ' ' %+%
-#                 paste(rep('-', times = rem.dashes), collapse = "") %+%
-#                 '\n')
-#         
-#         cat(' Convergence: ' %+% green('Success') %+% '\n')
-#         cat('  Iterations: ' %+% paste0(x$counter) %+% '\n\n')
-#         cat('Unweighted N: ' %+% paste0(sprintf("%.2f", x$summary$uwgt_n)) %+% '\n')
-#         cat(' Effective N: ' %+% paste0(sprintf("%.2f", x$summary$eff_n)) %+% '\n')
-#         cat('  Weighted N: ' %+% paste0(sprintf("%.2f", x$summary$wgt_n)) %+% '\n')
-#         cat('  Efficiency: ' %+% paste0(percent(round(x$summary$efficiency, digits))) %+% '\n')
-#         cat('        Loss: ' %+% paste0(round(x$summary$loss, digits)) %+% '\n')
-#         cat('       Order: ' %+% paste(x$winner, collapse = " ") %+% '\n\n')
-#         
-#     } else {
-#         # FAIL METHOD
-#         out.bad <- red $ bold
-# 
-#         title1 <- 'iterake summary'
-#         num.dashes <- nchar(title1) + 4
-#         rem.dashes <- 80 - num.dashes
-# 
-#         cat('\n-- ' %+%
-#                 bold(title1) %+%
-#                 ' ' %+%
-#                 paste(rep('-', times = rem.dashes), collapse = "") %+%
-#                 '\n')
-#         cat(' Convergence: ' %+% red('Failed') %+% '\n')
-#         cat('  Iterations: ' %+% paste0(x$counter) %+% '\n\n')
-#         cat('Unweighted N: ' %+% paste0(sprintf("%.2f", x$summary$uwgt_n)) %+% '\n')
-#         cat(' Effective N: ' %+% '--\n')
-#         cat('  Weighted N: ' %+% '--\n')
-#         cat('  Efficiency: ' %+% '--\n')
-#         cat('        Loss: ' %+% '--\n')
-#         
-#         if (x$status == 1) {
-#             cat(' NOTE: ' %+%
-#                     paste0('Max iterations met before converging, stopped at difference of ' %+%
-#                                paste0(
-#                                    formatC(x$delta,
-#                                            format = "e",
-#                                            digits = digits))) %+%
-#                     ' between weighted sample and universe.\n\n')
-#         }
-#         
-#         if (x$status == 2) {
-#             cat(' NOTE: ' %+%
-#                     paste0('Stuck threshold met, not consistantly improving, stopped at difference of ' %+%
-#                                paste0(
-#                                    formatC(x$stuck_delta,
-#                                            format = "e",
-#                                            digits = digits))) %+%
-#                     ' between weighted sample and universe.\n\n')
-#         }
-#     }
-#     
-#     # this area should be moved to a custom print function
-#     # cat_line("Delta")
-#     # print(delta.keep)
-#     # 
-#     # cat_line("Counter")
-#     # print(rep.ct.keep)
-#     # 
-#     # cat_line("Stuck Counter")
-#     # print(stk.ct.keep)
-#     # 
-#     # cat_line("Delta Log")
-#     # print(delta.log.keep)
-#     # 
-#     # cat_line("Weights")
-#     # print(res)
-# }
 
 utils::globalVariables(c("...wgt...", "eff_n", "uwgt_n", "wgt_fct"))
