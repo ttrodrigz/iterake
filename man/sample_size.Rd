@@ -18,9 +18,6 @@ or \code{"all"} for all three.}
 Either a single numeric value, or a named vector if \code{type = "all"}.
 }
 \description{
-Sample size calculations.
-}
-\details{
 The unweighed sample size is the number of non-missing elements in \code{x}. The
 weighted sample size is the sum of the weights for the complete cases in \code{x}
 and \code{w}. The effective sample size is \eqn{(sum(w)^2) / sum(w^2)}.
