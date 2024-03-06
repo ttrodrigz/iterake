@@ -10,8 +10,6 @@
 \item{x}{An \code{iterake} object.}
 
 \item{...}{Not currently used.}
-
-\item{digits}{Number of digits for printing proportions, default is 3.}
 }
 \description{
 Print method for iterake objects.

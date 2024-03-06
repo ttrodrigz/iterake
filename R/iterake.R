@@ -343,7 +343,6 @@ iterake <- function(
 #' @method print iterake
 #' 
 #' @param x An `iterake` object.
-#' @param digits Number of digits for printing proportions, default is 3.
 #' @param ... Not currently used.
 #' 
 #' @importFrom cli col_green col_red cat_line cat_bullet cat_rule
