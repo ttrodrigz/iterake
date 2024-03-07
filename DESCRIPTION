@@ -24,7 +24,10 @@ Imports:
     scales,
     stringr,
     tibble,
-    tidyselect
+    tidyselect,
+    ggplot2,
+    tidyr,
+    forcats
 Suggests:
     rmarkdown,
     testthat (>= 3.0.0)

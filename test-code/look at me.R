@@ -5,7 +5,7 @@ u <-
     new_category(
         name = "cyl",
         groups = c(4, 6, 8),
-        targets = c(1, 1, 1)
+        targets = c(1, 1, 1) 
     ) |> 
     new_category(
         name = "gear",
