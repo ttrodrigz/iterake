@@ -2,7 +2,8 @@
 #' 
 #' @description
 #' Returns a `tibble` of the unweighted, weighted, and effective sample sizes,
-#' the loss and weighting efficiency, and the minimum and maximum weight values.
+#' the loss and weighting efficiency, mean and median of the weight, 
+#' and the minimum and maximum weights.
 #' 
 #' @param x An `iterake` object or a numeric vector.
 #' 
@@ -21,7 +22,7 @@ weight_stats <- function(x) {
 #' @export
 weight_stats.iterake <- function(x) {
     
-    x$summary
+    x$stats
     
 }
 
@@ -29,7 +30,7 @@ weight_stats.iterake <- function(x) {
 #' 
 #' @param x A numeric vector.
 #' 
-#' @importFrom collapse fmin fmax
+#' @importFrom collapse fmin fmax fmean fmedian
 #' @importFrom tibble tibble
 #' @importFrom rlang warn
 #' 
@@ -46,6 +47,8 @@ weight_stats.numeric <- function(x) {
         eff_n = sample_size(x, x, type = "e"),
         loss = uwgt_n / eff_n - 1,
         efficiency = weighting_efficiency(x),
+        mean = fmean(x),
+        median = fmedian(x),
         min = fmin(x),
         max = fmax(x)
     )

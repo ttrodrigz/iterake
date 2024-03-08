@@ -306,15 +306,7 @@ iterake <- function(
     }
     
     res <- pull(tmp.keep, ...wgt...)
-    summary <- tibble(
-        "uwgt_n" = sample_size(res, res, type = "u"),
-        "wgt_n"  = sample_size(res, res, type = "w"),
-        "eff_n"  = sample_size(res, res, type = "e"),
-        "loss"   = uwgt_n / eff_n - 1,
-        "efficiency" = weighting_efficiency(res),
-        "min" = fmin(res),
-        "max" = fmax(res)
-    )
+    stats <- weight_stats(res)
 
     # remember downstream to check status
     out <- list(
@@ -329,7 +321,7 @@ iterake <- function(
         "delta" = delta.keep,
         "permute" = permute,
         "results" = res,
-        "summary" = summary
+        "stats" = stats
     )
     
     class(out) <- c(class(out), "iterake")
@@ -353,16 +345,17 @@ iterake <- function(
 print.iterake <- function(x, ...) {
     
     # Extract stuff --
-    thresh <- x$control$threshold
-    delta <- x$delta
-    dt.diff <- delta - thresh
-    status <- x$status
-    iter <- x$counter
-    uss <- x$summary$uwgt_n
-    wss <- x$summary$wgt_n
-    ess <- x$summary$eff_n
-    eff <- x$summary$efficiency
-    loss <- x$summary$loss
+    thresh    <- x$control$threshold
+    delta     <- x$delta
+    dt.diff   <- delta - thresh
+    status    <- x$status
+    iter      <- x$counter
+    uss       <- x$stats$uwgt_n
+    wss       <- x$stats$wgt_n
+    ess       <- x$stats$eff_n
+    eff       <- x$stats$efficiency
+    loss      <- x$stats$loss
+    avg       <- x$stats$mean
     cat.order <- x$cat_order
     
     # Start prettying the text --
@@ -388,6 +381,7 @@ print.iterake <- function(x, ...) {
     cat_line(" Effective N: ", comma(ess, accuracy = 0.1))
     cat_line("  Efficiency: ", percent(eff, 0.1))
     cat_line("        Loss: ", number(loss, 0.001))
+    cat_line("        Mean: ", number(avg, 0.001))
     cat_line("       Order: ", paste(cat.order, collapse = ", "))
     
     if (!converged) {

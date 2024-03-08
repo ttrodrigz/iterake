@@ -14,5 +14,6 @@ A \code{tibble}.
 }
 \description{
 Returns a \code{tibble} of the unweighted, weighted, and effective sample sizes,
-the loss and weighting efficiency, and the minimum and maximum weight values.
+the loss and weighting efficiency, mean and median of the weight,
+and the minimum and maximum weights.
 }
