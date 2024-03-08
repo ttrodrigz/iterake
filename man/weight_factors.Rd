@@ -2,7 +2,7 @@
 % Please edit documentation in R/weight_factors.R
 \name{weight_factors}
 \alias{weight_factors}
-\title{Generate information on weight factors}
+\title{Get weighting factors for categories used in weighting scheme}
 \usage{
 weight_factors(x)
 }
@@ -10,10 +10,9 @@ weight_factors(x)
 \item{x}{Output of \code{iterake()}.}
 }
 \value{
-A \code{tibble} containing every weighting category combination used by \code{iterake()} along with
-the weight assigned to it and the number in each combination.
+A \code{tibble}.
 }
 \description{
-This function creates a \code{tibble} containing every combination of weighting categories
-used by \code{iterake()}, along with the size of each combination and its weight.
+This creates a \code{tibble} of every combination of the groups of the weighting
+categories passed to \code{universe()}, their weights, and the number of occurrences.
 }

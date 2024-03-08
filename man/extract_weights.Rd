@@ -4,12 +4,12 @@
 \alias{extract_weights}
 \title{Extract weights}
 \usage{
-extract_weights(x, name = "weight", append = TRUE)
+extract_weights(x, name = ".weight", append = TRUE)
 }
 \arguments{
 \item{x}{Output of \code{iterake()}.}
 
-\item{name}{Desired column name of the weights, default is \code{"weight"}.}
+\item{name}{Desired column name of the weights, default is \code{".weight"}.}
 
 \item{append}{Whether or not to either append the weights to the original
 data (\code{TRUE}, default), or to only return a \code{tibble} of the weights.}

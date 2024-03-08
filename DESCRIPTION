@@ -24,7 +24,6 @@ Imports:
     scales,
     stringr,
     tibble,
-    tidyselect,
     ggplot2,
     tidyr,
     forcats

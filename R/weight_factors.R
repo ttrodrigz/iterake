@@ -1,31 +1,29 @@
-#' Generate information on weight factors
+#' Get weighting factors for categories used in weighting scheme
 #' 
 #' @description
-#' This function creates a `tibble` containing every combination of weighting categories
-#' used by `iterake()`, along with the size of each combination and its weight.
+#' This creates a `tibble` of every combination of the groups of the weighting
+#' categories passed to `universe()`, their weights, and the number of occurrences.
 #' 
 #' @param x Output of `iterake()`.
 #' 
-#' @importFrom dplyr across count group_by select ungroup
-#' @importFrom rlang abort
-#' @importFrom tidyselect all_of
+#' @importFrom dplyr as_tibble mutate count
+#' @importFrom rlang abort syms
 #' 
-#' @return A `tibble` containing every weighting category combination used by `iterake()` along with 
-#' the weight assigned to it and the number in each combination.
+#' @return A `tibble`.
 #' 
 #' @export
 weight_factors <- function(x) {
     
-    if (!inherits(iterake, "iterake")) {
+    if (!inherits(x, "iterake")) {
         abort("Input to `x` must be the output of `iterake()`.")
     }
     
-    x$universe$data$data |>
-        select(names(x$universe$categories)) |>
-        mutate(weight = x$results) |>
-        group_by(across(all_of(names(x$universe$categories)))) |>
-        count(weight) |>
-        ungroup()
+    cat.vars <- c(names(x$universe$categories), ".weight")
+    
+    x$universe$data$data |> 
+        as_tibble() |> 
+        mutate(.weight = x$results) |> 
+        count(!!!syms(cat.vars))
     
 }
 
