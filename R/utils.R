@@ -111,7 +111,7 @@ weighting_efficiency <- function(w) {
 }
 
 
-#' Parameter setting function for \code{iterake()}.
+#' Parameter setting function for `iterake()`.
 #' 
 #' @param threshold Value specifying minimum summed difference between weighted marginal 
 #' proportions of sample and universe before algorithm quits, default is 1e-10.
@@ -122,7 +122,7 @@ weighting_efficiency <- function(w) {
 #' 
 #' @importFrom rlang abort
 #' 
-#' @return A \code{list} with special class \code{control}.
+#' @return A `list` with special class `control`.
 #' 
 #' @export
 control_iterake <- function(

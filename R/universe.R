@@ -2,18 +2,18 @@
 #' 
 #' @description
 #' Along with the data to be weighted, this combines one or more objects of 
-#' class \code{category} to build the universe with known marginal proportions. 
+#' class `category` to build the universe with known marginal proportions. 
 #' It also checks and adjusts the proportions to account for missing values in the data.
 #' 
 #' @param data Data frame containing data where weights are desired.
-#' @param ... One or more output objects from \code{category()}.
+#' @param ... One or more output objects from `category()`.
 #' 
 #' @importFrom dplyr setdiff
 #' @importFrom glue glue
 #' @importFrom purrr list_c map map_lgl
 #' @importFrom rlang abort dots_list
 #' 
-#' @return A \code{list} with special class \code{universe}.
+#' @return A `list` with special class `universe`.
 #' 
 #' @examples 
 #' universe(

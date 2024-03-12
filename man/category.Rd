@@ -17,7 +17,7 @@ These target will be automatically re-proportioned to sum to 1 if
 necessary.}
 }
 \value{
-A list with the class of \code{"category"}.
+A \code{list} with the class of \code{"category"}.
 }
 \description{
 This function creates a new weighting category.
