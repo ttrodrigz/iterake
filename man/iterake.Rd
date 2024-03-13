@@ -9,12 +9,12 @@ iterake(universe, permute = FALSE, control = control_iterake())
 \arguments{
 \item{universe}{Output object created with the \code{universe()} function.}
 
-\item{permute}{\code{boolean} indicating whether to test all possible orders of categories in \code{universe}
+\item{permute}{Whether to test all possible orders of categories in \code{universe}
 and keep the most efficient (\code{TRUE}) or to test categories in the order listed in \code{universe}
-only (default, \code{FALSE}), optional. Note that when \code{TRUE} this will increase runtime by a
-factor of \verb{(number of categories)!}.}
+only (default, \code{FALSE}). Setting this to \code{TRUE} will increase the run time by
+a factor of the factorial of the number of weighting categories.}
 
-\item{control}{Output object created with \code{control_iterake()} function.}
+\item{control}{Controls for the raking algorithm created with \code{control_iterake()}.}
 }
 \value{
 A \code{list} that includes details of the run as well as the generated weights.
@@ -27,16 +27,26 @@ characteristics. This iterative fitting algorithm is rooted in the mathematical
 model developed by \href{https://www.jstor.org/stable/2235722}{Deming & Stephan (1940)}.
 }
 \details{
-Using targets from a known population, the process begins by obtaining target
-weight factors for the first of the groups supplied
-to \code{universe()}. It then applies those weights, and iteration begins. Using
-those prior weights it then assesses the next group in the \code{universe()} to
-determine what weight factors will be needed for the next group, and then applies
-those new weights and so on until all of the groups in \code{universe()} have been
-assessed. The process then loops back to the beginning again, reassessing the
-first group in \code{universe()} but now using the weights from the prior iteration.
-This cycle continues until ideally the multiplicative weights converge on the
-desired outcome, giving you the weighting factors necessary to achieve the targets.
+The algorithm begins by assigning a temporary weight of 1 for each case. It
+then calculates the weighting factor of the first group supplied in \code{universe()}
+by taking the ratio of the target proportions of that weighting category to
+the weighted proportions of that variable in the data. (While it is taking
+a weighed proportion, it is effectively unweighted at this time since the
+temporary weights are currently all set to 1).
+
+After the weighting factors are calculated and assigned to each respondent,
+the new weights are created by multiplying the existing weights by the
+weighting factor. This process is repeated for each of the categories passed
+to \code{universe()}.
+
+At this point, the sum of the absolute values of the difference between the
+target and actual proportions are calculated. If this value is less than the
+\code{threshold} set in \code{control_iterake()}, then the algorithm has converged and
+stops. Otherwise, it continues to cycle through the weighting categories until
+either (a) the algorithm converges, (b) it reaches the maximum number of
+iterations (set with \code{max_iter}), or (c) the algorithm gets stuck where the
+sum of the absolute values of the differences osculates between getting smaller
+and larger (set with \code{max_stuck}).
 
 There are times when the usage of this weighting approach is not advisable. If
 there is a known strong relationship between targets in \code{universe()}, this approach
@@ -44,7 +54,7 @@ will not capture that relationship. If there are either too large a number
 of targets or targets are too discrepant from the actual sample, convergence may
 not be possible - though how convergence is defined can be modified in
 \code{control_iterake()}, which can make the process of converging easier or more
-difficult by changing the number of iterations or the maximum weight factor
+difficult by changing the number of iterations or the max/min weight factor
 allowed.
 
 There is also a \code{permute} argument that can be supplied to \code{iterake()}, and when set to \code{TRUE}
