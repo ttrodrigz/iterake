@@ -13,7 +13,7 @@
 #' @importFrom labelled is.labelled val_labels
 #' @importFrom rlang warn abort
 #' 
-#' @return A list with the class of `"category"`.
+#' @return A `list` with the class of `"category"`.
 #' 
 #' @examples
 #' category(

@@ -1,18 +1,40 @@
-#' Iterative raking procedure
+#' Iterative raking
 #' 
-#' This function creates case weights using an iterative raking algorithm based
-#' on targets from a known population (established with \code{universe()}).
-#' The weights are appended as a new column in the data. If \code{iterake()} 
-#' converges, the weighted marginal proportions of the sample will match those
-#' set in \code{universe()}. Summary statistics of the weighting procedure are 
-#' presented by default.
+#' @description
+#' This function utilizes an iterative process known as Raking or RIM (Random 
+#' Iterative Method) weighting, which allows the user to adjust multiple 
+#' characteristics simultaneously without knowing the relationship between those 
+#' characteristics. This iterative fitting algorithm is rooted in the mathematical 
+#' model developed by Deming & Stephan (1940). 
+#' Using targets from a known population (established with `universe()`), the process 
+#' starts by obtaining target weight factors for the first of the targets supplied 
+#' to `universe()`. It then applies those weights, and iteration begins. Using 
+#' those prior weights it then assesses the next target in the `universe()` to 
+#' determine what weight factors will be needed for the new target, and then applies 
+#' those new weights and so on until all of the targets in `universe()` have been 
+#' assessed. The process then loops back to the beginning again, reassessing the 
+#' first target in `universe()` but now using the weights from the prior iteration. 
+#' This cycle continues until ideally the multiplicative weights converge on the 
+#' desired outcome, giving you the weighting factors necessary to achieve the targets 
+#' assigned in `universe()`.
+#' There are times when the usage of this weighting approach is not advisable. If
+#' there is a known strong relationship between targets in `universe()`, this approach
+#' will not capture that relationship. If there are either too large a number
+#' of targets or targets are too discrepant from the actual sample, convergence may
+#' not be possible - though how convergence is defined can be modified in 
+#' `control_iterake()`, which can make the process of converging easier or more 
+#' difficult by changing the number of iterations or the maximum weight factor 
+#' allowed. 
+#' There is also a `permute` argument that can be supplied to `iterake()`, and when set to `TRUE` 
+#' it will assess every order of targets in `universe()` possible, and select as 
+#' the winner the one that converges or has the highest effective N.
 #' 
-#' @param universe Output object created with \code{universe()} function.
-#' @param permute Boolean indicating whether to test all possible orders of categories in \code{universe} 
-#' and keep the most efficient (\code{TRUE}) or to test categories in the order listed in \code{universe} 
-#' only (default, \code{FALSE}), optional. Note that when \code{TRUE} this will increase runtime by a 
-#' factor of \code{(number of categories)!}.
-#' @param control Output object created with \code{control_iterake()} function.
+#' @param universe Output object created with the `universe()` function.
+#' @param permute `boolean` indicating whether to test all possible orders of categories in `universe`
+#' and keep the most efficient (`TRUE`) or to test categories in the order listed in `universe`
+#' only (default, `FALSE`), optional. Note that when `TRUE` this will increase runtime by a 
+#' factor of `(number of categories)!`.
+#' @param control Output object created with `control_iterake()` function.
 #' 
 #' @importFrom arrangements permutations
 #' @importFrom cli cli_progress_bar cli_progress_done cli_progress_update
@@ -24,7 +46,7 @@
 #' @importFrom tibble as_tibble enframe tibble
 #' @importFrom utils tail
 #' 
-#' @return A \code{list} that includes details of the run as well as the generated weights.
+#' @return A `list` that includes details of the run as well as the generated weights.
 #' 
 #' @export
 iterake <- function(

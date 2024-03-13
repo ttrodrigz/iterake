@@ -26,5 +26,3 @@ weight_factors <- function(x) {
         count(!!!syms(cat.vars))
     
 }
-
-utils::globalVariables(c("weight"))
