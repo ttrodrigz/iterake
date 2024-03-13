@@ -24,18 +24,20 @@ This function utilizes an iterative process known as Raking or RIM (Random
 Iterative Method) weighting, which allows the user to adjust multiple
 characteristics simultaneously without knowing the relationship between those
 characteristics. This iterative fitting algorithm is rooted in the mathematical
-model developed by Deming & Stephan (1940).
-Using targets from a known population (established with \code{universe()}), the process
-starts by obtaining target weight factors for the first of the targets supplied
+model developed by \href{https://www.jstor.org/stable/2235722}{Deming & Stephan (1940)}.
+}
+\details{
+Using targets from a known population, the process begins by obtaining target
+weight factors for the first of the groups supplied
 to \code{universe()}. It then applies those weights, and iteration begins. Using
-those prior weights it then assesses the next target in the \code{universe()} to
-determine what weight factors will be needed for the new target, and then applies
-those new weights and so on until all of the targets in \code{universe()} have been
+those prior weights it then assesses the next group in the \code{universe()} to
+determine what weight factors will be needed for the next group, and then applies
+those new weights and so on until all of the groups in \code{universe()} have been
 assessed. The process then loops back to the beginning again, reassessing the
-first target in \code{universe()} but now using the weights from the prior iteration.
+first group in \code{universe()} but now using the weights from the prior iteration.
 This cycle continues until ideally the multiplicative weights converge on the
-desired outcome, giving you the weighting factors necessary to achieve the targets
-assigned in \code{universe()}.
+desired outcome, giving you the weighting factors necessary to achieve the targets.
+
 There are times when the usage of this weighting approach is not advisable. If
 there is a known strong relationship between targets in \code{universe()}, this approach
 will not capture that relationship. If there are either too large a number
@@ -44,6 +46,7 @@ not be possible - though how convergence is defined can be modified in
 \code{control_iterake()}, which can make the process of converging easier or more
 difficult by changing the number of iterations or the maximum weight factor
 allowed.
+
 There is also a \code{permute} argument that can be supplied to \code{iterake()}, and when set to \code{TRUE}
 it will assess every order of targets in \code{universe()} possible, and select as
 the winner the one that converges or has the highest effective N.

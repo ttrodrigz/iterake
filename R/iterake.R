@@ -5,36 +5,49 @@
 #' Iterative Method) weighting, which allows the user to adjust multiple 
 #' characteristics simultaneously without knowing the relationship between those 
 #' characteristics. This iterative fitting algorithm is rooted in the mathematical 
-#' model developed by Deming & Stephan (1940). 
-#' Using targets from a known population (established with `universe()`), the process 
-#' starts by obtaining target weight factors for the first of the targets supplied 
-#' to `universe()`. It then applies those weights, and iteration begins. Using 
-#' those prior weights it then assesses the next target in the `universe()` to 
-#' determine what weight factors will be needed for the new target, and then applies 
-#' those new weights and so on until all of the targets in `universe()` have been 
-#' assessed. The process then loops back to the beginning again, reassessing the 
-#' first target in `universe()` but now using the weights from the prior iteration. 
-#' This cycle continues until ideally the multiplicative weights converge on the 
-#' desired outcome, giving you the weighting factors necessary to achieve the targets 
-#' assigned in `universe()`.
+#' model developed by \href{https://www.jstor.org/stable/2235722}{Deming & Stephan (1940)}. 
+#' 
+#' @details
+#' The algorithm begins by assigning a temporary weight of 1 for each case. It
+#' then calculates the weighting factor of the first group supplied in `universe()`
+#' by taking the ratio of the target proportions of that weighting category to
+#' the weighted proportions of that variable in the data. (While it is taking
+#' a weighed proportion, it is effectively unweighted at this time since the 
+#' temporary weights are currently all set to 1).
+#' 
+#' After the weighting factors are calculated and assigned to each respondent, 
+#' the new weights are created by multiplying the existing weights by the 
+#' weighting factor. This process is repeated for each of the categories passed
+#' to `universe()`.
+#' 
+#' At this point, the sum of the absolute values of the difference between the 
+#' target and actual proportions are calculated. If this value is less than the
+#' `threshold` set in `control_iterake()`, then the algorithm has converged and 
+#' stops. Otherwise, it continues to cycle through the weighting categories until
+#' either (a) the algorithm converges, (b) it reaches the maximum number of
+#' iterations (set with `max_iter`), or (c) the algorithm gets stuck where the 
+#' sum of the absolute values of the differences osculates between getting smaller
+#' and larger (set with `max_stuck`).
+#' 
 #' There are times when the usage of this weighting approach is not advisable. If
 #' there is a known strong relationship between targets in `universe()`, this approach
 #' will not capture that relationship. If there are either too large a number
 #' of targets or targets are too discrepant from the actual sample, convergence may
 #' not be possible - though how convergence is defined can be modified in 
 #' `control_iterake()`, which can make the process of converging easier or more 
-#' difficult by changing the number of iterations or the maximum weight factor 
+#' difficult by changing the number of iterations or the max/min weight factor 
 #' allowed. 
+#' 
 #' There is also a `permute` argument that can be supplied to `iterake()`, and when set to `TRUE` 
 #' it will assess every order of targets in `universe()` possible, and select as 
 #' the winner the one that converges or has the highest effective N.
 #' 
 #' @param universe Output object created with the `universe()` function.
-#' @param permute `boolean` indicating whether to test all possible orders of categories in `universe`
+#' @param permute Whether to test all possible orders of categories in `universe`
 #' and keep the most efficient (`TRUE`) or to test categories in the order listed in `universe`
-#' only (default, `FALSE`), optional. Note that when `TRUE` this will increase runtime by a 
-#' factor of `(number of categories)!`.
-#' @param control Output object created with `control_iterake()` function.
+#' only (default, `FALSE`). Setting this to `TRUE` will increase the run time by
+#' a factor of the factorial of the number of weighting categories.
+#' @param control Controls for the raking algorithm created with `control_iterake()`.
 #' 
 #' @importFrom arrangements permutations
 #' @importFrom cli cli_progress_bar cli_progress_done cli_progress_update
