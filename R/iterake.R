@@ -26,21 +26,21 @@
 #' stops. Otherwise, it continues to cycle through the weighting categories until
 #' either (a) the algorithm converges, (b) it reaches the maximum number of
 #' iterations (set with `max_iter`), or (c) the algorithm gets stuck where the 
-#' sum of the absolute values of the differences osculates between getting smaller
+#' sum of the absolute values of the differences oscillates between getting smaller
 #' and larger (set with `max_stuck`).
 #' 
 #' There are times when the usage of this weighting approach is not advisable. If
-#' there is a known strong relationship between targets in `universe()`, this approach
-#' will not capture that relationship. If there are either too large a number
-#' of targets or targets are too discrepant from the actual sample, convergence may
-#' not be possible - though how convergence is defined can be modified in 
+#' there is a known strong relationship between targets in `universe()`, this 
+#' approach will not capture that relationship. If there are either too large a 
+#' number of targets or targets are too discrepant from the actual sample, convergence 
+#' may not be possible - though how convergence is defined can be modified in 
 #' `control_iterake()`, which can make the process of converging easier or more 
 #' difficult by changing the number of iterations or the max/min weight factor 
 #' allowed. 
 #' 
-#' There is also a `permute` argument that can be supplied to `iterake()`, and when set to `TRUE` 
-#' it will assess every order of targets in `universe()` possible, and select as 
-#' the winner the one that converges or has the highest effective N.
+#' There is also a `permute` argument that can be supplied to `iterake()`, and 
+#' when set to `TRUE` it will assess every order of targets in `universe()` possible, 
+#' and select as the winner the one that converges or has the highest effective N.
 #' 
 #' @param universe Output object created with the `universe()` function.
 #' @param permute Whether to test all possible orders of categories in `universe`
@@ -59,7 +59,47 @@
 #' @importFrom tibble as_tibble enframe tibble
 #' @importFrom utils tail
 #' 
-#' @return A `list` that includes details of the run as well as the generated weights.
+#' @return A `list` that currently includes 12 objects:
+#' * `universe` - This is a copy of the `universe` object originally passed to `iterake`
+#' * `control` - This is a copy of the `control` object originally passed to `iterake`
+#' * `status` - Character stating the outcome of the run - one of `success`, 
+#'              `max iter`, or `max stuck`
+#' * `delta_log` - Numeric vector listing the sum of absolute differences between 
+#'                 the target and actual proportions for each iteration
+#' * `counter` - The number of iterations that were ran
+#' * `stuck_counter` - The number of times the sum of absolute differences oscillated 
+#'                     between decreasing and increasing
+#' * `stuck_delta` - The sum of absolute differences between the target and actual 
+#'                   proportions once `max_stuck` is reached
+#' * `cat_order` - The order of targets used to generate weights
+#' * `delta` - The sum of absolute differences between the target and actual 
+#'             proportions for the last iteration ran
+#' * `permute` - This is a copy of the `permute` parameter originally passed to `iterake`
+#' * `results` - Numeric vector of the final generated weights
+#' * `stats` - A `tibble` of summary statistics of the resulting weights, containing 
+#'             the following information:
+#'   + unweighted, weighted, and effective N
+#'   + loss and efficiency of weights
+#'   + mean, median, min, and max of weights
+#' 
+#' @examples
+#' iterake(
+#'     universe = universe(
+#'         data = mtcars,
+#'         category(
+#'             name = "cyl",
+#'             groups = c(4, 6, 8),
+#'             targets = c(0.3, 0.3, 0.4)
+#'         ),
+#'         category(
+#'             name = "vs",
+#'             groups = c(0, 1),
+#'             targets = c(1/2, 1/2)
+#'         )
+#'     ),
+#'     permute = FALSE,
+#'     control = control_iterake()
+#' )
 #' 
 #' @export
 iterake <- function(

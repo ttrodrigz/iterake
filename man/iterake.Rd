@@ -17,7 +17,32 @@ a factor of the factorial of the number of weighting categories.}
 \item{control}{Controls for the raking algorithm created with \code{control_iterake()}.}
 }
 \value{
-A \code{list} that includes details of the run as well as the generated weights.
+A \code{list} that currently includes 12 objects:
+\itemize{
+\item \code{universe} - This is a copy of the \code{universe} object originally passed to \code{iterake}
+\item \code{control} - This is a copy of the \code{control} object originally passed to \code{iterake}
+\item \code{status} - Character stating the outcome of the run - one of \code{success},
+\verb{max iter}, or \verb{max stuck}
+\item \code{delta_log} - Numeric vector listing the sum of absolute differences between
+the target and actual proportions for each iteration
+\item \code{counter} - The number of iterations that were ran
+\item \code{stuck_counter} - The number of times the sum of absolute differences oscillated
+between decreasing and increasing
+\item \code{stuck_delta} - The sum of absolute differences between the target and actual
+proportions once \code{max_stuck} is reached
+\item \code{cat_order} - The order of targets used to generate weights
+\item \code{delta} - The sum of absolute differences between the target and actual
+proportions for the last iteration ran
+\item \code{permute} - This is a copy of the \code{permute} parameter originally passed to \code{iterake}
+\item \code{results} - Numeric vector of the final generated weights
+\item \code{stats} - A \code{tibble} of summary statistics of the resulting weights, containing
+the following information:
+\itemize{
+\item unweighted, weighted, and effective N
+\item loss and efficiency of weights
+\item mean, median, min, and max of weights
+}
+}
 }
 \description{
 This function utilizes an iterative process known as Raking or RIM (Random
@@ -45,19 +70,39 @@ target and actual proportions are calculated. If this value is less than the
 stops. Otherwise, it continues to cycle through the weighting categories until
 either (a) the algorithm converges, (b) it reaches the maximum number of
 iterations (set with \code{max_iter}), or (c) the algorithm gets stuck where the
-sum of the absolute values of the differences osculates between getting smaller
+sum of the absolute values of the differences oscillates between getting smaller
 and larger (set with \code{max_stuck}).
 
 There are times when the usage of this weighting approach is not advisable. If
-there is a known strong relationship between targets in \code{universe()}, this approach
-will not capture that relationship. If there are either too large a number
-of targets or targets are too discrepant from the actual sample, convergence may
-not be possible - though how convergence is defined can be modified in
+there is a known strong relationship between targets in \code{universe()}, this
+approach will not capture that relationship. If there are either too large a
+number of targets or targets are too discrepant from the actual sample, convergence
+may not be possible - though how convergence is defined can be modified in
 \code{control_iterake()}, which can make the process of converging easier or more
 difficult by changing the number of iterations or the max/min weight factor
 allowed.
 
-There is also a \code{permute} argument that can be supplied to \code{iterake()}, and when set to \code{TRUE}
-it will assess every order of targets in \code{universe()} possible, and select as
-the winner the one that converges or has the highest effective N.
+There is also a \code{permute} argument that can be supplied to \code{iterake()}, and
+when set to \code{TRUE} it will assess every order of targets in \code{universe()} possible,
+and select as the winner the one that converges or has the highest effective N.
+}
+\examples{
+iterake(
+    universe = universe(
+        data = mtcars,
+        category(
+            name = "cyl",
+            groups = c(4, 6, 8),
+            targets = c(0.3, 0.3, 0.4)
+        ),
+        category(
+            name = "vs",
+            groups = c(0, 1),
+            targets = c(1/2, 1/2)
+        )
+    ),
+    permute = FALSE,
+    control = control_iterake()
+)
+
 }
