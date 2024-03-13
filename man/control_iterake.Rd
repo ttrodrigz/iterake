@@ -2,29 +2,32 @@
 % Please edit documentation in R/utils.R
 \name{control_iterake}
 \alias{control_iterake}
-\title{Parameter setting function for \code{iterake()}.}
+\title{Algorithm control settings for \code{iterake()}.}
 \usage{
 control_iterake(
   threshold = 1e-10,
   max_weight = 3,
+  min_weight = 0,
   max_iter = 50,
   max_stuck = 5
 )
 }
 \arguments{
 \item{threshold}{Value specifying minimum summed difference between weighted marginal
-proportions of sample and universe before algorithm quits, default is 1e-10.}
+proportions of sample and universe before algorithm quits, default is \code{1e-10}.}
 
-\item{max_weight}{Maximum value weights can take on, default is 3.}
+\item{max_weight}{Maximum value weights can take on, default is \code{3}.}
 
-\item{max_iter}{Value capping number of iterations for the procedure, default is 50.}
+\item{min_weight}{Minimum value weights can take on, default is \code{0}.}
+
+\item{max_iter}{Value capping number of iterations for the procedure, default is \code{50}.}
 
 \item{max_stuck}{Value capping the number of times summed differences between sample
-and universe can oscillate between increasing and decreasing, default is 5.}
+and universe can oscillate between increasing and decreasing, default is \code{5}.}
 }
 \value{
 A \code{list} with special class \code{control}.
 }
 \description{
-Parameter setting function for \code{iterake()}.
+Algorithm control settings for \code{iterake()}.
 }

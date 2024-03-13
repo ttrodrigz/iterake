@@ -111,14 +111,15 @@ weighting_efficiency <- function(w) {
 }
 
 
-#' Parameter setting function for `iterake()`.
+#' Algorithm control settings for `iterake()`.
 #' 
 #' @param threshold Value specifying minimum summed difference between weighted marginal 
-#' proportions of sample and universe before algorithm quits, default is 1e-10.
-#' @param max_weight Maximum value weights can take on, default is 3.
-#' @param max_iter Value capping number of iterations for the procedure, default is 50.
+#' proportions of sample and universe before algorithm quits, default is `1e-10`.
+#' @param max_weight Maximum value weights can take on, default is `3`.
+#' @param min_weight Minimum value weights can take on, default is `0`.
+#' @param max_iter Value capping number of iterations for the procedure, default is `50`.
 #' @param max_stuck Value capping the number of times summed differences between sample 
-#' and universe can oscillate between increasing and decreasing, default is 5.
+#' and universe can oscillate between increasing and decreasing, default is `5`.
 #' 
 #' @importFrom rlang abort
 #' 
@@ -128,6 +129,7 @@ weighting_efficiency <- function(w) {
 control_iterake <- function(
         threshold = 1e-10,
         max_weight = 3,
+        min_weight = 0,
         max_iter = 50,
         max_stuck = 5
 ) {
@@ -142,6 +144,18 @@ control_iterake <- function(
         abort("Input to `threshold` must be a single positive numeric value.")
     }
     
+    # min_weight
+    if (any(
+        length(min_weight) > 1,
+        !is.numeric(min_weight),
+        min_weight < 0
+    )) {
+        
+        abort("Input to `min_weight` must be a single numeric value greater than 0.")
+        
+    }
+    
+    
     # max_weight
     if (any(
         length(max_weight) > 1,
@@ -149,8 +163,12 @@ control_iterake <- function(
         max_weight <= 1
     )) {
         
-        abort("Input to `max_weight` must be a single numeric value greater than 1.")
+        abort("Input to `max_weight` must be a single numeric value greater than or equal to 1.")
         
+    }
+    
+    if (min_weight >= max_weight) {
+        abort("Input to `max_weight` must be greater than `min_weight`.")
     }
     
     # max_iter
@@ -178,6 +196,7 @@ control_iterake <- function(
     out <- list(
         threshold = threshold,
         max_weight = max_weight,
+        min_weight = min_weight,
         max_iter = max_iter,
         max_stuck = max_stuck
     )

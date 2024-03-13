@@ -112,6 +112,7 @@ iterake <- function(
     # error checking for these is already handled by the control_iterake function
     threshold  <- control$threshold
     max.weight <- control$max_weight
+    min.weight <- control$min_weight
     max.iter   <- control$max_iter
     max.stuck  <- control$max_stuck
     
@@ -209,8 +210,12 @@ iterake <- function(
                     
                     # create the new weight by multiplying the old by the
                     # newly created weighting factor
-                    # `pmin()` faster and uses less memory than `ifelse()`
-                    fmutate(...wgt... = pmin(max.weight, ...wgt... * wgt_fct)) |> 
+                    # `pmin/pmax()` faster and uses less memory than `ifelse()`
+                    fmutate(
+                        ...wgt... = ...wgt... * wgt_fct,
+                        ...wgt... = pmin(max.weight, ...wgt...),
+                        ...wgt... = pmax(min.weight, ...wgt...)
+                    ) |>
                     
                     # grab columns needed
                     fselect(wt.cats.tmp, "...wgt...")
