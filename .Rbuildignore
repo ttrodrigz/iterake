@@ -11,3 +11,4 @@
 ^test-code$
 ^data-raw$
 ^README_cache$
+^data-make$

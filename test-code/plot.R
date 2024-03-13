@@ -128,4 +128,4 @@ autoplot.iterake <- function(object, ...) {
     
 }
 
-# autoplot(i)
+autoplot(i)

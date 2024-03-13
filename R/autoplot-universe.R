@@ -58,6 +58,21 @@ autoplot.universe <- function(object, ...) {
             group = fct_rev(group)
         )
     
+    # Calculate delta
+    browser()
+    
+    # Calculate the sum of the absolute difference of the "wants" and "haves"
+    delta <- sum(map2_dbl(
+        .x = want,
+        .y = have,
+        .f = \(w, h) sum(abs(w - h))
+    ))
+    
+    w <- want$target
+    h <- have$uwgt_p
+    
+    sum(abs(want$target - have$uwgt_p))
+
     # Plot
     joined |> 
         mutate(version = "Unweighted") |> 
