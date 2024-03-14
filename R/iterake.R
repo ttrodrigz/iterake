@@ -51,7 +51,7 @@
 #' 
 #' @importFrom arrangements permutations
 #' @importFrom cli cli_progress_bar cli_progress_done cli_progress_update
-#' @importFrom collapse fgroup_by fmax fmin fmutate fselect fsum fungroup join qtab replace_Inf ss
+#' @importFrom collapse fgroup_by fmax fmin fmutate fselect fsum fungroup join qtab replace_inf ss
 #' @importFrom dplyr pull
 #' @importFrom purrr map map2_dbl set_names
 #' @importFrom rlang abort
@@ -257,9 +257,9 @@ iterake <- function(
                     
                     # weight factor is the "wants" / "haves"
                     # w / h will result in Inf if the denominator is 0
-                    # `replace_Inf()` is faster and uses less memory than
+                    # `replace_inf()` is faster and uses less memory than
                     # using an `ifelse()`
-                    fmutate(wgt_fct = replace_Inf(want / have, value = 0)) |> 
+                    fmutate(wgt_fct = replace_inf(want / have, value = 0)) |> 
                     
                     # create the new weight by multiplying the old by the
                     # newly created weighting factor

@@ -15,7 +15,7 @@ LazyData: true
 Imports:
     arrangements,
     cli,
-    collapse,
+    collapse (>= 2.0.7),
     dplyr,
     glue,
     labelled,
