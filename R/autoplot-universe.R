@@ -6,7 +6,7 @@
 #' @param object Output of `universe()`.
 #' @param ... Not currently used.
 #' 
-#' @importFrom dplyr select all_of mutate left_join rename join_by
+#' @importFrom dplyr select all_of mutate left_join rename join_by summarise
 #' @importFrom forcats fct_inorder fct_rev
 #' @importFrom purrr map pluck
 #' @importFrom collapse qtab
@@ -14,6 +14,7 @@
 #' @importFrom tidyr unnest
 #' @importFrom ggplot2 ggplot aes geom_errorbar geom_point scale_color_manual
 #' facet_wrap theme theme_minimal element_rect labs autoplot
+#' @importFrom scales percent
 #' 
 #' @exportS3Method autoplot universe
 autoplot.universe <- function(object, ...) {
@@ -58,24 +59,26 @@ autoplot.universe <- function(object, ...) {
             group = fct_rev(group)
         )
     
-    # Calculate delta
-    browser()
-    
-    # Calculate the sum of the absolute difference of the "wants" and "haves"
-    delta <- sum(map2_dbl(
-        .x = want,
-        .y = have,
-        .f = \(w, h) sum(abs(w - h))
-    ))
-    
-    w <- want$target
-    h <- have$uwgt_p
-    
-    sum(abs(want$target - have$uwgt_p))
 
+    # Calculate the sum of the absolute difference of the "wants" and "haves"
+    delta <-
+        want |> 
+        left_join(have, by = join_by(category, group)) |> 
+        summarise(
+            sae = sum(abs(target - uwgt_p)),
+            .by = category
+        )
+    
     # Plot
     joined |> 
-        mutate(version = "Unweighted") |> 
+        left_join(delta, by = join_by(category)) |> 
+        mutate(
+            version = "Unweighted",
+            sae = percent(sae, 0.01),
+            category = paste0(
+                category, "\nSAE = ", sae
+            )
+        ) |> 
         ggplot(aes(y = group)) +
         geom_errorbar(
             aes(xmin = target, xmax = target), 
@@ -102,6 +105,7 @@ autoplot.universe <- function(object, ...) {
             y = NULL,
             title = "Actual vs Target Marginal Proportions",
             subtitle = "Vertical lines represent the target proportion",
+            caption = paste0("Total sum of absolute error (SAE) = ", percent(sum(delta$sae), accuracy = 0.01)),
             color = NULL
         )
     
@@ -111,5 +115,5 @@ autoplot.universe <- function(object, ...) {
 ggplot2::autoplot
 
 utils::globalVariables(c(
-    "data", "group", "target", "uwgt_p"
+    "data", "group", "target", "uwgt_p", "sae"
 ))

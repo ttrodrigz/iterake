@@ -57,7 +57,7 @@ then calculates the weighting factor of the first group supplied in \code{univer
 by taking the ratio of the target proportions of that weighting category to
 the weighted proportions of that variable in the data. (While it is taking
 a weighed proportion, it is effectively unweighted at this time since the
-temporary weights are currently all set to 1).
+temporary weights are currently all set to 1.)
 
 After the weighting factors are calculated and assigned to each respondent,
 the new weights are created by multiplying the existing weights by the
